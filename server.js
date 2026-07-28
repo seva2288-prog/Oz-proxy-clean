@@ -6,7 +6,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ===== ПРОКСИ ДЛЯ API-FOOTBALL =====
 app.get('/api/football/:endpoint', async (req, res) => {
     try {
         const { endpoint } = req.params;
@@ -23,7 +22,6 @@ app.get('/api/football/:endpoint', async (req, res) => {
     }
 });
 
-// ===== xG (Understat) =====
 app.get('/api/xg/:league', async (req, res) => {
     try {
         const { league } = req.params;
@@ -41,12 +39,10 @@ app.get('/api/xg/:league', async (req, res) => {
     }
 });
 
-// ===== LIVE (заглушка) =====
 app.get('/api/live/:home/:away', (req, res) => {
     res.json({ homeScore: 0, awayScore: 0 });
 });
 
-// ===== Health check =====
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Прокси работает!' });
 });
