@@ -6,6 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ===== API-Football =====
 app.get('/api/football/:endpoint', async (req, res) => {
     try {
         const { endpoint } = req.params;
@@ -22,6 +23,24 @@ app.get('/api/football/:endpoint', async (req, res) => {
     }
 });
 
+// ===== TheSportsDB (НОВЫЙ ЭНДПОИНТ) =====
+app.get('/api/sportsdb/:home/:away', async (req, res) => {
+    try {
+        const { home, away } = req.params;
+        const url = `https://www.thesportsdb.com/api/v1/json/3/eventspast.php?t=${home}&s=${away}`;
+        const response = await axios.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            },
+            timeout: 15000
+        });
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ===== xG (Understat) =====
 app.get('/api/xg/:league', async (req, res) => {
     try {
         const { league } = req.params;
@@ -39,6 +58,7 @@ app.get('/api/xg/:league', async (req, res) => {
     }
 });
 
+// ===== Health check =====
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Прокси работает!' });
 });
