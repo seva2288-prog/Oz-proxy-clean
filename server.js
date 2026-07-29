@@ -3,7 +3,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// 1. РАЗРЕШЕНИЕ CORS (Чтобы работало даже если зайти с GitHub)
+// 1. РАЗРЕШЕНИЕ CORS
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-apisports-key');
@@ -58,11 +58,16 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'Сервер и API работают!' });
 });
 
-// 5. РАЗДАЧА ФРОНТЕНДА (Важно: Папка должна называться 'public')
-// Положите ваш index.html в папку 'public'
-app.use(express.static(path.join(__dirname, 'public')));
+// ==========================================
+// 5. РАЗДАЧА ФРОНТЕНДА (ИЗМЕНЕНИЕ №1 - используем __dirname)
+// ==========================================
+const pathToPublic = path.join(__dirname, 'public');
+console.log('📂 Сервер ищет папку по пути:', pathToPublic); // Эта строка появится в логах Render
+app.use(express.static(pathToPublic));
 
-// 6. FALLBACK (Чтобы при обновлении страницы не вылетала 404)
+// ==========================================
+// 6. FALLBACK (ИЗМЕНЕНИЕ №2 - явный путь к файлу)
+// ==========================================
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
