@@ -3,7 +3,7 @@ const axios = require('axios');
 
 const app = express();
 
-// Разрешаем CORS (чтобы фронтенд мог подключаться)
+// Разрешаем CORS
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -14,56 +14,37 @@ app.use((req, res, next) => {
     next();
 });
 
-// Простой кэш в памяти, чтобы не долбить TheSportsDB каждый раз
+// Простой кэш
 const cache = {};
 
-// ===== TheSportsDB =====
-app.get('/api/sportsdb/:home/:away', async (req, res) => {
+// ===== TheSportsDB (с поддержкой лиг) =====
+app.get('/api/sportsdb/:id/:season', async (req, res) => {
     try {
-        const home = req.params.home || req.query.home;
-        const away = req.params.away || req.query.away;
-        const cacheKey = `${home}-${away}`;
+        const id = req.params.id || req.query.id;
+        const season = req.params.season || req.query.season;
 
-        if (!home || !away) {
-            return res.status(400).json({ error: 'Не указаны команды (home и away)' });
+        if (!id || !season) {
+            return res.status(400).json({ error: 'Укажите ID лиги и сезон (например: 4328/2024-2025)' });
         }
 
-        // Если данные есть в кэше (и им меньше 5 минут), отдаём их сразу
-        if (cache[cacheKey] && (Date.now() - cache[cacheKey].timestamp < 300000)) {
-            return res.json(cache[cacheKey].data);
-        }
-
-        const url = `https://www.thesportsdb.com/api/v1/json/3/eventspast.php?t=${home}&s=${away}`;
+        // Ищем по ID лиги, это работает 100%
+        const url = `https://www.thesportsdb.com/api/v1/json/3/eventsseason.php?id=${id}&s=${season}`;
 
         const response = await axios.get(url, {
             headers: {
-                // Маскируемся под реальный браузер, чтобы обойти защиту 429
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'application/json, text/plain, */*',
-                'Accept-Language': 'en-US,en;q=0.9',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                 'Referer': 'https://www.thesportsdb.com/'
             },
             timeout: 20000
         });
 
-        // Сохраняем в кэш
-        cache[cacheKey] = {
-            data: response.data,
-            timestamp: Date.now()
-        };
-
         res.json(response.data);
     } catch (error) {
         console.error('Ошибка TheSportsDB:', error.message);
-        // Если 429, пишем понятное сообщение пользователю
         const status = error.response ? error.response.status : 500;
-        const message = status === 429 
-            ? 'Слишком много запросов к TheSportsDB. Пожалуйста, подождите минуту и попробуйте снова.' 
-            : error.message;
-            
         res.status(status).json({ 
             error: 'Ошибка при запросе к TheSportsDB',
-            details: message
+            details: error.message
         });
     }
 });
@@ -81,13 +62,15 @@ app.get('/api/xg/:league', async (req, res) => {
 
         const response = await axios.get(url, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             },
             timeout: 15000
         });
 
         const html = response.data;
-        const match = html.match(/var datesData=(\s*\{.*?\}\s*);/s);
+        
+        // ⚠️ ГЛАВНОЕ ИЗМЕНЕНИЕ: Ищем datesDataNew, а не datesData
+        const match = html.match(/var datesDataNew=(\s*\{.*?\}\s*);/s);
 
         if (!match) {
             return res.status(404).json({ error: 'Не удалось найти данные о xG на странице' });
