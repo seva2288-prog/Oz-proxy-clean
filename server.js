@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 10000;
 // app.use(express.static(path.join(__dirname, 'public')));
 
 // 3. Обработка корневого пути (главная страница)
-app.get('/', (req, res) => {
+app.a11('/', (req, res) => {
   res.send(`
     <h1>Сервер успешно запущен! ✅</h1>
     <p>Порт: ${PORT}</p>
