@@ -1,3 +1,19 @@
+const express = require('express');
+const axios = require('axios');
+
+const app = express();
+
+// Разрешаем CORS
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
 // ===== API-Football (Турнирная таблица) =====
 app.get('/api/matches/:leagueId/:season', async (req, res) => {
     try {
@@ -5,16 +21,15 @@ app.get('/api/matches/:leagueId/:season', async (req, res) => {
         const season = req.params.season || req.query.season;
 
         if (!leagueId || !season) {
-            return res.status(400).json({ error: 'Укажите ID лиги и сезон (например: 135/2024)' });
+            return res.status(400).json({ error: 'Укажите ID лиги и сезон' });
         }
 
         const API_KEY = process.env.API_FOOTBALL_KEY;
 
         if (!API_KEY) {
-            return res.status(500).json({ error: 'Не найден ключ API_FOOTBALL_KEY в настройках Render' });
+            return res.status(500).json({ error: 'Не найден ключ API_FOOTBALL_KEY' });
         }
 
-        // ИЗМЕНЕНИЕ: Используем эндпоинт /standings, а не /teams/statistics
         const url = 'https://v3.football.api-sports.io/standings';
 
         const response = await axios.get(url, {
@@ -40,4 +55,19 @@ app.get('/api/matches/:leagueId/:season', async (req, res) => {
             details: message
         });
     }
+});
+
+// ===== Health check =====
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        status: 'OK', 
+        message: 'Прокси работает!',
+        port: process.env.PORT || 3000
+    });
+});
+
+// ===== Запуск =====
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`✅ Прокси запущен на порту ${PORT}`);
 });
