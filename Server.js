@@ -12,7 +12,7 @@ app.get('/api/football/:endpoint', async (req, res) => {
         const url = `https://v3.football.api-sports.io/${endpoint}`;
         const response = await axios.get(url, {
             headers: {
-                'x-apisports-key': '1c22a77c7f8cc59cfec587b2c8daffd5'
+                'x-apisports-key': 'f7cd75bc295cdf52981b561a2215024c'
             },
             params: req.query
         });
