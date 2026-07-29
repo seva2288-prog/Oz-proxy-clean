@@ -1,73 +1,39 @@
 const express = require('express');
-const axios = require('axios');
-
+const { createProxyMiddleware } = require('http-proxy-middleware');
 const app = express();
 
-// Разрешаем CORS
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
-    next();
+// --- 1. НАСТРОЙКА ПОРТА (Самое важное для Render!) ---
+// Render сам подставит свой порт в process.env.PORT
+const PORT = process.env.PORT || 10000; 
+
+// --- 2. ОБРАБОТКА ГЛАВНОЙ СТРАНИЦЫ (Убираем ошибку Cannot GET /) ---
+// Если вы просто заходите на сайт, он покажет это сообщение вместо ошибки
+app.get('/', (req, res) => {
+  res.send(`
+    <h1>Прокси-сервер успешно запущен! 🚀</h1>
+    <p>Порт: ${PORT}</p>
+    <p>Прокси работает и ждет запросов.</p>
+  `);
 });
 
-// ===== API-Football (Турнирная таблица) =====
-app.get('/api/matches/:leagueId/:season', async (req, res) => {
-    try {
-        const leagueId = req.params.leagueId || req.query.leagueId;
-        const season = req.params.season || req.query.season;
+// --- 3. НАСТРОЙКА ПРОКСИ (Если он вам нужен) ---
+// Если вы проксируете запросы на другой локальный сервер, укажите его порт ниже.
+// Например, если у вас есть сервер на порту 3000, укажите 'http://localhost:3000'
+// Если прокси не нужен, просто удалите этот блок кода.
 
-        if (!leagueId || !season) {
-            return res.status(400).json({ error: 'Укажите ID лиги и сезон' });
-        }
+const TARGET_SERVER = 'http://localhost:3000'; // <-- СМОТРИТЕ СЮДА: поменяйте на ваш целевой порт
 
-        const API_KEY = process.env.API_FOOTBALL_KEY;
+app.use('/', createProxyMiddleware({
+  target: TARGET_SERVER,
+  changeOrigin: true,
+  // Если путь не найден на целевом сервере, возвращаем 404 вместо ошибки прокси
+  onError: (err, req, res) => {
+    res.status(500).send('Ошибка подключения к целевому серверу прокси.');
+  }
+}));
 
-        if (!API_KEY) {
-            return res.status(500).json({ error: 'Не найден ключ API_FOOTBALL_KEY' });
-        }
-
-        const url = 'https://v3.football.api-sports.io/standings';
-
-        const response = await axios.get(url, {
-            params: {
-                league: leagueId,
-                season: season
-            },
-            headers: {
-                'x-rapidapi-key': API_KEY,
-                'x-rapidapi-host': 'v3.football.api-sports.io'
-            },
-            timeout: 20000
-        });
-
-        res.json(response.data);
-
-    } catch (error) {
-        console.error('Ошибка API-Football:', error.message);
-        const status = error.response ? error.response.status : 500;
-        const message = error.response ? error.response.data : error.message;
-        res.status(status).json({
-            error: 'Ошибка при запросе к API-Football',
-            details: message
-        });
-    }
-});
-
-// ===== Health check =====
-app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
-        message: 'Прокси работает!',
-        port: process.env.PORT || 3000
-    });
-});
-
-// ===== Запуск =====
-const PORT = process.env.PORT || 3000;
+// --- 4. ЗАПУСК СЕРВЕРА ---
 app.listen(PORT, () => {
-    console.log(`✅ Прокси запущен на порту ${PORT}`);
+  console.log(`✅ Прокси запущен и слушает порт: ${PORT}`);
+  console.log(`🔄 Проксирует запросы на: ${TARGET_SERVER}`);
 });
