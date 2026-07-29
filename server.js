@@ -17,7 +17,7 @@ app.use((req, res, next) => {
 // Простой кэш
 const cache = {};
 
-// ===== TheSportsDB (с поддержкой лиг) =====
+// ===== TheSportsDB =====
 app.get('/api/sportsdb/:id/:season', async (req, res) => {
     try {
         const id = req.params.id || req.query.id;
@@ -27,7 +27,6 @@ app.get('/api/sportsdb/:id/:season', async (req, res) => {
             return res.status(400).json({ error: 'Укажите ID лиги и сезон (например: 4328/2024-2025)' });
         }
 
-        // Ищем по ID лиги, это работает 100%
         const url = `https://www.thesportsdb.com/api/v1/json/3/eventsseason.php?id=${id}&s=${season}`;
 
         const response = await axios.get(url, {
@@ -49,7 +48,7 @@ app.get('/api/sportsdb/:id/:season', async (req, res) => {
     }
 });
 
-// ===== xG (Understat) =====
+// ===== xG (Understat) через скрытое API =====
 app.get('/api/xg/:league', async (req, res) => {
     try {
         const league = req.params.league || req.query.league;
@@ -58,33 +57,22 @@ app.get('/api/xg/:league', async (req, res) => {
             return res.status(400).json({ error: 'Не указана лига' });
         }
 
-        const url = `https://understat.com/league/${league}`;
+        // Стучимся прямо в их внутреннее API, оно всегда работает
+        const url = `https://understat.com/api/league/${league}`;
 
         const response = await axios.get(url, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'X-Requested-With': 'XMLHttpRequest'
             },
             timeout: 15000
         });
 
-        const html = response.data;
-        
-        // ⚠️ ГЛАВНОЕ ИЗМЕНЕНИЕ: Ищем datesDataNew, а не datesData
-        const match = html.match(/var datesDataNew=(\s*\{.*?\}\s*);/s);
-
-        if (!match) {
-            return res.status(404).json({ error: 'Не удалось найти данные о xG на странице' });
-        }
-
-        try {
-            const parsedData = JSON.parse(match[1]);
-            res.json(parsedData);
-        } catch (parseError) {
-            return res.status(500).json({ error: 'Ошибка парсинга JSON данных xG' });
-        }
+        // API возвращает чистый JSON, парсить HTML не нужно
+        res.json(response.data);
 
     } catch (error) {
-        console.error('Ошибка Understat:', error.message);
+        console.error('Ошибка Understat API:', error.message);
         res.status(500).json({ 
             error: 'Ошибка при запросе к Understat',
             details: error.message 
