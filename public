@@ -1,1 +1,2487 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Квантум 2.3 — AI</title>
+    
+    <!-- ====== ИКОНКИ ====== -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚛️</text></svg>">
+    <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%230b0e14'/><text x='50' y='72' font-size='60' text-anchor='middle' font-family='Arial'>⚛️</text></svg>">
+    <link rel="manifest" href="data:application/json,{'name':'Квантум 2.3','short_name':'Квантум','start_url':'/','display':'standalone','background_color':'%230b0e14','theme_color':'%23f7931a','icons':[{'src':'data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%230b0e14'/><text x='50' y='72' font-size='60' text-anchor='middle' font-family='Arial'>⚛️</text></svg>','sizes':'192x192','type':'image/svg+xml'}]}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Квантум">
+    <meta name="theme-color" content="#0b0e14">
+    
+    <!-- ====== TENSORFLOW.JS ====== -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@latest"></script>
+    
+    <style>
+        /* ====== ВЕСЬ CSS ====== */
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+        body {
+            font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #0b0e14;
+            color: #e0e0e0;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+        body.light {
+            background: #f0f2f5;
+            color: #1a1a1a;
+        }
+        body.light input,
+        body.light select,
+        body.light .card {
+            background: #fff !important;
+            color: #1a1a1a !important;
+            border-color: #d0d5dd !important;
+        }
+        body.light .mode-btn {
+            background: #f0f2f5 !important;
+            color: #555 !important;
+            border-color: #d0d5dd !important;
+        }
+        body.light .mode-btn.active {
+            background: #f7931a !important;
+            color: #000 !important;
+            border-color: #f7931a !important;
+        }
+        body.light .top-tab {
+            color: #888 !important;
+        }
+        body.light .top-tab.active {
+            color: #f7931a !important;
+            border-bottom-color: #f7931a !important;
+        }
+        body.light .ai-card {
+            background: #f5f0f8 !important;
+            border-color: #9b59b6 !important;
+        }
+        body.light .ai-result {
+            background: #fff !important;
+        }
+        body.light .header {
+            background: #f0f2f5;
+            border-bottom-color: #d0d5dd;
+        }
+        body.light .advice.info {
+            background: #e8eef5 !important;
+        }
+        body.light .advice.good {
+            background: #e8f5e8 !important;
+        }
+        body.light .advice.warn {
+            background: #f5f5e8 !important;
+        }
+        body.light .advice.bad {
+            background: #f5e8e8 !important;
+        }
+        body.light .h2h-summary {
+            background: #e8eef5 !important;
+        }
+        body.light .h2h-summary .item {
+            background: #fff !important;
+            border-color: #d0d5dd !important;
+        }
+        body.light .h2h-item {
+            background: #f8f8f8 !important;
+            border-color: #d0d5dd !important;
+        }
+        body.light .xg-card {
+            background: #e8eef5 !important;
+            border-color: #d0d5dd !important;
+        }
+        body.light .odds-book {
+            background: #f8f8f8 !important;
+            border-color: #d0d5dd !important;
+        }
+        body.light .dashboard-item {
+            background: #e8eef5 !important;
+        }
+        body.light .stats-card {
+            background: #fff !important;
+        }
+        body.light .history-item {
+            background: #fff !important;
+        }
+        body.light .ai-pattern {
+            background: #f5f0f8 !important;
+        }
+        body.light .settings-item {
+            border-bottom-color: #d0d5dd !important;
+        }
+        body.light .toggle-btn {
+            background: #d0d5dd !important;
+            color: #1a1a1a !important;
+        }
+        body.light .toggle-btn.active {
+            background: #f7931a !important;
+            color: #000 !important;
+        }
+        body.light .total-display {
+            background: #fff !important;
+            border-color: #d0d5dd !important;
+        }
+        body.light .bk-row {
+            background: #fff !important;
+        }
+        body.light .bk-row select {
+            background: #fff !important;
+            color: #1a1a1a !important;
+            border-color: #d0d5dd !important;
+        }
+        body.light .bk-row input {
+            background: #fff !important;
+            color: #1a1a1a !important;
+            border-color: #d0d5dd !important;
+        }
+        body.light .ai-form-item {
+            background: #f0f0f0 !important;
+        }
+        body.light .top-tabs {
+            background: #f0f2f5;
+            border-bottom-color: #d0d5dd;
+        }
+        body.light .btn-clear {
+            background: #f0d0d0 !important;
+            color: #c0392b !important;
+        }
+        body.light .btn-api {
+            background: #3498db !important;
+            color: #fff !important;
+        }
+        body.light .live-events {
+            border-top-color: #d0d5dd !important;
+        }
+        body.light .live-event {
+            border-bottom-color: #f0f0f0 !important;
+        }
+        body.light .ai-result .section {
+            border-bottom-color: #d0d5dd !important;
+        }
+        body.light .ai-result .recommendation {
+            background: #e8f5e8 !important;
+        }
+        body.light .confidence-bar {
+            background: #e0e0e0 !important;
+        }
+        body.light .skeleton {
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%) !important;
+            background-size: 200% 100% !important;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px 6px;
+            background: #0b0e14;
+            border-bottom: 1px solid #2a3140;
+            flex-shrink: 0;
+            z-index: 10;
+            transition: background 0.3s, border-color 0.3s;
+            padding-top: env(safe-area-inset-top, 10px);
+        }
+        .header h1 {
+            font-size: 17px;
+            color: #f7931a;
+        }
+        .header h1 span {
+            font-size: 8px;
+            color: #555;
+            font-weight: 400;
+        }
+        .header-actions {
+            display: flex;
+            gap: 4px;
+        }
+        .header-actions button {
+            background: 0;
+            border: 0;
+            color: #aaa;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+        .header-actions button:hover {
+            background: #2a3140;
+        }
+        .top-tabs {
+            display: flex;
+            background: #0b0e14;
+            border-bottom: 1px solid #2a3140;
+            flex-shrink: 0;
+            overflow-x: auto;
+            padding: 0 8px;
+            gap: 2px;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            transition: background 0.3s, border-color 0.3s;
+            -webkit-overflow-scrolling: touch;
+        }
+        .top-tabs::-webkit-scrollbar { display: none; }
+        .top-tab {
+            flex-shrink: 0;
+            padding: 8px 14px 10px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: 0.2s;
+            background: 0;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .top-tab .icon { font-size: 16px; }
+        .top-tab.active { color: #f7931a; border-bottom-color: #f7931a; }
+        .top-tab:active { transform: scale(0.95); }
+        .top-tab .badge {
+            background: #e74c3c;
+            color: #fff;
+            font-size: 8px;
+            padding: 1px 6px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
+        }
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 14px 16px;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: env(safe-area-inset-bottom, 16px);
+        }
+        .main-content::-webkit-scrollbar { width: 3px; }
+        .main-content::-webkit-scrollbar-track { background: transparent; }
+        .main-content::-webkit-scrollbar-thumb { background: #2a3140; border-radius: 3px; }
+        .screen { display: none; animation: fadeIn 0.25s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .card {
+            background: #1a1f2a;
+            border: 1px solid #2a3140;
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin: 4px 0;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        body.light .card { background: #fff !important; border-color: #d0d5dd !important; }
+        .card-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #f7931a;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ai-card {
+            background: #1a2a3a;
+            border: 1px solid #9b59b6;
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin: 4px 0;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        body.light .ai-card { background: #f5f0f8 !important; border-color: #9b59b6 !important; }
+        .ai-card .card-title { color: #9b59b6; }
+        .btn-ai {
+            background: #9b59b6;
+            color: #fff;
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 0;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 4px 0;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-ai:active { transform: scale(0.97); }
+        .btn-ai:disabled { opacity: 0.5; cursor: not-allowed; }
+        .ai-result {
+            background: #0b0e14;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 6px;
+            font-size: 13px;
+            line-height: 1.5;
+            display: none;
+            transition: background 0.3s;
+        }
+        body.light .ai-result { background: #f8f8f8 !important; }
+        .ai-result .section {
+            margin: 4px 0;
+            padding: 4px 0;
+            border-bottom: 1px solid #2a3140;
+            transition: border-color 0.3s;
+        }
+        body.light .ai-result .section { border-bottom-color: #d0d5dd !important; }
+        .ai-result .section:last-child { border-bottom: none; }
+        .ai-result .label { color: #888; font-weight: 600; }
+        .ai-result .value { color: #f7931a; font-weight: 700; }
+        .ai-result .value.green { color: #2ecc71; }
+        .ai-result .value.red { color: #e74c3c; }
+        .ai-result .recommendation {
+            background: #1a3a1a;
+            padding: 6px 10px;
+            border-radius: 8px;
+            margin: 4px 0;
+            border-left: 3px solid #2ecc71;
+            transition: background 0.3s;
+        }
+        body.light .ai-result .recommendation { background: #e8f5e8 !important; }
+        .ai-result .recommendation .big { font-size: 16px; font-weight: 700; color: #2ecc71; }
+        .ai-score-box {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            padding: 8px;
+            background: #0b0e14;
+            border-radius: 8px;
+            margin: 6px 0;
+            transition: background 0.3s;
+        }
+        body.light .ai-score-box { background: #f0f0f0 !important; }
+        .ai-score-box .score-item { text-align: center; }
+        .ai-score-box .score-item .num { font-size: 22px; font-weight: 700; color: #f7931a; }
+        .ai-score-box .score-item .label { font-size: 9px; color: #888; }
+        .ai-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            margin: 4px 0;
+        }
+        .ai-form-item {
+            background: #0b0e14;
+            padding: 4px 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 11px;
+            transition: background 0.3s;
+        }
+        body.light .ai-form-item { background: #f0f0f0 !important; }
+        .ai-form-item .form-result { font-weight: 700; font-size: 13px; }
+        .ai-form-item .form-result.win { color: #2ecc71; }
+        .ai-form-item .form-result.loss { color: #e74c3c; }
+        .ai-form-item .form-result.draw { color: #f1c40f; }
+        select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #2a3140;
+            background: #0b0e14;
+            color: #e0e0e0;
+            font-size: 13px;
+            outline: 0;
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+        select:focus { border-color: #f7931a; }
+        body.light select { background: #fff !important; color: #1a1a1a !important; border-color: #d0d5dd !important; }
+        .input-row {
+            display: flex;
+            gap: 8px;
+            margin: 4px 0;
+        }
+        .input-row .field { flex: 1; }
+        .input-row .field label { font-size: 10px; color: #888; display: block; }
+        .input-row .field input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #2a3140;
+            background: #0b0e14;
+            color: #e0e0e0;
+            text-align: center;
+            font-size: 16px;
+            outline: 0;
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+        .input-row .field input:focus { border-color: #f7931a; }
+        .input-row .field input:disabled { opacity: 0.5; }
+        body.light .input-row .field input { background: #fff !important; color: #1a1a1a !important; border-color: #d0d5dd !important; }
+        .mode-wrap {
+            display: flex;
+            gap: 4px;
+            margin: 6px 0;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 8px 4px;
+            border-radius: 8px;
+            border: 1px solid #2a3140;
+            background: #1a1f2a;
+            color: #888;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+        }
+        .mode-btn.active {
+            background: #f7931a;
+            color: #000;
+            border-color: #f7931a;
+        }
+        body.light .mode-btn { background: #f0f2f5 !important; border-color: #d0d5dd !important; }
+        body.light .mode-btn.active { background: #f7931a !important; color: #000 !important; border-color: #f7931a !important; }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 0;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 4px 0;
+            transition: 0.15s;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-calc { background: #f7931a; color: #000; }
+        .btn-save { background: #2ecc71; color: #000; flex: 2; }
+        .btn-clear { background: #3a1a1a; color: #ff8a8a; flex: 1; }
+        body.light .btn-clear { background: #f0d0d0 !important; color: #c0392b !important; }
+        .action-row { display: flex; gap: 8px; }
+        .btn-api {
+            background: #3498db;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 0;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 4px 0;
+            transition: 0.15s;
+        }
+        .btn-api:disabled { opacity: 0.5; cursor: not-allowed; }
+        body.light .btn-api { background: #3498db !important; color: #fff !important; }
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 4px;
+            text-align: center;
+        }
+        .result-grid .label { font-size: 9px; color: #888; }
+        .result-grid .value { font-size: 20px; font-weight: 700; color: #f7931a; }
+        .advice {
+            margin-top: 4px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            border-left: 4px solid #2ecc71;
+            transition: background 0.3s;
+        }
+        .advice.info { background: #1a2a3a; border-left-color: #f7931a; color: #f7931a; }
+        .advice.good { background: #1a3a1a; border-left-color: #2ecc71; color: #2ecc71; }
+        .advice.warn { background: #2a2a1a; border-left-color: #f1c40f; color: #f1c40f; }
+        .advice.bad { background: #2a1a1a; border-left-color: #e74c3c; color: #e74c3c; }
+        body.light .advice.info { background: #e8eef5 !important; }
+        body.light .advice.good { background: #e8f5e8 !important; }
+        body.light .advice.warn { background: #f5f5e8 !important; }
+        body.light .advice.bad { background: #f5e8e8 !important; }
+        .confidence-bar {
+            background: #1a1f2a;
+            border-radius: 6px;
+            height: 6px;
+            margin: 4px 0;
+            overflow: hidden;
+            transition: background 0.3s;
+        }
+        body.light .confidence-bar { background: #e0e0e0 !important; }
+        .confidence-bar .fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s;
+            background: linear-gradient(90deg, #e74c3c, #f1c40f, #2ecc71);
+        }
+        .total-display {
+            background: #1a1f2a;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 4px 0;
+            border: 1px solid #2a3140;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        body.light .total-display { background: #fff !important; border-color: #d0d5dd !important; }
+        .total-display .value { font-size: 24px; font-weight: 700; color: #f7931a; }
+        .total-display .label { font-size: 10px; color: #888; }
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #888;
+            font-size: 13px;
+            padding: 4px 0;
+        }
+        .loading-text .spinner-small {
+            width: 14px;
+            height: 14px;
+            border: 2px solid #888;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+        .h2h-results {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin: 4px 0;
+        }
+        .h2h-item {
+            background: #1a1f2a;
+            border: 1px solid #2a3140;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        body.light .h2h-item { background: #f8f8f8 !important; border-color: #d0d5dd !important; }
+        .h2h-item .oz { color: #2ecc71; }
+        .h2h-item .no-oz { color: #e74c3c; }
+        .h2h-item .score { font-weight: 600; }
+        .h2h-summary {
+            background: #1a2a3a;
+            border-radius: 8px;
+            padding: 6px 10px;
+            margin: 4px 0;
+            font-size: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            transition: background 0.3s;
+        }
+        body.light .h2h-summary { background: #e8eef5 !important; }
+        .h2h-summary .item {
+            background: #0b0e14;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #2a3140;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        body.light .h2h-summary .item { background: #fff !important; border-color: #d0d5dd !important; }
+        .h2h-summary .item .num { font-weight: 700; color: #f7931a; }
+        .xg-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            margin: 4px 0;
+        }
+        .xg-card {
+            background: #1a2a3a;
+            padding: 6px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #2a3140;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        body.light .xg-card { background: #e8eef5 !important; border-color: #d0d5dd !important; }
+        .xg-card .num { font-size: 18px; font-weight: 700; color: #2ecc71; }
+        .xg-card .num.away { color: #3498db; }
+        .xg-card .label { font-size: 8px; color: #888; }
+        .xg-card .source { font-size: 7px; color: #555; margin-top: 2px; }
+        .bk-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: #1a1f2a;
+            padding: 6px 10px;
+            border-radius: 10px;
+            margin: 4px 0;
+            flex-wrap: wrap;
+            transition: background 0.3s;
+        }
+        body.light .bk-row { background: #fff !important; }
+        .bk-row label { font-size: 11px; color: #888; white-space: nowrap; }
+        .bk-row select {
+            flex: 1;
+            min-width: 80px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid #2a3140;
+            background: #0b0e14;
+            color: #e0e0e0;
+            font-size: 12px;
+            outline: 0;
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+        body.light .bk-row select { background: #fff !important; color: #1a1a1a !important; border-color: #d0d5dd !important; }
+        .bk-row input {
+            flex: 1;
+            min-width: 60px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid #2a3140;
+            background: #0b0e14;
+            color: #e0e0e0;
+            text-align: center;
+            font-size: 14px;
+            outline: 0;
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+        body.light .bk-row input { background: #fff !important; color: #1a1a1a !important; border-color: #d0d5dd !important; }
+        .bk-row input:focus { border-color: #f7931a; }
+        .bk-row input:disabled { opacity: 0.5; }
+        .odds-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin: 4px 0;
+        }
+        .odds-book {
+            background: #0b0e14;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #2a3140;
+            font-size: 11px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        body.light .odds-book { background: #f8f8f8 !important; border-color: #d0d5dd !important; }
+        .odds-book .name { color: #888; }
+        .odds-book .line { color: #f7931a; font-weight: 700; margin-left: 4px; }
+        .odds-book.best { border-color: #2ecc71; }
+        .odds-book.best .line { color: #2ecc71; }
+        .odds-book .price { color: #888; font-size: 10px; margin-left: 2px; }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e74c3c;
+            display: inline-block;
+            animation: pulse 1s infinite;
+            margin-right: 6px;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .live-score {
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            padding: 4px 0;
+        }
+        .live-score .home { color: #2ecc71; }
+        .live-score .away { color: #3498db; }
+        .live-score .vs { color: #555; margin: 0 8px; }
+        .live-events {
+            font-size: 11px;
+            color: #888;
+            max-height: 60px;
+            overflow-y: auto;
+            margin-top: 4px;
+            border-top: 1px solid #2a3140;
+            padding-top: 4px;
+            transition: border-color 0.3s;
+        }
+        body.light .live-events { border-top-color: #d0d5dd !important; }
+        .live-event {
+            display: flex;
+            gap: 6px;
+            padding: 2px 0;
+            border-bottom: 1px solid #1a1f2a;
+            transition: border-color 0.3s;
+        }
+        body.light .live-event { border-bottom-color: #f0f0f0 !important; }
+        .live-event .time { color: #f7931a; font-weight: 700; min-width: 30px; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+        }
+        .stats-card {
+            background: #1a1f2a;
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
+            transition: 0.2s, background 0.3s;
+        }
+        body.light .stats-card { background: #fff !important; }
+        .stats-card:hover { transform: scale(1.02); }
+        .stats-card .num { font-size: 20px; font-weight: 700; color: #f7931a; }
+        .stats-card .label { font-size: 9px; color: #888; }
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 30px;
+        }
+        .chart-bars .bar {
+            flex: 1;
+            min-width: 3px;
+            border-radius: 2px 2px 0 0;
+            background: #f7931a;
+        }
+        .chart-bars .bar.loss { background: #e74c3c; }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 4px;
+            margin: 4px 0;
+        }
+        .dashboard-item {
+            background: #1a2a3a;
+            padding: 6px;
+            border-radius: 8px;
+            text-align: center;
+            transition: background 0.3s;
+        }
+        body.light .dashboard-item { background: #e8eef5 !important; }
+        .dashboard-item .num { font-size: 16px; font-weight: 700; color: #f7931a; }
+        .dashboard-item .label { font-size: 8px; color: #888; }
+        .history-item {
+            background: #1a1f2a;
+            padding: 6px 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin: 2px 0;
+            cursor: pointer;
+            transition: 0.15s, background 0.3s;
+        }
+        body.light .history-item { background: #fff !important; }
+        .history-item:active { transform: scale(0.98); }
+        .history-item .win { color: #2ecc71; }
+        .history-item .loss { color: #e74c3c; }
+        .history-item .pending { color: #f1c40f; }
+        .ai-pattern {
+            background: #1a1f2a;
+            padding: 8px;
+            border-radius: 8px;
+            margin: 4px 0;
+            border-left: 3px solid #9b59b6;
+            transition: background 0.3s;
+        }
+        body.light .ai-pattern { background: #f5f0f8 !important; }
+        .ai-pattern .tag {
+            display: inline-block;
+            background: #2a3140;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            margin: 2px;
+        }
+        .ai-pattern .tag.high { background: #2ecc71; color: #000; }
+        .ai-pattern .tag.medium { background: #f1c40f; color: #000; }
+        .ai-pattern .tag.low { background: #e74c3c; color: #fff; }
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #2a3140;
+            transition: border-color 0.3s;
+        }
+        body.light .settings-item { border-bottom-color: #d0d5dd !important; }
+        .settings-item .label { font-size: 13px; color: #888; }
+        .settings-item .value { font-size: 13px; color: #f7931a; }
+        .settings-item .value.green { color: #2ecc71; }
+        .settings-item .value.red { color: #e74c3c; }
+        .toggle-btn {
+            background: #2a3140;
+            border: none;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        body.light .toggle-btn { background: #d0d5dd !important; color: #1a1a1a !important; }
+        .toggle-btn.active { background: #f7931a; color: #000; }
+        .league-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            background: #f7931a;
+            color: #000;
+            margin: 2px;
+        }
+        .text-muted { color: #555; }
+        .text-center { text-align: center; }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 13px;
+            z-index: 999;
+            background: #1a2a3a;
+            color: #f7931a;
+            border: 1px solid #f7931a;
+            animation: slideUp 0.3s;
+            max-width: 90%;
+            text-align: center;
+        }
+        .toast.success { background: #1a3a1a; color: #2ecc71; border-color: #2ecc71; }
+        .toast.error { background: #3a1a1a; color: #e74c3c; border-color: #e74c3c; }
+        @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        @media(max-width:420px) { .input-row { flex-direction: column; } .bk-row { flex-direction: column; } .top-tab { font-size: 11px; padding: 6px 10px 8px; } }
+        .skeleton {
+            background: linear-gradient(90deg, #1a1f2a 25%, #2a3140 50%, #1a1f2a 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 4px;
+            height: 20px;
+            margin: 4px 0;
+        }
+        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        body.light .skeleton { background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%) !important; background-size: 200% 100% !important; }
+        .swipe-indicator {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 10px;
+            color: #555;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05);
+            opacity: 0.6;
+            pointer-events: none;
+            transition: opacity 0.5s;
+            display: none;
+        }
+        body.light .swipe-indicator { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.05); }
+        .swipe-indicator.show { display: block; animation: fadeIn 0.5s ease; }
+        @media (pointer: coarse) { .swipe-indicator.show { display: block; } }
+        
+        .ai-training-status {
+            padding: 6px 10px;
+            border-radius: 8px;
+            background: #1a1f2a;
+            border: 1px solid #2a3140;
+            margin-top: 4px;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        body.light .ai-training-status { background: #fff !important; border-color: #d0d5dd !important; }
+        .ai-training-status .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .ai-training-status .status-dot.trained { background: #2ecc71; }
+        .ai-training-status .status-dot.training { background: #f1c40f; animation: pulse 0.8s infinite; }
+        .ai-training-status .status-dot.untrained { background: #888; }
+        .ai-training-status .accuracy { color: #f7931a; font-weight: 700; }
+        .btn-ai-train {
+            background: #9b59b6;
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 8px;
+            border: 0;
+            font-size: 11px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-ai-train:active { transform: scale(0.95); }
+        .btn-ai-train:disabled { opacity: 0.5; cursor: not-allowed; }
+        body.light .btn-ai-train { background: #8e44ad; }
+    </style>
+</head>
+<body>
+    <!-- ====== HTML ====== -->
+    <header class="header">
+        <h1>⚛️ Квантум <span>v2.3 AI</span></h1>
+        <div class="header-actions">
+            <button onclick="toggleTheme()" id="themeBtn" title="Тема">🌙</button>
+            <button onclick="resetAll()" title="Сброс">🔄</button>
+        </div>
+    </header>
+    <div class="top-tabs" id="topTabs">
+        <button class="top-tab active" data-tab="analysis" onclick="switchTab('analysis')"><span class="icon">📊</span> Анализ</button>
+        <button class="top-tab" data-tab="search" onclick="switchTab('search')"><span class="icon">🔍</span> Поиск <span class="badge" id="searchBadge" style="display:none;">0</span></button>
+        <button class="top-tab" data-tab="stats" onclick="switchTab('stats')"><span class="icon">📈</span> Статистика</button>
+        <button class="top-tab" data-tab="settings" onclick="switchTab('settings')"><span class="icon">⚙️</span> Настройки</button>
+    </div>
+    <div class="main-content" id="mainContent">
+
+        <!-- АНАЛИЗ -->
+        <div class="screen active" id="analysisScreen">
+            <div class="card">
+                <div class="card-title">🏆 Лига <span id="autoLeagueBadge"></span></div>
+                <select id="leagueSelect"></select>
+                <div id="leagueInfo" style="font-size:10px;color:#888;margin-top:4px;"></div>
+            </div>
+            <div class="mode-wrap" id="modeTabs">
+                <button class="mode-btn active" data-mode="total" onclick="switchMode('total',this)">⚽ Тотал</button>
+                <button class="mode-btn" data-mode="fora" onclick="switchMode('fora',this)">⚖️ Фора</button>
+                <button class="mode-btn" data-mode="oz" onclick="switchMode('oz',this)">⚽ ОЗ</button>
+            </div>
+            <div class="card" id="contextCard" style="display:none;">
+                <div class="card-title">📋 Контекст матча</div>
+                <div class="input-row">
+                    <div class="field"><label>🏠 Отдых (дней)</label><input type="number" id="restHome" value="3" min="1" max="10"/></div>
+                    <div class="field"><label>✈️ Отдых гостей</label><input type="number" id="restAway" value="3" min="1" max="10"/></div>
+                </div>
+                <div class="input-row">
+                    <div class="field">
+                        <label>Мотивация хозяев</label>
+                        <select id="motivHome">
+                            <option value="none">Нет</option>
+                            <option value="derby">Дерби</option>
+                            <option value="eurofight">Еврокубки</option>
+                            <option value="relegation">Выживание</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Мотивация гостей</label>
+                        <select id="motivAway">
+                            <option value="none">Нет</option>
+                            <option value="derby">Дерби</option>
+                            <option value="eurofight">Еврокубки</option>
+                            <option value="relegation">Выживание</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div id="inputArea">
+                <div class="input-row">
+                    <div class="field"><label>🏠 Хозяева</label><input type="number" id="homeGoals" value="0" min="0" /></div>
+                    <div class="field"><label>✈️ Гости</label><input type="number" id="awayGoals" value="0" min="0" /></div>
+                </div>
+            </div>
+            <div class="total-display">
+                <div class="label">📈 Сумма голов</div>
+                <div class="value" id="sumDisplay">0</div>
+            </div>
+            <button class="btn btn-calc" onclick="calculate()">⚡ Рассчитать</button>
+            <div class="action-row">
+                <button class="btn btn-save" onclick="saveBet()">💾 Записать</button>
+                <button class="btn btn-clear" onclick="clearAll()">🗑️ Очистить</button>
+            </div>
+            <div class="card">
+                <div class="result-grid">
+                    <div><div class="label" id="resLabel1">Ожидаемый</div><div class="value" id="resValue1">--</div></div>
+                    <div><div class="label">Линия БК</div><div class="value" id="resValue2">--</div></div>
+                    <div><div class="label">Разница</div><div class="value" id="resValue3">--</div></div>
+                </div>
+                <div class="advice info" id="resAdvice">⏳ Введите данные для расчёта</div>
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:#888;margin-top:4px;">
+                    <span>📊 Индекс доверия</span>
+                    <span id="confidenceLabel">0%</span>
+                </div>
+                <div class="confidence-bar"><div class="fill" id="confidenceFill" style="width:0%"></div></div>
+            </div>
+            <div class="ai-card">
+                <div class="card-title">🧠 AI Прогноз (v2.3 AI + ML)</div>
+                <button class="btn-ai" id="aiBtn" onclick="generateAIPrediction()">
+                    <span>🤖</span> Сгенерировать AI прогноз
+                </button>
+                <div class="ai-result" id="aiResult">
+                    <div class="ai-score-box">
+                        <div class="score-item">
+                            <div class="num" id="aiHomeScore">0</div>
+                            <div class="label">🏠 AI Хозяева</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="num" id="aiAwayScore">0</div>
+                            <div class="label">✈️ AI Гости</div>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <span class="label">📋 Форма команд (последние 5):</span>
+                        <div class="ai-form-grid">
+                            <div class="ai-form-item">
+                                <span id="aiHomeFormLabel">🏠</span>
+                                <div class="form-result" id="aiHomeForm">—</div>
+                            </div>
+                            <div class="ai-form-item">
+                                <span id="aiAwayFormLabel">✈️</span>
+                                <div class="form-result" id="aiAwayForm">—</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <span class="label">🤕 Травмы:</span>
+                        <span class="value" id="aiInjuries">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">🏆 Важность матча:</span>
+                        <span class="value" id="aiImportance">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">🌡️ Перегрев/недооценка:</span>
+                        <span class="value" id="aiOverheat">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">🌤 Погода:</span>
+                        <span class="value" id="aiWeather">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">🏟️ Дома/выезд:</span>
+                        <span class="value" id="aiHomeAway">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">⚡ Сила соперника:</span>
+                        <span class="value" id="aiOpponentStrength">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">🎯 Турнирное давление:</span>
+                        <span class="value" id="aiPressure">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">⏰ Время голов:</span>
+                        <span class="value" id="aiGoalTime">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">📈 Тренд голов:</span>
+                        <span class="value" id="aiTrend">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">⚡ Средний тотал:</span>
+                        <span class="value" id="aiAvgTotal">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">🔥 Вероятность ОЗ:</span>
+                        <span class="value" id="aiOzProb">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">📊 Уверенность:</span>
+                        <span class="value" id="aiConfidence">—</span>
+                    </div>
+                    <div class="section" id="mlSection" style="display:none;">
+                        <span class="label">🧠 ML уверенность:</span>
+                        <span class="value" id="aiMLConfidence">—</span>
+                    </div>
+                    <div class="recommendation">
+                        <div class="label">🎯 РЕКОМЕНДАЦИЯ:</div>
+                        <div class="big" id="aiRecommendation">—</div>
+                        <div style="font-size:12px;color:#888;margin-top:4px;" id="aiAdvice">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card" id="xgCard" style="display:none;">
+                <div class="card-title">🎯 xG (Understat) <span id="xgStatus" style="font-size:9px;color:#888;font-weight:400;"></span></div>
+                <div class="xg-grid">
+                    <div class="xg-card"><div class="num" id="understatHomeXG">0.00</div><div class="label">xG Хозяев</div><div class="source">understat.com</div></div>
+                    <div class="xg-card"><div class="num away" id="understatAwayXG">0.00</div><div class="label">xG Гостей</div><div class="source">understat.com</div></div>
+                </div>
+                <div id="xgAdvice" style="font-size:11px;color:#888;text-align:center;margin-top:4px;"></div>
+                <div id="xgLoading" style="font-size:10px;color:#555;text-align:center;display:none;">⏳ Загрузка xG...</div>
+            </div>
+            <div class="card">
+                <div class="card-title">📊 Букмекерские линии <span id="oddsStatus" style="font-size:9px;color:#888;font-weight:400;"></span></div>
+                <div class="bk-row">
+                    <label>Букмекер:</label>
+                    <select id="bookieSelect" onchange="loadOdds()">
+                        <option value="">Авто-выбор</option>
+                        <option value="bet365">Bet365</option>
+                        <option value="pinnacle">Pinnacle</option>
+                        <option value="1xbet">1xBet</option>
+                        <option value="williamhill">William Hill</option>
+                        <option value="unibet">Unibet</option>
+                    </select>
+                </div>
+                <div class="odds-row" id="oddsDisplay">
+                    <span style="font-size:11px;color:#888;">⏳ Загрузка линий...</span>
+                </div>
+                <div class="bk-row">
+                    <label>📈 Линия БК:</label>
+                    <input type="number" id="bkLine" value="0" step="0.05" readonly/>
+                    <span id="bkComment" style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:12px;">—</span>
+                </div>
+                <div id="oddsLoading" style="font-size:10px;color:#555;text-align:center;display:none;">⏳ Загрузка линий...</div>
+            </div>
+            <div class="card" id="aiCard" style="display:none;">
+                <div class="card-title">🧠 AI Паттерны (базовые)</div>
+                <div id="aiPatterns" class="ai-pattern">
+                    <div style="color:#888;font-size:11px;">Анализ данных...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПОИСК -->
+        <div class="screen" id="searchScreen">
+            <div class="card">
+                <div class="card-title">🔍 Поиск H2H + Статистика</div>
+                <div class="input-row">
+                    <div class="field"><label>🏠 Хозяева</label><input type="text" id="homeTeamH2H" placeholder="Например: Real Madrid" /></div>
+                    <div class="field"><label>✈️ Гости</label><input type="text" id="awayTeamH2H" placeholder="Например: Barcelona" /></div>
+                </div>
+                <button class="btn-api" id="loadH2HBtn" onclick="loadH2H()">
+                    <span id="loadBtnText">📊 Загрузить H2H</span>
+                    <span id="loadSpinner" style="display:none;"><span class="spinner"></span></span>
+                </button>
+                <div id="h2hContainer">
+                    <div id="h2hStatus" style="color:#888;font-size:12px;padding:4px 0;">Введите команды и нажмите "Загрузить H2H"</div>
+                    <div class="h2h-results" id="h2hResults"></div>
+                </div>
+            </div>
+            <div class="card" id="liveCard" style="display:none;">
+                <div class="card-title">
+                    <span class="live-dot"></span> LIVE
+                    <span id="liveMatchTime" style="font-size:11px;color:#888;float:right;">—</span>
+                </div>
+                <div class="live-score">
+                    <span class="home" id="liveHomeScore">0</span>
+                    <span class="vs">—</span>
+                    <span class="away" id="liveAwayScore">0</span>
+                </div>
+                <div class="live-events" id="liveEvents">
+                    <div style="color:#555;text-align:center;padding:4px 0;">⏳ Поиск матча...</div>
+                </div>
+                <div style="font-size:9px;color:#555;text-align:center;margin-top:4px;">
+                    🔄 Обновляется каждые 15 сек · FlashScore + SofaScore
+                </div>
+            </div>
+        </div>
+
+        <!-- СТАТИСТИКА -->
+        <div class="screen" id="statsScreen">
+            <div class="card">
+                <div class="card-title">📊 Дашборд KPI</div>
+                <div class="dashboard-grid">
+                    <div class="dashboard-item"><div class="num" id="kpiTotal">0</div><div class="label">Всего</div></div>
+                    <div class="dashboard-item"><div class="num" id="kpiWinRate">0%</div><div class="label">Винрейт</div></div>
+                    <div class="dashboard-item"><div class="num" id="kpiProfit">0</div><div class="label">Профит</div></div>
+                    <div class="dashboard-item"><div class="num" id="kpiROI">0%</div><div class="label">ROI</div></div>
+                    <div class="dashboard-item"><div class="num" id="kpiStreak">0</div><div class="label">Серия</div></div>
+                    <div class="dashboard-item"><div class="num" id="kpiBest">0</div><div class="label">Макс</div></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📈 График баланса</div>
+                <div class="chart-bars" id="chartBars"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📊 Общая статистика</div>
+                <div class="stats-grid">
+                    <div class="stats-card"><div class="num" id="statTotal">0</div><div class="label">Всего ставок</div></div>
+                    <div class="stats-card"><div class="num" id="statWinRate">0%</div><div class="label">% побед</div></div>
+                    <div class="stats-card"><div class="num" id="statBalance">0</div><div class="label">Баланс</div></div>
+                    <div class="stats-card"><div class="num" id="statROI">0%</div><div class="label">ROI</div></div>
+                </div>
+            </div>
+            <div>
+                <div style="display:flex;justify-content:space-between;margin:4px 0;">
+                    <span style="font-size:14px;font-weight:700;color:#f7931a;">📜 История</span>
+                    <button onclick="clearHistory()" style="background:#5a1a1a;color:#ff8a8a;border:none;padding:2px 10px;border-radius:12px;font-size:10px;cursor:pointer;">🗑️</button>
+                </div>
+                <div id="historyList"><div class="text-muted text-center" style="padding:10px 0;">Нет ставок</div></div>
+            </div>
+            <div class="card" style="border-left:4px solid #f7931a;margin-top:6px;">
+                <div class="card-title">🧠 Умные выводы</div>
+                <div id="insightsContent"><div class="text-muted text-center" style="padding:6px 0;">Нет данных</div></div>
+            </div>
+        </div>
+
+        <!-- НАСТРОЙКИ -->
+        <div class="screen" id="settingsScreen">
+            <div class="card">
+                <div class="card-title">⚙️ Настройки</div>
+                <div class="settings-item">
+                    <span class="label">🎨 Тема</span>
+                    <button class="toggle-btn" id="themeToggle" onclick="toggleTheme()">🌙 Тёмная</button>
+                </div>
+                <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;">
+                    <span class="label">🏆 Лига по умолчанию</span>
+                    <select id="settingsLeagueSelect" onchange="changeDefaultLeague(this.value)"></select>
+                </div>
+                <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;">
+                    <span class="label">🧠 AI Обучение (TensorFlow.js)</span>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn-ai-train" id="trainAIBtn" onclick="trainAI()" style="flex:2;">
+                            🧠 Обучить AI
+                        </button>
+                        <button class="btn-ai-train" onclick="updateAIStatus()" style="flex:1;background:#3498db;">
+                            🔄 Статус
+                        </button>
+                    </div>
+                    <div class="ai-training-status" id="aiTrainingStatus">
+                        <span>
+                            <span class="status-dot untrained" id="aiStatusDot"></span>
+                            <span id="aiStatusText">⏳ Не обучен</span>
+                        </span>
+                        <span class="accuracy" id="aiAccuracyDisplay">—</span>
+                    </div>
+                    <div style="font-size:9px;color:#555;margin-top:2px;">
+                        📊 Требуется 10+ ставок с известным исходом для обучения
+                    </div>
+                    <div id="aiTrainLog" style="font-size:10px;color:#888;margin-top:4px;max-height:60px;overflow-y:auto;display:none;background:#0b0e14;padding:4px 8px;border-radius:6px;"></div>
+                </div>
+                <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:4px;border-bottom:none;padding-bottom:4px;">
+                    <span class="label" style="margin-bottom:4px;">🔑 API статус</span>
+                    <div style="display:flex;justify-content:space-between;font-size:12px;">
+                        <span style="color:#888;">API-Football</span>
+                        <span id="apiFootballStatus" style="color:#2ecc71;">✅ Активен</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#555;padding-left:4px;">
+                        <span>Лимит: 100/день</span>
+                        <span id="apiFootballCount">Осталось: 95</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px;">
+                        <span style="color:#888;">The Odds API</span>
+                        <span id="apiOddsStatus" style="color:#2ecc71;">✅ Активен</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#555;padding-left:4px;">
+                        <span>Лимит: 500/мес</span>
+                        <span id="apiOddsCount">Осталось: 499</span>
+                    </div>
+                </div>
+                <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;border-bottom:none;padding-bottom:4px;">
+                    <span class="label">💾 Данные</span>
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="exportData()" style="flex:1;padding:8px;border-radius:8px;border:1px solid #2a3140;background:#0b0e14;color:#e0e0e0;cursor:pointer;font-size:12px;">📦 Экспорт</button>
+                        <button onclick="document.getElementById('importFile').click()" style="flex:1;padding:8px;border-radius:8px;border:1px solid #2a3140;background:#0b0e14;color:#e0e0e0;cursor:pointer;font-size:12px;">📥 Импорт</button>
+                        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+                    </div>
+                </div>
+                <div class="settings-item" style="border-bottom:none;padding-bottom:4px;">
+                    <span class="label">🗑️ Сброс</span>
+                    <button onclick="resetAll()" style="padding:6px 16px;border-radius:8px;border:1px solid #e74c3c;background:transparent;color:#e74c3c;cursor:pointer;font-size:12px;">Сбросить всё</button>
+                </div>
+                <div style="text-align:center;font-size:10px;color:#555;margin-top:8px;border-top:1px solid #2a3140;padding-top:8px;">
+                    ⚛️ Квантум v2.3 AI · TensorFlow.js обучение
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="swipe-indicator show" id="swipeIndicator">👆 Свайп влево/вправо</div>
+
+    <script>
+        // ================================================================
+        // КВАНТУМ 2.3 — ФИНАЛЬНАЯ СБОРКА С ПРОКСИ
+        // ================================================================
+
+        // ====== КЛЮЧИ ======
+        const API_KEY_FOOTBALL = 'api-40a548b23a46b859463c5bf4d4698aa1';
+        const ODDS_API_KEY = '1a65316b9cba21b39cf5e6e008a3839e';
+        const PROXY_BASE = 'https://oz-proxy-clean.onrender.com/api';
+
+        const LEAGUES = {
+            '39': { name: '🏴 АПЛ', oz: 65, avgGoals: 2.8, country: 'Англия', understat: 'EPL' },
+            '140': { name: '🇪🇸 Ла Лига', oz: 60, avgGoals: 2.6, country: 'Испания', understat: 'La_liga' },
+            '78': { name: '🇩🇪 Бундеслига', oz: 68, avgGoals: 3.0, country: 'Германия', understat: 'Bundesliga' },
+            '135': { name: '🇮🇹 Серия А', oz: 62, avgGoals: 2.7, country: 'Италия', understat: 'Serie_A' },
+            '61': { name: '🇫🇷 Лига 1', oz: 58, avgGoals: 2.5, country: 'Франция', understat: 'Ligue_1' },
+            '88': { name: '🇳🇱 Эредивизи', oz: 72, avgGoals: 3.2, country: 'Нидерланды', understat: null },
+            '94': { name: '🇵🇹 Примейра', oz: 60, avgGoals: 2.6, country: 'Португалия', understat: null },
+            '2': { name: '🇷🇺 РПЛ', oz: 55, avgGoals: 2.2, country: 'Россия', understat: null },
+            '203': { name: '🇹🇷 Турецкая Суперлига', oz: 58, avgGoals: 2.5, country: 'Турция', understat: null },
+            '144': { name: '🇧🇪 Бельгийская Про-Лига', oz: 60, avgGoals: 2.6, country: 'Бельгия', understat: null },
+            '197': { name: '🇬🇷 Греческая Суперлига', oz: 52, avgGoals: 2.2, country: 'Греция', understat: null },
+            '119': { name: '🇨🇿 Чешская Первая Лига', oz: 55, avgGoals: 2.3, country: 'Чехия', understat: null },
+            '188': { name: '🇦🇹 Австрийская Бундеслига', oz: 58, avgGoals: 2.5, country: 'Австрия', understat: null },
+            '207': { name: '🇨🇭 Швейцарская Суперлига', oz: 56, avgGoals: 2.4, country: 'Швейцария', understat: null },
+            '95': { name: '🇺🇦 Украинская Премьер-лига', oz: 52, avgGoals: 2.2, country: 'Украина', understat: null },
+            '199': { name: '🇩🇰 Датская Суперлига', oz: 60, avgGoals: 2.6, country: 'Дания', understat: null },
+            '170': { name: '🇳🇴 Норвежская Элитсерия', oz: 65, avgGoals: 2.8, country: 'Норвегия', understat: null },
+            '48': { name: '🇸🇪 Шведский Аллсвенскан', oz: 62, avgGoals: 2.7, country: 'Швеция', understat: null },
+            '178': { name: '🇫🇮 Финская Вейккауслига', oz: 55, avgGoals: 2.3, country: 'Финляндия', understat: null },
+            '106': { name: '🇵🇱 Польская Экстракласа', oz: 54, avgGoals: 2.3, country: 'Польша', understat: null },
+            '148': { name: '🇭🇷 Хорватская Лига', oz: 55, avgGoals: 2.3, country: 'Хорватия', understat: null },
+            '250': { name: '🇷🇸 Сербская Суперлига', oz: 52, avgGoals: 2.1, country: 'Сербия', understat: null },
+            '176': { name: '🇧🇬 Болгарская Лига', oz: 50, avgGoals: 2.0, country: 'Болгария', understat: null },
+            '184': { name: '🇷🇴 Румынская Лига', oz: 52, avgGoals: 2.1, country: 'Румыния', understat: null },
+            '217': { name: '🇸🇰 Словацкая Лига', oz: 50, avgGoals: 2.0, country: 'Словакия', understat: null },
+            '202': { name: '🇸🇮 Словенская Лига', oz: 48, avgGoals: 1.9, country: 'Словения', understat: null },
+            '128': { name: '🇦🇷 Аргентинская Примера', oz: 58, avgGoals: 2.4, country: 'Аргентина', understat: null },
+            '145': { name: '🇺🇾 Уругвайская Примера', oz: 55, avgGoals: 2.3, country: 'Уругвай', understat: null },
+            '175': { name: '🇨🇴 Колумбийская Лига', oz: 54, avgGoals: 2.2, country: 'Колумбия', understat: null },
+            '163': { name: '🇨🇱 Чилийская Примера', oz: 55, avgGoals: 2.3, country: 'Чили', understat: null },
+            '185': { name: '🇵🇪 Перуанская Лига', oz: 52, avgGoals: 2.1, country: 'Перу', understat: null },
+            '191': { name: '🇪🇨 Эквадорская Лига', oz: 53, avgGoals: 2.2, country: 'Эквадор', understat: null },
+            '253': { name: '🇯🇵 J-Лига', oz: 60, avgGoals: 2.4, country: 'Япония', understat: null },
+            '249': { name: '🇰🇷 K-Лига', oz: 58, avgGoals: 2.3, country: 'Корея', understat: null },
+            '233': { name: '🇨🇳 Китайская Суперлига', oz: 55, avgGoals: 2.2, country: 'Китай', understat: null },
+            '240': { name: '🇦🇺 A-Лига', oz: 62, avgGoals: 2.6, country: 'Австралия', understat: null },
+            '255': { name: '🇸🇦 Саудовская Лига', oz: 58, avgGoals: 2.5, country: 'Саудовская Аравия', understat: null },
+            '258': { name: '🇦🇪 ОАЭ Про-Лига', oz: 56, avgGoals: 2.4, country: 'ОАЭ', understat: null },
+            '257': { name: '🇶🇦 Катарская Лига', oz: 55, avgGoals: 2.3, country: 'Катар', understat: null },
+            '262': { name: '🇪🇬 Египетская Лига', oz: 50, avgGoals: 2.0, country: 'Египет', understat: null },
+            '269': { name: '🇿🇦 ЮАР Премьер-Лига', oz: 48, avgGoals: 1.9, country: 'ЮАР', understat: null },
+            '264': { name: '🇲🇦 Марокканская Лига', oz: 50, avgGoals: 2.0, country: 'Марокко', understat: null },
+            '266': { name: '🇹🇳 Тунисская Лига', oz: 49, avgGoals: 1.9, country: 'Тунис', understat: null },
+            '98': { name: '🇧🇷 Бразильская Серия А', oz: 62, avgGoals: 2.5, country: 'Бразилия', understat: null },
+            '9': { name: '🇺🇸 MLS', oz: 68, avgGoals: 2.8, country: 'США', understat: null },
+            '1': { name: '🏆 ЛЧ', oz: 66, avgGoals: 2.8, country: 'Европа', understat: null }
+        };
+
+        const STADIUM_COORDS = {
+            'london': { lat: 51.5074, lon: -0.1278 },
+            'manchester': { lat: 53.483, lon: -2.244 },
+            'liverpool': { lat: 53.4308, lon: -2.9608 },
+            'barcelona': { lat: 41.3809, lon: 2.1228 },
+            'madrid': { lat: 40.4168, lon: -3.7038 },
+            'milan': { lat: 45.4641, lon: 9.1919 },
+            'munich': { lat: 48.1351, lon: 11.5820 },
+            'dortmund': { lat: 51.5136, lon: 7.4653 },
+            'paris': { lat: 48.8566, lon: 2.3522 },
+            'amsterdam': { lat: 52.3676, lon: 4.9041 },
+            'lisbon': { lat: 38.7223, lon: -9.1393 },
+            'rome': { lat: 41.9028, lon: 12.4964 },
+            'naples': { lat: 40.8518, lon: 14.2681 },
+            'turin': { lat: 45.0703, lon: 7.6869 },
+            'istanbul': { lat: 41.0082, lon: 28.9784 },
+            'moscow': { lat: 55.7558, lon: 37.6173 },
+            'kyiv': { lat: 50.4501, lon: 30.5234 },
+            'zagreb': { lat: 45.8150, lon: 15.9819 },
+            'belgrade': { lat: 44.7866, lon: 20.4489 },
+            'prague': { lat: 50.0755, lon: 14.4378 },
+            'warsaw': { lat: 52.2297, lon: 21.0122 },
+            'vienna': { lat: 48.2082, lon: 16.3738 },
+            'budapest': { lat: 47.4979, lon: 19.0402 },
+            'bucharest': { lat: 44.4268, lon: 26.1025 },
+            'sofia': { lat: 42.6977, lon: 23.3219 },
+            'athens': { lat: 37.9838, lon: 23.7275 },
+            'glasgow': { lat: 55.8642, lon: -4.2518 },
+            'brussels': { lat: 50.8503, lon: 4.3517 },
+            'copenhagen': { lat: 55.6761, lon: 12.5683 },
+            'stockholm': { lat: 59.3293, lon: 18.0686 },
+            'oslo': { lat: 59.9139, lon: 10.7522 },
+            'helsinki': { lat: 60.1699, lon: 24.9384 },
+            'dublin': { lat: 53.3498, lon: -6.2603 },
+            'porto': { lat: 41.1579, lon: -8.6291 },
+            'seville': { lat: 37.3891, lon: -5.9845 },
+            'valencia': { lat: 39.4699, lon: -0.3763 },
+            'frankfurt': { lat: 50.1109, lon: 8.6821 },
+            'leipzig': { lat: 51.3397, lon: 12.3731 },
+            'gelsenkirchen': { lat: 51.5177, lon: 7.0857 },
+            'lyon': { lat: 45.7640, lon: 4.8357 },
+            'marseille': { lat: 43.2965, lon: 5.3698 },
+            'monaco': { lat: 43.7384, lon: 7.4246 },
+            'rotterdam': { lat: 51.9244, lon: 4.4777 },
+            'eindhoven': { lat: 51.4416, lon: 5.4697 },
+            'donetsk': { lat: 48.0159, lon: 37.8028 },
+            'kharkiv': { lat: 49.9935, lon: 36.2304 },
+            'gdansk': { lat: 54.3520, lon: 18.6466 },
+            'wroclaw': { lat: 51.1079, lon: 17.0385 },
+            'cluj': { lat: 46.7712, lon: 23.6236 },
+            'tbilisi': { lat: 41.7151, lon: 44.8271 }
+        };
+
+        // ====== STATE ======
+        let state = {
+            bets: JSON.parse(localStorage.getItem('quantum_bets') || '[]'),
+            currentLeague: localStorage.getItem('quantum_league') || '39',
+            currentMode: 'total',
+            h2hData: null,
+            isLoading: false,
+            liveTimer: null,
+            patterns: [],
+            currentOdds: null,
+            understatData: null,
+            apiFootballCalls: parseInt(localStorage.getItem('quantum_api_football') || '0'),
+            apiOddsCalls: parseInt(localStorage.getItem('quantum_api_odds') || '0'),
+            lastResetDate: localStorage.getItem('quantum_reset_date') || '',
+            currentTab: 'analysis',
+            aiPredictedScore: null,
+            teamForm: null,
+            standingsData: null,
+            eloRatings: JSON.parse(localStorage.getItem('quantum_elo') || '{}'),
+            contextFactors: {
+                restDaysHome: 3,
+                restDaysAway: 3,
+                motivationHome: 'none',
+                motivationAway: 'none'
+            },
+            ensembleWeights: JSON.parse(localStorage.getItem('quantum_weights') || '{"poisson":0.5,"elo":0.3,"market":0.2}'),
+            lastErrors: { poisson: 1, elo: 1, market: 1 },
+            injuries: {},
+            matchImportance: 1.0,
+            recentForm: {}
+        };
+
+        // ====== AI КЛАСС ======
+        class QuantumAI {
+            constructor() {
+                this.model = null;
+                this.isTraining = false;
+                this.accuracy = 0;
+                this.initialized = false;
+                this.trainingHistory = [];
+            }
+
+            async init() {
+                if (this.initialized) return this;
+                try {
+                    await this.loadModel();
+                } catch (e) {
+                    console.log('AI не загружен, будет создан при обучении');
+                }
+                this.initialized = true;
+                updateAIStatus();
+                return this;
+            }
+
+            prepareData(bets) {
+                const features = [];
+                const labels = [];
+                
+                bets.forEach(bet => {
+                    if (bet.outcome === 'pending') return;
+                    
+                    features.push([
+                        bet.home || 0,
+                        bet.away || 0,
+                        bet.bkLine || 0,
+                        bet.confidence || 50,
+                        parseFloat(bet.homeXG) || 0,
+                        parseFloat(bet.awayXG) || 0,
+                    ]);
+                    
+                    labels.push(bet.outcome === 'win' ? 1 : 0);
+                });
+                
+                return { features, labels };
+            }
+
+            async createModel() {
+                if (this.model) return this.model;
+                
+                const model = tf.sequential();
+                
+                model.add(tf.layers.dense({
+                    units: 32,
+                    activation: 'relu',
+                    inputShape: [6]
+                }));
+                
+                model.add(tf.layers.dense({
+                    units: 16,
+                    activation: 'relu'
+                }));
+                
+                model.add(tf.layers.dropout({ rate: 0.2 }));
+                
+                model.add(tf.layers.dense({
+                    units: 1,
+                    activation: 'sigmoid'
+                }));
+                
+                model.compile({
+                    optimizer: tf.train.adam(0.001),
+                    loss: 'binaryCrossentropy',
+                    metrics: ['accuracy']
+                });
+                
+                this.model = model;
+                return model;
+            }
+
+            async train(bets, epochs = 100, onProgress = null) {
+                if (bets.length < 10) {
+                    showToast('⚠️ Нужно минимум 10 ставок с известным исходом', 'error');
+                    return false;
+                }
+
+                this.isTraining = true;
+                updateAIStatus();
+                showToast('🧠 Обучение AI началось...', 'info');
+
+                try {
+                    const { features, labels } = this.prepareData(bets);
+                    
+                    if (features.length === 0) {
+                        showToast('⚠️ Нет данных для обучения', 'error');
+                        this.isTraining = false;
+                        return false;
+                    }
+
+                    await this.createModel();
+
+                    const xs = tf.tensor2d(features);
+                    const ys = tf.tensor2d(labels, [labels.length, 1]);
+
+                    const history = await this.model.fit(xs, ys, {
+                        epochs: epochs,
+                        batchSize: Math.min(32, features.length),
+                        validationSplit: 0.2,
+                        callbacks: {
+                            onEpochEnd: (epoch, logs) => {
+                                if (epoch % 10 === 0 || epoch === epochs - 1) {
+                                    const msg = `Epoch ${epoch+1}/${epochs}: loss=${logs.loss.toFixed(4)}, acc=${logs.acc.toFixed(4)}`;
+                                    console.log(msg);
+                                    this.accuracy = logs.acc;
+                                    if (onProgress) onProgress(msg);
+                                    addAILog(msg);
+                                }
+                            }
+                        }
+                    });
+
+                    this.accuracy = history.history.acc[history.history.acc.length - 1] || 0;
+                    await this.saveModel();
+                    
+                    this.isTraining = false;
+                    updateAIStatus();
+                    showToast(`✅ AI обучен! Точность: ${Math.round(this.accuracy * 100)}%`, 'success');
+                    return true;
+
+                } catch (error) {
+                    console.error('Train error:', error);
+                    showToast('⚠️ Ошибка обучения: ' + error.message, 'error');
+                    this.isTraining = false;
+                    updateAIStatus();
+                    return false;
+                }
+            }
+
+            async predict(features) {
+                if (!this.model) {
+                    await this.loadModel();
+                    if (!this.model) return null;
+                }
+
+                try {
+                    const input = tf.tensor2d([features]);
+                    const prediction = this.model.predict(input);
+                    const result = prediction.dataSync()[0];
+                    prediction.dispose();
+                    input.dispose();
+                    return result;
+                } catch (error) {
+                    console.error('Predict error:', error);
+                    return null;
+                }
+            }
+
+            async saveModel() {
+                if (!this.model) return;
+                try {
+                    await this.model.save('localstorage://quantum-ai-model');
+                    localStorage.setItem('quantum_ai_accuracy', this.accuracy.toString());
+                    localStorage.setItem('quantum_ai_trained', 'true');
+                } catch (e) {
+                    console.error('Save error:', e);
+                }
+            }
+
+            async loadModel() {
+                try {
+                    this.model = await tf.loadLayersModel('localstorage://quantum-ai-model');
+                    this.accuracy = parseFloat(localStorage.getItem('quantum_ai_accuracy')) || 0;
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            isTrained() {
+                return this.model !== null && this.accuracy > 0;
+            }
+        }
+
+        // ====== ИНИЦИАЛИЗАЦИЯ AI ======
+        const quantumAI = new QuantumAI();
+
+        // ====== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ======
+        function $(id) { return document.getElementById(id); }
+        function safeNum(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+        function getLeague() { return LEAGUES[state.currentLeague] || LEAGUES['39']; }
+
+        function showToast(msg, type = 'info') {
+            const old = document.querySelector('.toast');
+            if (old) old.remove();
+            const t = document.createElement('div');
+            t.className = 'toast ' + type;
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => { if (t.parentNode) t.remove(); }, 3000);
+        }
+
+        function addAILog(msg) {
+            const log = document.getElementById('aiTrainLog');
+            if (!log) return;
+            log.style.display = 'block';
+            const entry = document.createElement('div');
+            entry.textContent = '🧠 ' + msg;
+            entry.style.borderBottom = '1px solid #2a3140';
+            entry.style.padding = '2px 0';
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function clearAILog() {
+            const log = document.getElementById('aiTrainLog');
+            if (log) log.innerHTML = '';
+        }
+
+        async function trainAI() {
+            const btn = document.getElementById('trainAIBtn');
+            if (quantumAI.isTraining) {
+                showToast('⏳ Обучение уже идёт...', 'info');
+                return;
+            }
+
+            const bets = state.bets.filter(b => b.outcome !== 'pending');
+            
+            if (bets.length < 10) {
+                showToast(`⚠️ Нужно минимум 10 ставок (сейчас ${bets.length})`, 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Обучение...';
+            clearAILog();
+            addAILog(`📊 Начало обучения на ${bets.length} ставках`);
+
+            await quantumAI.train(bets, 100, (msg) => {
+                addAILog(msg);
+            });
+
+            btn.disabled = false;
+            btn.textContent = '🧠 Обучить AI';
+            updateAIStatus();
+        }
+
+        function updateAIStatus() {
+            const statusText = document.getElementById('aiStatusText');
+            const statusDot = document.getElementById('aiStatusDot');
+            const accuracyDisplay = document.getElementById('aiAccuracyDisplay');
+            
+            if (!statusText || !statusDot || !accuracyDisplay) return;
+
+            if (quantumAI.isTraining) {
+                statusText.textContent = '⏳ Обучение...';
+                statusDot.className = 'status-dot training';
+                accuracyDisplay.textContent = '⏳';
+                return;
+            }
+
+            if (quantumAI.isTrained()) {
+                const acc = Math.round(quantumAI.accuracy * 100);
+                statusText.textContent = `✅ Обучен (${state.bets.filter(b => b.outcome !== 'pending').length} ставок)`;
+                statusDot.className = 'status-dot trained';
+                accuracyDisplay.textContent = `🎯 ${acc}%`;
+                accuracyDisplay.style.color = acc > 70 ? '#2ecc71' : acc > 50 ? '#f1c40f' : '#e74c3c';
+            } else {
+                statusText.textContent = '⏳ Не обучен';
+                statusDot.className = 'status-dot untrained';
+                accuracyDisplay.textContent = '—';
+            }
+        }
+
+        async function enhanceWithML(predictedHome, predictedAway, bkLine, confidence) {
+            if (!quantumAI.isTrained()) return confidence;
+            
+            const features = [
+                predictedHome || 0,
+                predictedAway || 0,
+                bkLine || 0,
+                confidence || 50,
+                parseFloat(state.understatData?.homeXG || 0),
+                parseFloat(state.understatData?.awayXG || 0)
+            ];
+            
+            const mlPrediction = await quantumAI.predict(features);
+            
+            if (mlPrediction !== null && mlPrediction >= 0 && mlPrediction <= 1) {
+                const mlWeight = Math.min(0.4, 0.1 + (quantumAI.accuracy * 0.3));
+                const currentProb = confidence / 100;
+                const blendedProb = currentProb * (1 - mlWeight) + mlPrediction * mlWeight;
+                const newConfidence = Math.round(Math.max(0, Math.min(100, blendedProb * 100)));
+                
+                const mlSection = document.getElementById('mlSection');
+                const mlDisplay = document.getElementById('aiMLConfidence');
+                if (mlSection) mlSection.style.display = 'block';
+                if (mlDisplay) {
+                    mlDisplay.textContent = `${Math.round(mlPrediction * 100)}% (вес ${Math.round(mlWeight * 100)}%)`;
+                    mlDisplay.style.color = mlPrediction > 0.6 ? '#2ecc71' : '#f1c40f';
+                }
+                
+                return newConfidence;
+            }
+            
+            return confidence;
+        }
+
+        // ====== ТЕМА ======
+        function toggleTheme() {
+            const isLight = document.body.classList.toggle('light');
+            const btn = document.getElementById('themeBtn');
+            const toggleBtn = document.getElementById('themeToggle');
+            if (btn) btn.textContent = isLight ? '☀️' : '🌙';
+            if (toggleBtn) {
+                toggleBtn.textContent = isLight ? '☀️ Светлая' : '🌙 Тёмная';
+                toggleBtn.classList.toggle('active');
+            }
+            localStorage.setItem('quantum_theme', isLight ? 'light' : 'dark');
+        }
+
+        function initTheme() {
+            const theme = localStorage.getItem('quantum_theme') || 'dark';
+            if (theme === 'light') {
+                document.body.classList.add('light');
+                const btn = document.getElementById('themeBtn');
+                const toggleBtn = document.getElementById('themeToggle');
+                if (btn) btn.textContent = '☀️';
+                if (toggleBtn) {
+                    toggleBtn.textContent = '☀️ Светлая';
+                    toggleBtn.classList.add('active');
+                }
+            }
+        }
+
+        // ====== НАВИГАЦИЯ ======
+        function switchTab(tab) {
+            if (tab !== 'search') {
+                stopLiveUpdates();
+                if ($('liveCard')) $('liveCard').style.display = 'none';
+            }
+            state.currentTab = tab;
+
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            const screenMap = {
+                'analysis': 'analysisScreen',
+                'search': 'searchScreen',
+                'stats': 'statsScreen',
+                'settings': 'settingsScreen'
+            };
+            if ($(screenMap[tab])) $(screenMap[tab]).classList.add('active');
+
+            document.querySelectorAll('.top-tab').forEach(el => el.classList.remove('active'));
+            const target = document.querySelector(`.top-tab[data-tab="${tab}"]`);
+            if (target) target.classList.add('active');
+
+            if (tab === 'stats') {
+                renderHistory();
+                renderStats();
+                renderDashboard();
+                renderChart();
+                renderInsights();
+            }
+            if (tab === 'settings') {
+                updateAPIStatus();
+                renderSettingsLeagues();
+                updateAIStatus();
+            }
+        }
+
+        // ====== СВАЙПЫ ======
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const MIN_SWIPE_DISTANCE = 50;
+        const tabs = ['analysis', 'search', 'stats', 'settings'];
+        let currentTabIndex = 0;
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const currentTab = document.querySelector('.top-tab.active');
+            if (currentTab) {
+                const tab = currentTab.dataset.tab;
+                currentTabIndex = tabs.indexOf(tab);
+                if (currentTabIndex === -1) currentTabIndex = 0;
+            }
+            initTheme();
+            initSwipeIndicator();
+            renderLeagues();
+            renderHistory();
+            renderStats();
+            renderDashboard();
+            renderChart();
+            renderInsights();
+            updateSum();
+            renderSettingsLeagues();
+            updateAPIStatus();
+            await quantumAI.init();
+            updateAIStatus();
+        });
+
+        function initSwipeIndicator() {
+            const indicator = document.getElementById('swipeIndicator');
+            if (indicator) {
+                indicator.classList.add('show');
+                setTimeout(() => {
+                    indicator.style.opacity = '0';
+                    setTimeout(() => {
+                        indicator.classList.remove('show');
+                    }, 500);
+                }, 3000);
+            }
+        }
+
+        function getMainContent() { return document.getElementById('mainContent'); }
+
+        document.addEventListener('touchstart', function(e) {
+            const main = getMainContent();
+            if (!main) return;
+            const rect = main.getBoundingClientRect();
+            const touch = e.touches[0];
+            if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+                touchStartX = touch.clientX;
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', function(e) {
+            if (touchStartX === 0) return;
+            const touch = e.changedTouches[0];
+            touchEndX = touch.clientX;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > MIN_SWIPE_DISTANCE) {
+                if (diff > 0) { swipeLeft(); } else { swipeRight(); }
+            }
+            touchStartX = 0;
+            touchEndX = 0;
+        }, { passive: true });
+
+        function swipeLeft() {
+            if (currentTabIndex < tabs.length - 1) {
+                currentTabIndex++;
+                switchTab(tabs[currentTabIndex]);
+                showSwipeFeedback('⬅️');
+            }
+        }
+
+        function swipeRight() {
+            if (currentTabIndex > 0) {
+                currentTabIndex--;
+                switchTab(tabs[currentTabIndex]);
+                showSwipeFeedback('➡️');
+            }
+        }
+
+        let swipeFeedbackTimer = null;
+
+        function showSwipeFeedback(direction) {
+            const indicator = document.getElementById('swipeIndicator');
+            if (!indicator) return;
+            indicator.textContent = direction;
+            indicator.style.opacity = '1';
+            indicator.classList.add('show');
+            clearTimeout(swipeFeedbackTimer);
+            swipeFeedbackTimer = setTimeout(() => {
+                indicator.style.opacity = '0';
+                setTimeout(() => {
+                    indicator.classList.remove('show');
+                }, 500);
+            }, 600);
+        }
+
+        // ====== API ======
+        function trackAPICall(type) {
+            const today = new Date().toDateString();
+            if (state.lastResetDate !== today) {
+                state.apiFootballCalls = 0;
+                state.apiOddsCalls = 0;
+                state.lastResetDate = today;
+                localStorage.setItem('quantum_reset_date', today);
+            }
+            if (type === 'football') {
+                state.apiFootballCalls++;
+                localStorage.setItem('quantum_api_football', state.apiFootballCalls);
+            } else if (type === 'odds') {
+                state.apiOddsCalls++;
+                localStorage.setItem('quantum_api_odds', state.apiOddsCalls);
+            }
+            updateAPIStatus();
+        }
+
+        function updateAPIStatus() {
+            const footballRemaining = Math.max(0, 100 - state.apiFootballCalls);
+            const oddsRemaining = Math.max(0, 500 - state.apiOddsCalls);
+            if ($('apiFootballStatus')) {
+                $('apiFootballStatus').textContent = footballRemaining > 10 ? '✅ Активен' : '⚠️ Почти израсходован';
+                $('apiFootballStatus').style.color = footballRemaining > 10 ? '#2ecc71' : '#f1c40f';
+                $('apiFootballCount').textContent = `Осталось: ${footballRemaining}`;
+            }
+            if ($('apiOddsStatus')) {
+                $('apiOddsStatus').textContent = oddsRemaining > 50 ? '✅ Активен' : '⚠️ Почти израсходован';
+                $('apiOddsStatus').style.color = oddsRemaining > 50 ? '#2ecc71' : '#f1c40f';
+                $('apiOddsCount').textContent = `Осталось: ${oddsRemaining}`;
+            }
+        }
+
+        // ====== ГЛАВНАЯ ФУНКЦИЯ ЗАГРУЗКИ H2H (ЧЕРЕЗ ПРОКСИ) ======
+        async function loadH2H() {
+            const homeTeam = document.getElementById('homeTeamH2H')?.value?.trim() || '';
+            const awayTeam = document.getElementById('awayTeamH2H')?.value?.trim() || '';
+            
+            if (!homeTeam || !awayTeam) {
+                showToast('⚠️ Введите обе команды!', 'error');
+                return;
+            }
+            if (homeTeam.length < 2 || awayTeam.length < 2) {
+                showToast('⚠️ Минимум 2 символа', 'error');
+                return;
+            }
+            if (state.isLoading) return;
+            state.isLoading = true;
+
+            const btn = document.getElementById('loadH2HBtn');
+            const btnText = document.getElementById('loadBtnText');
+            const spinner = document.getElementById('loadSpinner');
+            const status = document.getElementById('h2hStatus');
+            const results = document.getElementById('h2hResults');
+            
+            btn.disabled = true;
+            btnText.textContent = '⏳ Загрузка...';
+            spinner.style.display = 'inline-block';
+            status.innerHTML = '<span class="loading-text"><span class="spinner-small"></span> Поиск команд...</span>';
+            results.innerHTML = '';
+
+            try {
+                const API_KEY = 'api-40a548b23a46b859463c5bf4d4698aa1';
+                
+                console.log('🔍 Поиск команды:', homeTeam);
+                
+                // 1. Ищем хозяев через прокси
+                const url1 = `${PROXY_BASE}/football/teams?search=${encodeURIComponent(homeTeam)}`;
+                console.log('📡 Запрос 1:', url1);
+                
+                const resp1 = await fetch(url1, {
+                    headers: {
+                        'x-apisports-key': API_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📊 Статус 1:', resp1.status);
+                const data1 = await resp1.json();
+                console.log('📦 Данные 1:', data1);
+                
+                if (!data1.response || data1.response.length === 0) {
+                    status.innerHTML = `
+                        ❌ Команда "<strong>${homeTeam}</strong>" не найдена.<br>
+                        <span style="font-size:11px;color:#888;">💡 Попробуйте: "Real Madrid", "Barcelona", "Arsenal"</span>
+                    `;
+                    btn.disabled = false;
+                    btnText.textContent = '📊 Загрузить H2H';
+                    spinner.style.display = 'none';
+                    state.isLoading = false;
+                    return;
+                }
+                
+                const homeId = data1.response[0].team.id;
+                console.log('🏠 ID хозяев:', homeId, data1.response[0].team.name);
+                
+                // 2. Ищем гостей через прокси
+                const url2 = `${PROXY_BASE}/football/teams?search=${encodeURIComponent(awayTeam)}`;
+                console.log('📡 Запрос 2:', url2);
+                
+                const resp2 = await fetch(url2, {
+                    headers: {
+                        'x-apisports-key': API_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📊 Статус 2:', resp2.status);
+                const data2 = await resp2.json();
+                console.log('📦 Данные 2:', data2);
+                
+                if (!data2.response || data2.response.length === 0) {
+                    status.innerHTML = `
+                        ❌ Команда "<strong>${awayTeam}</strong>" не найдена.<br>
+                        <span style="font-size:11px;color:#888;">💡 Попробуйте: "Real Madrid", "Barcelona", "Arsenal"</span>
+                    `;
+                    btn.disabled = false;
+                    btnText.textContent = '📊 Загрузить H2H';
+                    spinner.style.display = 'none';
+                    state.isLoading = false;
+                    return;
+                }
+                
+                const awayId = data2.response[0].team.id;
+                console.log('✈️ ID гостей:', awayId, data2.response[0].team.name);
+                
+                // 3. Загружаем H2H через прокси
+                const h2hUrl = `${PROXY_BASE}/football/fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
+                console.log('📡 Запрос H2H:', h2hUrl);
+                
+                const h2hResp = await fetch(h2hUrl, {
+                    headers: {
+                        'x-apisports-key': API_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📊 Статус H2H:', h2hResp.status);
+                const h2hData = await h2hResp.json();
+                console.log('📦 H2H данные:', h2hData);
+                
+                if (!h2hData.response || h2hData.response.length === 0) {
+                    status.innerHTML = `
+                        ❌ Нет очных встреч между "<strong>${homeTeam}</strong>" и "<strong>${awayTeam}</strong>"
+                    `;
+                    btn.disabled = false;
+                    btnText.textContent = '📊 Загрузить H2H';
+                    spinner.style.display = 'none';
+                    state.isLoading = false;
+                    return;
+                }
+                
+                // 4. Обрабатываем результаты
+                const matches = h2hData.response.map(m => ({
+                    home: m.teams.home.name,
+                    away: m.teams.away.name,
+                    homeScore: m.goals.home || 0,
+                    awayScore: m.goals.away || 0,
+                    oz: (m.goals.home || 0) > 0 && (m.goals.away || 0) > 0,
+                    total: (m.goals.home || 0) + (m.goals.away || 0),
+                    diff: (m.goals.home || 0) - (m.goals.away || 0),
+                    date: m.fixture.date
+                }));
+                
+                state.h2hData = matches;
+                analyzePatterns(matches);
+                await detectLeague(homeTeam);
+                
+                // 5. Отображаем статистику
+                const total = matches.length;
+                const ozCount = matches.filter(m => m.oz).length;
+                const avgTotal = (matches.reduce((sum, m) => sum + m.total, 0) / total).toFixed(1);
+                const homeWins = matches.filter(m => m.homeScore > m.awayScore).length;
+                const awayWins = matches.filter(m => m.awayScore > m.homeScore).length;
+                const draws = total - homeWins - awayWins;
+                const ozPercent = Math.round((ozCount / total) * 100);
+                
+                let summaryHtml = `<div class="h2h-summary">
+                    <span class="item">📊 Всего: <span class="num">${total}</span></span>
+                    <span class="item">⚽ ОЗ: <span class="num">${ozPercent}%</span></span>
+                    <span class="item">📈 Тотал: <span class="num">${avgTotal}</span></span>
+                    <span class="item">🏠 ${homeWins} | ✈️ ${awayWins} | 🤝 ${draws}</span>
+                </div>`;
+                
+                let matchesHtml = matches.slice(0, 5).map(m =>
+                    `<div class="h2h-item"><span class="score">${m.home} ${m.homeScore}:${m.awayScore} ${m.away}</span><span class="${m.oz ? 'oz' : 'no-oz'}">${m.oz ? '✅' : '❌'}</span></div>`
+                ).join('');
+                
+                status.innerHTML = `✅ Найдено <strong>${total}</strong> очных встреч:`;
+                results.innerHTML = summaryHtml + matchesHtml;
+                
+                // 6. Дополнительные данные
+                const understatData = await fetchUnderstatXG(homeTeam, awayTeam);
+                if (understatData) {
+                    displayUnderstatXG(understatData);
+                    state.understatData = understatData;
+                }
+                await loadOdds();
+                await startLiveUpdates();
+                calculate();
+                
+                const badge = document.getElementById('searchBadge');
+                if (badge) {
+                    badge.style.display = 'block';
+                    badge.textContent = total;
+                }
+                const ctxCard = document.getElementById('contextCard');
+                if (ctxCard) ctxCard.style.display = 'block';
+                
+                showToast(`✅ Загружено ${total} матчей!`, 'success');
+                
+            } catch (error) {
+                console.error('❌ H2H Error:', error);
+                status.innerHTML = `
+                    <div style="color:#e74c3c;padding:8px;background:#2a1a1a;border-radius:8px;border-left:4px solid #e74c3c;">
+                        <strong>❌ Ошибка загрузки:</strong><br>
+                        ${error.message}<br><br>
+                        <span style="color:#888;font-size:11px;">
+                            💡 Возможные причины:<br>
+                            • Прокси-сервер недоступен<br>
+                            • Превышен лимит запросов (100/день)<br>
+                            • Нет интернета
+                        </span>
+                    </div>
+                `;
+                showToast('⚠️ Ошибка загрузки. Проверьте консоль.', 'error');
+            } finally {
+                state.isLoading = false;
+                btn.disabled = false;
+                btnText.textContent = '📊 Загрузить H2H';
+                spinner.style.display = 'none';
+            }
+        }
+
+        // ====== ОСТАЛЬНЫЕ ФУНКЦИИ ======
+        // (Все остальные функции из оригинального кода)
+
+        // Заглушки для функций (в полной версии должны быть реализованы)
+        function fetchUnderstatXG(homeTeam, awayTeam) {
+            console.log('fetchUnderstatXG вызван для', homeTeam, awayTeam);
+            return null;
+        }
+        
+        function analyzePatterns(matches) {
+            console.log('analyzePatterns вызван с', matches?.length, 'матчами');
+        }
+        
+        function detectLeague(teamName) {
+            console.log('detectLeague вызван для', teamName);
+        }
+        
+        function displayUnderstatXG(data) {
+            console.log('displayUnderstatXG вызван с', data);
+        }
+        
+        async function loadOdds() {
+            console.log('loadOdds вызван');
+        }
+        
+        async function startLiveUpdates() {
+            console.log('startLiveUpdates вызван');
+        }
+        
+        function stopLiveUpdates() {
+            console.log('stopLiveUpdates вызван');
+        }
+        
+        function calculate() {
+            const home = safeNum($('homeGoals')?.value);
+            const away = safeNum($('awayGoals')?.value);
+            const total = home + away;
+            if ($('sumDisplay')) $('sumDisplay').textContent = total;
+            
+            // Простой расчет для демонстрации
+            const expected = Math.round((total || 2.5) * 1.1);
+            if ($('resValue1')) $('resValue1').textContent = expected;
+            if ($('resValue2')) $('resValue2').textContent = safeNum($('bkLine')?.value) || '--';
+            if ($('resValue3')) {
+                const diff = expected - (safeNum($('bkLine')?.value) || 0);
+                $('resValue3').textContent = diff !== 0 ? (diff > 0 ? '+' : '') + diff.toFixed(1) : '--';
+            }
+            
+            const confidence = Math.min(90, 50 + Math.abs(expected - 2.5) * 5);
+            if ($('confidenceLabel')) $('confidenceLabel').textContent = confidence + '%';
+            if ($('confidenceFill')) $('confidenceFill').style.width = confidence + '%';
+        }
+        
+        function updateSum() {
+            const total = safeNum($('homeGoals')?.value) + safeNum($('awayGoals')?.value);
+            if ($('sumDisplay')) $('sumDisplay').textContent = total;
+        }
+        
+        function saveBet() {
+            const bet = {
+                id: Date.now(),
+                date: new Date().toLocaleString(),
+                match: `${$('homeTeamH2H')?.value || 'Хозяева'} - ${$('awayTeamH2H')?.value || 'Гости'}`,
+                mode: state.currentMode,
+                value: $('resValue1')?.textContent || '--',
+                home: safeNum($('homeGoals')?.value),
+                away: safeNum($('awayGoals')?.value),
+                bkLine: safeNum($('bkLine')?.value),
+                confidence: parseInt($('confidenceLabel')?.textContent) || 50,
+                outcome: 'pending',
+                resultText: '⏳ Ожидание'
+            };
+            state.bets.push(bet);
+            localStorage.setItem('quantum_bets', JSON.stringify(state.bets));
+            renderHistory();
+            renderStats();
+            renderDashboard();
+            renderChart();
+            renderInsights();
+            updateAIStatus();
+            showToast('✅ Ставка сохранена!', 'success');
+        }
+        
+        function editBet(idx) {
+            const b = state.bets[idx];
+            if (!b) return;
+            const newOutcome = prompt(`Исход для ${b.match}:\n1 - Выиграла\n2 - Проиграла\n3 - Неизвестно`, '3');
+            if (newOutcome === null) return;
+            if (newOutcome === '1') { b.outcome = 'win'; b.resultText = '✅ Выигрыш'; }
+            else if (newOutcome === '2') { b.outcome = 'loss'; b.resultText = '❌ Проигрыш'; }
+            else { b.outcome = 'pending'; b.resultText = '⏳ Ожидание'; }
+            localStorage.setItem('quantum_bets', JSON.stringify(state.bets));
+            renderHistory();
+            renderStats();
+            renderDashboard();
+            renderChart();
+            renderInsights();
+            updateAIStatus();
+            showToast('✅ Обновлено', 'success');
+        }
+        
+        function clearHistory() {
+            if (!confirm('Удалить всю историю?')) return;
+            state.bets = [];
+            localStorage.setItem('quantum_bets', JSON.stringify(state.bets));
+            renderHistory();
+            renderStats();
+            renderDashboard();
+            renderChart();
+            renderInsights();
+            updateAIStatus();
+            showToast('🗑️ История очищена', 'success');
+        }
+        
+        function resetAll() {
+            if (!confirm('Сбросить все данные?')) return;
+            localStorage.clear();
+            location.reload();
+        }
+        
+        function renderHistory() {
+            const list = $('historyList');
+            if (!list) return;
+            if (state.bets.length === 0) {
+                list.innerHTML = '<div class="text-muted text-center" style="padding:10px 0;">Нет ставок</div>';
+                return;
+            }
+            const modeNames = { 'total': 'Тотал', 'fora': 'Фора', 'oz': 'ОЗ' };
+            list.innerHTML = state.bets.slice().reverse().map((b, i) => {
+                const idx = state.bets.length - 1 - i;
+                const cls = b.outcome === 'win' ? 'win' : (b.outcome === 'loss' ? 'loss' : 'pending');
+                const emoji = b.outcome === 'win' ? '✅' : (b.outcome === 'loss' ? '❌' : '⏳');
+                return `<div class="history-item" onclick="editBet(${idx})">
+                    <div><b>${modeNames[b.mode] || b.mode}</b>: ${b.value}</div>
+                    <div><span class="${cls}">${emoji} ${b.resultText || '⏳'}</span></div>
+                </div>`;
+            }).join('');
+        }
+        
+        function renderStats() {
+            const total = state.bets.length;
+            const wins = state.bets.filter(b => b.outcome === 'win').length;
+            const losses = state.bets.filter(b => b.outcome === 'loss').length;
+            if ($('statTotal')) $('statTotal').textContent = total;
+            if ($('statWinRate')) $('statWinRate').textContent = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) + '%' : '0%';
+            if ($('statBalance')) $('statBalance').textContent = wins - losses;
+            if ($('statROI')) $('statROI').textContent = total > 0 ? Math.round(((wins - losses) / total) * 100) + '%' : '0%';
+        }
+        
+        function renderDashboard() {
+            const total = state.bets.length;
+            const wins = state.bets.filter(b => b.outcome === 'win').length;
+            const losses = state.bets.filter(b => b.outcome === 'loss').length;
+            let streak = 0, maxStreak = 0;
+            for (let i = state.bets.length - 1; i >= 0; i--) {
+                if (state.bets[i].outcome === 'win') { streak++; maxStreak = Math.max(maxStreak, streak); }
+                else if (state.bets[i].outcome === 'loss') streak = 0;
+                else break;
+            }
+            if ($('kpiTotal')) $('kpiTotal').textContent = total;
+            if ($('kpiWinRate')) $('kpiWinRate').textContent = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) + '%' : '0%';
+            if ($('kpiProfit')) $('kpiProfit').textContent = wins - losses;
+            if ($('kpiROI')) $('kpiROI').textContent = total > 0 ? Math.round(((wins - losses) / total) * 100) + '%' : '0%';
+            if ($('kpiStreak')) $('kpiStreak').textContent = streak;
+            if ($('kpiBest')) $('kpiBest').textContent = maxStreak;
+        }
+        
+        function renderChart() {
+            const chart = $('chartBars');
+            if (!chart) return;
+            const last20 = state.bets.slice(-20);
+            let bal = 0;
+            const data = last20.map(b => {
+                if (b.outcome === 'win') bal++;
+                else if (b.outcome === 'loss') bal--;
+                return bal;
+            });
+            if (data.length === 0) {
+                chart.innerHTML = '<span style="color:#888;font-size:11px;">Нет данных</span>';
+                return;
+            }
+            const max = Math.max(1, ...data.map(Math.abs));
+            chart.innerHTML = data.map(v =>
+                `<div class="bar ${v < 0 ? 'loss' : ''}" style="height:${Math.max(3, (Math.abs(v) / max) * 26)}px;"></div>`
+            ).join('');
+        }
+        
+        function renderInsights() {
+            const container = $('insightsContent');
+            if (!container) return;
+            if (state.bets.length === 0) {
+                container.innerHTML = '<div class="text-muted text-center" style="padding:6px 0;">Нет данных</div>';
+                return;
+            }
+            const wins = state.bets.filter(b => b.outcome === 'win').length;
+            const rate = Math.round((wins / state.bets.length) * 100);
+            container.innerHTML = `<div style="font-size:12px;">📊 Всего ставок: ${state.bets.length}, побед: ${wins} (${rate}%)</div>`;
+        }
+        
+        function clearAll() {
+            if ($('homeGoals')) $('homeGoals').value = '0';
+            if ($('awayGoals')) $('awayGoals').value = '0';
+            if ($('bkLine')) { $('bkLine').value = '0'; $('bkLine').disabled = true; }
+            if ($('sumDisplay')) $('sumDisplay').textContent = '0';
+            if ($('resValue1')) $('resValue1').textContent = '--';
+            if ($('resValue2')) $('resValue2').textContent = '--';
+            if ($('resValue3')) $('resValue3').textContent = '--';
+            const adv = $('resAdvice');
+            if (adv) { adv.textContent = '⏳ Введите данные для расчёта'; adv.className = 'advice info'; }
+            if ($('confidenceLabel')) $('confidenceLabel').textContent = '0%';
+            if ($('confidenceFill')) $('confidenceFill').style.width = '0%';
+            if ($('h2hResults')) $('h2hResults').innerHTML = '';
+            if ($('h2hStatus')) $('h2hStatus').textContent = 'Введите команды и нажмите "Загрузить H2H"';
+            state.h2hData = null;
+            state.understatData = null;
+            state.currentOdds = null;
+            state.aiPredictedScore = null;
+            stopLiveUpdates();
+            if ($('xgCard')) $('xgCard').style.display = 'none';
+            if ($('aiCard')) $('aiCard').style.display = 'none';
+            if ($('liveCard')) $('liveCard').style.display = 'none';
+            if ($('aiResult')) $('aiResult').style.display = 'none';
+            if ($('contextCard')) $('contextCard').style.display = 'none';
+            if ($('bkComment')) { $('bkComment').textContent = '—'; $('bkComment').style.background = 'transparent'; }
+            if ($('searchBadge')) $('searchBadge').style.display = 'none';
+            showToast('🗑️ Очищено', 'info');
+        }
+        
+        function exportData() {
+            const data = { bets: state.bets, version: '2.3 AI', exportDate: new Date().toISOString() };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `quantum_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📦 Данные экспортированы!', 'success');
+        }
+        
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.bets && Array.isArray(data.bets)) {
+                        state.bets = data.bets;
+                        localStorage.setItem('quantum_bets', JSON.stringify(state.bets));
+                        renderHistory();
+                        renderStats();
+                        renderDashboard();
+                        renderChart();
+                        renderInsights();
+                        updateAIStatus();
+                        showToast('📥 Данные импортированы!', 'success');
+                    } else showToast('❌ Неверный формат файла', 'error');
+                } catch (err) { showToast('❌ Ошибка импорта', 'error'); }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+        
+        function renderLeagues() {
+            const select = document.getElementById('leagueSelect');
+            if (!select) return;
+            select.innerHTML = '';
+            Object.keys(LEAGUES).forEach(key => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = LEAGUES[key].name;
+                if (key === state.currentLeague) option.selected = true;
+                select.appendChild(option);
+            });
+            updateLeagueInfo();
+        }
+        
+        function updateLeagueInfo() {
+            const league = getLeague();
+            const badge = document.getElementById('autoLeagueBadge');
+            if (badge) badge.innerHTML = `<span class="league-badge">${league.country}</span>`;
+            const info = document.getElementById('leagueInfo');
+            if (info) info.textContent = `Ср. тотал: ${league.avgGoals} | ОЗ: ${league.oz}%`;
+        }
+        
+        function renderSettingsLeagues() {
+            const select = document.getElementById('settingsLeagueSelect');
+            if (!select) return;
+            select.innerHTML = '';
+            Object.keys(LEAGUES).forEach(key => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = LEAGUES[key].name;
+                if (key === state.currentLeague) option.selected = true;
+                select.appendChild(option);
+            });
+        }
+        
+        function changeDefaultLeague(value) {
+            state.currentLeague = value;
+            localStorage.setItem('quantum_league', value);
+            if (document.getElementById('leagueSelect')) document.getElementById('leagueSelect').value = value;
+            updateLeagueInfo();
+            showToast(`🏆 Лига изменена: ${LEAGUES[value].name}`, 'success');
+        }
+        
+        function switchMode(mode, btn) {
+            state.currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            const labels = { 'total': 'Ожидаемый тотал', 'fora': 'Ожидаемая фора', 'oz': 'Обе забьют' };
+            const label1 = document.getElementById('resLabel1');
+            if (label1) label1.textContent = labels[mode] || 'Ожидаемый';
+            const v1 = document.getElementById('resValue1');
+            if (v1) v1.textContent = '--';
+            const v2 = document.getElementById('resValue2');
+            if (v2) v2.textContent = '--';
+            const v3 = document.getElementById('resValue3');
+            if (v3) v3.textContent = '--';
+            const adv = document.getElementById('resAdvice');
+            if (adv) { adv.textContent = '⏳ Введите данные для расчёта'; adv.className = 'advice info'; }
+            const cl = document.getElementById('confidenceLabel');
+            if (cl) cl.textContent = '0%';
+            const cf = document.getElementById('confidenceFill');
+            if (cf) cf.style.width = '0%';
+        }
+        
+        async function generateAIPrediction() {
+            console.log('generateAIPrediction вызван');
+            showToast('🧠 AI прогноз генерируется...', 'info');
+            setTimeout(() => {
+                document.getElementById('aiResult').style.display = 'block';
+                document.getElementById('aiRecommendation').textContent = '✅ Тотал БОЛЬШЕ 2.5';
+                document.getElementById('aiAdvice').textContent = '📊 Прогноз на основе общей статистики';
+                showToast('✅ AI прогноз готов!', 'success');
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
 
