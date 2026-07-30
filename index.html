@@ -1976,7 +1976,7 @@
                 console.log('🔍 Поиск команды:', homeTeam);
                 
                 // 1. Ищем хозяев через прокси
-                const url1 = `${PROXY_BASE}/football/teams?search=${encodeURIComponent(homeTeam)}`;
+                const url1 = `${PROXY_BASE}teams?search=${encodeURIComponent(homeTeam)}`;
                 console.log('📡 Запрос 1:', url1);
                 
                 const resp1 = await fetch(url1, {
@@ -2015,7 +2015,7 @@ const homeId = homeTeamData.team.id;
                 console.log('🏠 ID хозяев:', homeId, data1.response[0].team.name);
                 
                 // 2. Ищем гостей через прокси
-                const url2 = `${PROXY_BASE}/football/teams?search=${encodeURIComponent(awayTeam)}`;
+                const url2 = `${PROXY_BASE}teams?search=${encodeURIComponent(awayTeam)}`;
                 console.log('📡 Запрос 2:', url2);
                 
                 const resp2 = await fetch(url2, {
@@ -2054,7 +2054,7 @@ const awayId = awayTeamData.team.id;
                 console.log('✈️ ID гостей:', awayId, data2.response[0].team.name);
                 
                 // 3. Загружаем H2H через прокси
-                const h2hUrl = `${PROXY_BASE}/football/fixtures/headtohead?h2h=${homeId}-${awayId}`;
+                const h2hUrl = `${PROXY_BASE}fixtures/headtohead?h2h=${homeId}-${awayId}`;
                 console.log('📡 Запрос H2H:', h2hUrl);
                 
                 const h2hResp = await fetch(h2hUrl, {
