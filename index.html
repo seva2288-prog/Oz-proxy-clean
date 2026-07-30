@@ -1154,7 +1154,16 @@
                 </button>
                 <div id="h2hContainer">
                     <div id="h2hStatus" style="color:#888;font-size:12px;padding:4px 0;">Введите команды и нажмите "Загрузить H2H"</div>
-                    <div class="h2h-results" id="h2hResults"></div>
+                    <div class="h2h-results" id="h2hResults"></div> <div id="h2hContainer">
+    <div id="h2hStatus" style="color:#888;font-size:12px;padding:4px 0;">Введите...</div>
+    <div class="h2h-results" id="h2hResults"></div>
+    <div style="margin-top: 10px; display: none;" id="quickAiBtnContainer">
+        <button class="btn-ai" onclick="quickAI()" style="background: #9b59b6; width: 100%; padding: 12px; border-radius: 10px; border: none; color: white; font-weight: 700; font-size: 16px; cursor: pointer;">
+            ⚡ Быстрый AI прогноз
+        </button>
+    </div>
+
+</div> 
                 </div>
             </div>
             <div class="card" id="liveCard" style="display:none;">
@@ -2637,6 +2646,15 @@ const awayId = awayTeamData.team.id;
     btn.disabled = false;
     btn.innerHTML = '🤖 Сгенерировать AI прогноз';
     showToast('✅ AI прогноз готов!', 'success');
-}    </script>
+}    </script>// ===== БЫСТРЫЙ AI =====
+function quickAI() {
+    switchTab('analysis');
+    setTimeout(() => {
+        const aiBtn = document.getElementById('aiBtn');
+        if (aiBtn) {
+            aiBtn.click();
+        }
+    }, 300);
+}
 </body>
 </html>
