@@ -2036,7 +2036,7 @@
                 console.log('✈️ ID гостей:', awayId, data2.response[0].team.name);
                 
                 // 3. Загружаем H2H через прокси
-                const h2hUrl = `${PROXY_BASE}/football/fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
+                const h2hUrl = `${PROXY_BASE}/football/fixtures/headtohead?h2h=${homeId}-${awayId}`;
                 console.log('📡 Запрос H2H:', h2hUrl);
                 
                 const h2hResp = await fetch(h2hUrl, {
