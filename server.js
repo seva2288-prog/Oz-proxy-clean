@@ -3,7 +3,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// 1. CORS
+// 1. CORS (Разрешаем запросы с любых устройств)
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-apisports-key');
@@ -12,67 +12,48 @@ app.use((req, res, next) => {
   next();
 });
 
-// 2. API - ПОИСК КОМАНДЫ
-app.get('/api/football/teams', async (req, res) => {
-  const search = req.query.search;
-  if (!search) return res.status(400).json({ error: 'Параметр search обязателен' });
+// 2. ЕДИНЫЙ ПРОКСИ-ОБРАБОТЧИК ДЛЯ ВСЕХ ЗАПРОСОВ К API
+// Любой запрос, начинающийся с /api/, будет отправлен в API-Football
+app.get('/api/*', async (req, res) => {
+  // Собираем полный путь запроса (например: /teams, /fixtures/headtohead)
+  const apiPath = req.path.replace('/api', ''); 
+  
+  // Передаем все параметры (например, ?search=Real%20Madrid)
+  const queryString = req.url.includes('?') ? req.url.split('?')[1] : ''; 
 
-  // Берем ключ из переменных окружения Render
-  const API_KEY = process.env.API_KEY_FOOTBALL || '40a548b23a46b859463c5bf4d4698aa1';
+  // ВАЖНО: Ваш ключ API (он у вас правильный)
+  const API_KEY = '40a548b23a46b859463c5bf4d4698aa1';
+
+  const url = `https://v3.football.api-sports.io${apiPath}${queryString ? '?' + queryString : ''}`;
+
+  console.log('🔄 Прокси запрос к:', url);
 
   try {
-    const response = await fetch(`https://v3.football.api-sports.io/teams?search=${encodeURIComponent(search)}`, {
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'x-apisports-key': API_KEY
+        'x-apisports-key': API_KEY,
+        'Content-Type': 'application/json'
       }
     });
+
     const data = await response.json();
     res.json(data);
   } catch (error) {
-    console.error('Ошибка поиска команды:', error);
-    res.status(500).json({ error: 'Ошибка запроса к API-Football' });
+    console.error('❌ Ошибка прокси:', error.message);
+    res.status(500).json({ error: 'Ошибка при запросе к API-Football через прокси' });
   }
 });
 
-// 3. API - H2H (ОЧНЫЕ ВСТРЕЧИ)
-app.get('/api/football/fixtures/headtohead', async (req, res) => {
-  const h2h = req.query.h2h;
-  const last = req.query.last || 10;
-  if (!h2h) return res.status(400).json({ error: 'Параметр h2h обязателен' });
-
-  // Берем ключ из переменных окружения Render
-  const API_KEY = process.env.API_KEY_FOOTBALL || '40a548b23a46b859463c5bf4d4698aa1';
-
-  try {
-    const response = await fetch(`https://v3.football.api-sports.io/fixtures/headtohead?h2h=${h2h}&last=${last}`, {
-      method: 'GET',
-      headers: {
-        'x-apisports-key': API_KEY
-      }
-    });
-    const data = await response.json();
-    res.json(data);
-  } catch (error) {
-    console.error('Ошибка H2H:', error);
-    res.status(500).json({ error: 'Ошибка запроса H2H к API-Football' });
-  }
-});
-
-// 4. API - ПРОВЕРКА ЗДОРОВЬЯ (Health Check)
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'OK', message: 'Сервер и API работают!' });
-});
-
-// 5. РАЗДАЧА ФРОНТЕНДА
+// 3. РАЗДАЧА ФРОНТЕНДА (Ваш index.html)
 app.use(express.static(path.join(__dirname, './')));
 
-// 6. FALLBACK
+// 4. FALLBACK (Если путь не найден, отдаем index.html)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 7. ЗАПУСК
+// 5. ЗАПУСК СЕРВЕРА
 app.listen(PORT, () => {
-  console.log(`✅ Сервер и API запущены на порту: ${PORT}`);
+  console.log(`✅ Сервер и Прокси запущены на порту: ${PORT}`);
 });
