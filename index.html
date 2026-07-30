@@ -2002,7 +2002,16 @@
                     return;
                 }
                 
-                const homeId = data1.response[0].team.id;
+                // --- УМНЫЙ ПОИСК ХОЗЯЕВ ---
+let homeTeamData = data1.response.find(i => 
+  !i.team.name.includes(' II') && 
+  !i.team.name.includes(' B') && 
+  !i.team.name.includes('U19') && 
+  !i.team.name.includes('U21') && 
+  !i.team.name.includes('Castilla')
+);
+if (!homeTeamData) homeTeamData = data1.response[0];
+const homeId = homeTeamData.team.id;
                 console.log('🏠 ID хозяев:', homeId, data1.response[0].team.name);
                 
                 // 2. Ищем гостей через прокси
@@ -2032,7 +2041,16 @@
                     return;
                 }
                 
-                const awayId = data2.response[0].team.id;
+                // --- УМНЫЙ ПОИСК ГОСТЕЙ ---
+let awayTeamData = data2.response.find(i => 
+  !i.team.name.includes(' II') && 
+  !i.team.name.includes(' B') && 
+  !i.team.name.includes('U19') && 
+  !i.team.name.includes('U21') && 
+  !i.team.name.includes('Castilla')
+);
+if (!awayTeamData) awayTeamData = data2.response[0];
+const awayId = awayTeamData.team.id;
                 console.log('✈️ ID гостей:', awayId, data2.response[0].team.name);
                 
                 // 3. Загружаем H2H через прокси
