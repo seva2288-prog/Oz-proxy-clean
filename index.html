@@ -2530,17 +2530,83 @@ const awayId = awayTeamData.team.id;
         recommendation = '🛡️ Тотал МЕНЬШЕ 2.5';
         advice = 'Низкая результативность в очных встречах.';
         confidence = 70;
-    } else {
+    async function generateAIPrediction() {
+    const btn = document.getElementById('aiBtn');
+    const resultDiv = document.getElementById('aiResult');
+    const status = document.getElementById('h2hStatus');
+
+    if (!state.h2hData || state.h2hData.length === 0) {
+        showToast('⚠️ Сначала загрузите H2H на вкладке "Поиск"', 'error');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Анализ данных...';
+    resultDiv.style.display = 'block';
+    
+    await new Promise(r => setTimeout(r, 800));
+
+    const matches = state.h2hData;
+    const totalMatches = matches.length;
+
+    let totalGoals = 0;
+    let homeWins = 0, awayWins = 0, draws = 0;
+    let bothScore = 0;
+
+    matches.forEach(m => {
+        totalGoals += m.total;
+        if (m.total > 0) bothScore++;
+        if (m.diff > 0) homeWins++;
+        else if (m.diff < 0) awayWins++;
+        else draws++;
+    });
+
+    const avgTotal = (totalGoals / totalMatches).toFixed(1);
+    const ozPercent = Math.round((bothScore / totalMatches) * 100);
+
+    // --- УМНЫЙ ВЕРДИКТ (Новое!) ---
+    let recommendation = '';
+    let advice = '';
+    let confidence = 0;
+
+    // Анализируем форму команд
+    const homeForm = (homeWins / totalMatches) * 100;
+    const awayForm = (awayWins / totalMatches) * 100;
+    const favAdvantage = Math.round(homeForm - awayForm);
+
+    let trend = 'Стабильный';
+    if (matches.length >= 5) {
+        const last3Avg = matches.slice(0, 3).reduce((s, m) => s + m.total, 0) / 3;
+        if (last3Avg > avgTotal + 0.3) trend = '📈 Растет (много голов)';
+        else if (last3Avg < avgTotal - 0.3) trend = '📉 Падает (мало голов)';
+    }
+
+    // Выбор рекомендации с учетом тренда и формы
+    if (avgTotal >= 3.0 && ozPercent > 55) {
+        recommendation = '⚽ Тотал БОЛЬШЕ 2.5 + ОЗ';
+        advice = `Команды много забивают (ср. ${avgTotal}). ОЗ в ${ozPercent}% матчей.`;
+        confidence = 88;
+    } else if (avgTotal >= 3.0) {
+        recommendation = '⚽ Тотал БОЛЬШЕ 2.5';
+        advice = `Высокий средний тотал (${avgTotal}).`;
+        confidence = 82;
+    } else if (avgTotal <= 1.8) {
         recommendation = '🛡️ Тотал МЕНЬШЕ 2.5 (Уверенно)';
-        advice = 'Очень низкий тотал. Голов почти не бывает.';
-        confidence = 90;
+        advice = `Очень мало голов (ср. ${avgTotal}).`;
+        confidence = 92;
+    } else {
+        recommendation = '⚠️ Рекомендация: Осторожно';
+        advice = `Средний тотал (${avgTotal}) в районе 2.0–2.5. Нет явного тренда.`;
+        confidence = 55;
     }
 
-    if (ozPercent > 60 && avgTotal > 2.5) {
-        recommendation += ' + Обе забьют (ОЗ)';
-        advice += ' Высокий процент голов от обеих команд.';
-    }
+    // Добавляем в совет информацию о фаворите и тренде
+    if (favAdvantage > 15) advice += ` 🏠 Хозяева явный фаворит (+${favAdvantage}%).`;
+    else if (favAdvantage < -15) advice += ` ✈️ Гости играют лучше дома (+${Math.abs(favAdvantage)}%).`;
+    if (trend.includes('Растет')) advice += ` 📈 Тренд на голы растет.`;
+    else if (trend.includes('Падает')) advice += ` 📉 Тренд на голы падает.`;
 
+    // --- ЗАПОЛНЯЕМ ИНТЕРФЕЙС ---
     document.getElementById('aiHomeScore').textContent = (avgTotal / 2).toFixed(1);
     document.getElementById('aiAwayScore').textContent = (avgTotal / 2).toFixed(1);
     
@@ -2550,6 +2616,7 @@ const awayId = awayTeamData.team.id;
     document.getElementById('aiAvgTotal').textContent = avgTotal;
     document.getElementById('aiOzProb').textContent = ozPercent + '%';
     document.getElementById('aiConfidence').textContent = confidence + '%';
+    document.getElementById('aiTrend').textContent = trend;
 
     const confEl = document.getElementById('aiConfidence');
     confEl.style.color = confidence > 70 ? '#2ecc71' : (confidence > 50 ? '#f1c40f' : '#e74c3c');
@@ -2557,6 +2624,7 @@ const awayId = awayTeamData.team.id;
     document.getElementById('aiRecommendation').textContent = recommendation;
     document.getElementById('aiAdvice').textContent = advice;
 
+    // Заполняем поля-заглушки
     document.getElementById('aiInjuries').textContent = 'Нет данных';
     document.getElementById('aiImportance').textContent = 'Средняя';
     document.getElementById('aiOverheat').textContent = 'Норма';
@@ -2565,12 +2633,10 @@ const awayId = awayTeamData.team.id;
     document.getElementById('aiOpponentStrength').textContent = 'Равные соперники';
     document.getElementById('aiPressure').textContent = 'Обычное';
     document.getElementById('aiGoalTime').textContent = 'Смешанное';
-    document.getElementById('aiTrend').textContent = 'Стабильный';
 
     btn.disabled = false;
     btn.innerHTML = '🤖 Сгенерировать AI прогноз';
     showToast('✅ AI прогноз готов!', 'success');
-}
-    </script>
+}    </script>
 </body>
 </html>
