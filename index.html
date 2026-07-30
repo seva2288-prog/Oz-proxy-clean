@@ -2490,15 +2490,96 @@ const awayId = awayTeamData.team.id;
         }
         
         async function generateAIPrediction() {
-            console.log('generateAIPrediction вызван');
-            showToast('🧠 AI прогноз генерируется...', 'info');
-            setTimeout(() => {
-                document.getElementById('aiResult').style.display = 'block';
-                document.getElementById('aiRecommendation').textContent = '✅ Тотал БОЛЬШЕ 2.5';
-                document.getElementById('aiAdvice').textContent = '📊 Прогноз на основе общей статистики';
-                showToast('✅ AI прогноз готов!', 'success');
-            }, 1500);
-        }
+    const btn = document.getElementById('aiBtn');
+    const resultDiv = document.getElementById('aiResult');
+    const status = document.getElementById('h2hStatus');
+
+    if (!state.h2hData || state.h2hData.length === 0) {
+        showToast('⚠️ Сначала загрузите H2H на вкладке "Поиск"', 'error');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Анализ данных...';
+    resultDiv.style.display = 'block';
+    
+    await new Promise(r => setTimeout(r, 800));
+
+    const matches = state.h2hData;
+    const totalMatches = matches.length;
+
+    let totalGoals = 0;
+    let homeWins = 0, awayWins = 0, draws = 0;
+    let bothScore = 0;
+
+    matches.forEach(m => {
+        totalGoals += m.total;
+        if (m.total > 0) bothScore++;
+        if (m.diff > 0) homeWins++;
+        else if (m.diff < 0) awayWins++;
+        else draws++;
+    });
+
+    const avgTotal = (totalGoals / totalMatches).toFixed(1);
+    const ozPercent = Math.round((bothScore / totalMatches) * 100);
+
+    let recommendation = '';
+    let advice = '';
+    let confidence = 0;
+
+    if (avgTotal >= 3.0) {
+        recommendation = '⚽ Тотал БОЛЬШЕ 2.5';
+        advice = 'Команды часто забивают. Средний тотал выше 3 голов.';
+        confidence = 85;
+    } else if (avgTotal >= 2.5) {
+        recommendation = '⚡ Тотал БОЛЬШЕ 2.5 (Умеренно)';
+        advice = 'Средняя результативность. Есть шанс на верховой матч.';
+        confidence = 65;
+    } else if (avgTotal >= 2.0) {
+        recommendation = '🛡️ Тотал МЕНЬШЕ 2.5';
+        advice = 'Низкая результативность в очных встречах.';
+        confidence = 70;
+    } else {
+        recommendation = '🛡️ Тотал МЕНЬШЕ 2.5 (Уверенно)';
+        advice = 'Очень низкий тотал. Голов почти не бывает.';
+        confidence = 90;
+    }
+
+    if (ozPercent > 60 && avgTotal > 2.5) {
+        recommendation += ' + Обе забьют (ОЗ)';
+        advice += ' Высокий процент голов от обеих команд.';
+    }
+
+    document.getElementById('aiHomeScore').textContent = (avgTotal / 2).toFixed(1);
+    document.getElementById('aiAwayScore').textContent = (avgTotal / 2).toFixed(1);
+    
+    document.getElementById('aiHomeForm').textContent = `${homeWins}П / ${draws}Н / ${awayWins}В`;
+    document.getElementById('aiAwayForm').textContent = `${awayWins}П / ${draws}Н / ${homeWins}В`;
+
+    document.getElementById('aiAvgTotal').textContent = avgTotal;
+    document.getElementById('aiOzProb').textContent = ozPercent + '%';
+    document.getElementById('aiConfidence').textContent = confidence + '%';
+
+    const confEl = document.getElementById('aiConfidence');
+    confEl.style.color = confidence > 70 ? '#2ecc71' : (confidence > 50 ? '#f1c40f' : '#e74c3c');
+
+    document.getElementById('aiRecommendation').textContent = recommendation;
+    document.getElementById('aiAdvice').textContent = advice;
+
+    document.getElementById('aiInjuries').textContent = 'Нет данных';
+    document.getElementById('aiImportance').textContent = 'Средняя';
+    document.getElementById('aiOverheat').textContent = 'Норма';
+    document.getElementById('aiWeather').textContent = 'Хорошая';
+    document.getElementById('aiHomeAway').textContent = 'Сбалансировано';
+    document.getElementById('aiOpponentStrength').textContent = 'Равные соперники';
+    document.getElementById('aiPressure').textContent = 'Обычное';
+    document.getElementById('aiGoalTime').textContent = 'Смешанное';
+    document.getElementById('aiTrend').textContent = 'Стабильный';
+
+    btn.disabled = false;
+    btn.innerHTML = '🤖 Сгенерировать AI прогноз';
+    showToast('✅ AI прогноз готов!', 'success');
+}
     </script>
 </body>
 </html>
