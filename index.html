@@ -1307,55 +1307,67 @@
         const API_KEY_FOOTBALL = 'api-40a548b23a46b859463c5bf4d4698aa1';
         const ODDS_API_KEY = '1a65316b9cba21b39cf5e6e008a3839e';
         const PROXY_BASE = 'https://oz-proxy-clean.onrender.com/api/';
+        
+        // ===== ДИНАМИЧЕСКИЙ СПИСОК ЛИГ =====
+let LEAGUES = {};
+let dynamicLeaguesLoaded = false;
 
-        const LEAGUES = {
-            '39': { name: '🏴 АПЛ', oz: 65, avgGoals: 2.8, country: 'Англия', understat: 'EPL' },
-            '140': { name: '🇪🇸 Ла Лига', oz: 60, avgGoals: 2.6, country: 'Испания', understat: 'La_liga' },
-            '78': { name: '🇩🇪 Бундеслига', oz: 68, avgGoals: 3.0, country: 'Германия', understat: 'Bundesliga' },
-            '135': { name: '🇮🇹 Серия А', oz: 62, avgGoals: 2.7, country: 'Италия', understat: 'Serie_A' },
-            '61': { name: '🇫🇷 Лига 1', oz: 58, avgGoals: 2.5, country: 'Франция', understat: 'Ligue_1' },
-            '88': { name: '🇳🇱 Эредивизи', oz: 72, avgGoals: 3.2, country: 'Нидерланды', understat: null },
-            '94': { name: '🇵🇹 Примейра', oz: 60, avgGoals: 2.6, country: 'Португалия', understat: null },
-            '2': { name: '🇷🇺 РПЛ', oz: 55, avgGoals: 2.2, country: 'Россия', understat: null },
-            '203': { name: '🇹🇷 Турецкая Суперлига', oz: 58, avgGoals: 2.5, country: 'Турция', understat: null },
-            '144': { name: '🇧🇪 Бельгийская Про-Лига', oz: 60, avgGoals: 2.6, country: 'Бельгия', understat: null },
-            '197': { name: '🇬🇷 Греческая Суперлига', oz: 52, avgGoals: 2.2, country: 'Греция', understat: null },
-            '119': { name: '🇨🇿 Чешская Первая Лига', oz: 55, avgGoals: 2.3, country: 'Чехия', understat: null },
-            '188': { name: '🇦🇹 Австрийская Бундеслига', oz: 58, avgGoals: 2.5, country: 'Австрия', understat: null },
-            '207': { name: '🇨🇭 Швейцарская Суперлига', oz: 56, avgGoals: 2.4, country: 'Швейцария', understat: null },
-            '95': { name: '🇺🇦 Украинская Премьер-лига', oz: 52, avgGoals: 2.2, country: 'Украина', understat: null },
-            '199': { name: '🇩🇰 Датская Суперлига', oz: 60, avgGoals: 2.6, country: 'Дания', understat: null },
-            '170': { name: '🇳🇴 Норвежская Элитсерия', oz: 65, avgGoals: 2.8, country: 'Норвегия', understat: null },
-            '48': { name: '🇸🇪 Шведский Аллсвенскан', oz: 62, avgGoals: 2.7, country: 'Швеция', understat: null },
-            '178': { name: '🇫🇮 Финская Вейккауслига', oz: 55, avgGoals: 2.3, country: 'Финляндия', understat: null },
-            '106': { name: '🇵🇱 Польская Экстракласа', oz: 54, avgGoals: 2.3, country: 'Польша', understat: null },
-            '148': { name: '🇭🇷 Хорватская Лига', oz: 55, avgGoals: 2.3, country: 'Хорватия', understat: null },
-            '250': { name: '🇷🇸 Сербская Суперлига', oz: 52, avgGoals: 2.1, country: 'Сербия', understat: null },
-            '176': { name: '🇧🇬 Болгарская Лига', oz: 50, avgGoals: 2.0, country: 'Болгария', understat: null },
-            '184': { name: '🇷🇴 Румынская Лига', oz: 52, avgGoals: 2.1, country: 'Румыния', understat: null },
-            '217': { name: '🇸🇰 Словацкая Лига', oz: 50, avgGoals: 2.0, country: 'Словакия', understat: null },
-            '202': { name: '🇸🇮 Словенская Лига', oz: 48, avgGoals: 1.9, country: 'Словения', understat: null },
-            '128': { name: '🇦🇷 Аргентинская Примера', oz: 58, avgGoals: 2.4, country: 'Аргентина', understat: null },
-            '145': { name: '🇺🇾 Уругвайская Примера', oz: 55, avgGoals: 2.3, country: 'Уругвай', understat: null },
-            '175': { name: '🇨🇴 Колумбийская Лига', oz: 54, avgGoals: 2.2, country: 'Колумбия', understat: null },
-            '163': { name: '🇨🇱 Чилийская Примера', oz: 55, avgGoals: 2.3, country: 'Чили', understat: null },
-            '185': { name: '🇵🇪 Перуанская Лига', oz: 52, avgGoals: 2.1, country: 'Перу', understat: null },
-            '191': { name: '🇪🇨 Эквадорская Лига', oz: 53, avgGoals: 2.2, country: 'Эквадор', understat: null },
-            '253': { name: '🇯🇵 J-Лига', oz: 60, avgGoals: 2.4, country: 'Япония', understat: null },
-            '249': { name: '🇰🇷 K-Лига', oz: 58, avgGoals: 2.3, country: 'Корея', understat: null },
-            '233': { name: '🇨🇳 Китайская Суперлига', oz: 55, avgGoals: 2.2, country: 'Китай', understat: null },
-            '240': { name: '🇦🇺 A-Лига', oz: 62, avgGoals: 2.6, country: 'Австралия', understat: null },
-            '255': { name: '🇸🇦 Саудовская Лига', oz: 58, avgGoals: 2.5, country: 'Саудовская Аравия', understat: null },
-            '258': { name: '🇦🇪 ОАЭ Про-Лига', oz: 56, avgGoals: 2.4, country: 'ОАЭ', understat: null },
-            '257': { name: '🇶🇦 Катарская Лига', oz: 55, avgGoals: 2.3, country: 'Катар', understat: null },
-            '262': { name: '🇪🇬 Египетская Лига', oz: 50, avgGoals: 2.0, country: 'Египет', understat: null },
-            '269': { name: '🇿🇦 ЮАР Премьер-Лига', oz: 48, avgGoals: 1.9, country: 'ЮАР', understat: null },
-            '264': { name: '🇲🇦 Марокканская Лига', oz: 50, avgGoals: 2.0, country: 'Марокко', understat: null },
-            '266': { name: '🇹🇳 Тунисская Лига', oz: 49, avgGoals: 1.9, country: 'Тунис', understat: null },
-            '98': { name: '🇧🇷 Бразильская Серия А', oz: 62, avgGoals: 2.5, country: 'Бразилия', understat: null },
-            '9': { name: '🇺🇸 MLS', oz: 68, avgGoals: 2.8, country: 'США', understat: null },
-            '1': { name: '🏆 ЛЧ', oz: 66, avgGoals: 2.8, country: 'Европа', understat: null }
+async function loadLeaguesFromAPI() {
+    if (dynamicLeaguesLoaded) return;
+    try {
+        const response = await fetch(`${PROXY_BASE}leagues?current=true`);
+        const data = await response.json();
+        if (data.response) {
+            const newLeagues = {};
+            data.response.forEach(league => {
+                const id = league.league.id;
+                if (league.league.type === 'League') {
+                    newLeagues[id] = {
+                        name: `${league.country.flag || ''} ${league.league.name}`,
+                        oz: 55,
+                        avgGoals: 2.5,
+                        country: league.country.name,
+                        understat: null
+                    };
+                }
+            });
+            LEAGUES = newLeagues;
+            dynamicLeaguesLoaded = true;
+            renderLeagues();
+            console.log('✅ Лиги динамически загружены:', Object.keys(LEAGUES).length);
+        }
+    } catch (error) {
+        console.warn('⚠️ Ошибка загрузки лиг, используем стандартный список.');
+        LEAGUES = {
+            '39': { name: '🏴 АПЛ', oz: 65, avgGoals: 2.8, country: 'Англия' },
+            '140': { name: '🇪🇸 Ла Лига', oz: 60, avgGoals: 2.6, country: 'Испания' },
+            '78': { name: '🇩🇪 Бундеслига', oz: 68, avgGoals: 3.0, country: 'Германия' },
+            '135': { name: '🇮🇹 Серия А', oz: 62, avgGoals: 2.7, country: 'Италия' },
+            '61': { name: '🇫🇷 Лига 1', oz: 58, avgGoals: 2.5, country: 'Франция' },
+            '2': { name: '🇷🇺 РПЛ', oz: 55, avgGoals: 2.2, country: 'Россия' }
         };
+        renderLeagues();
+    }
+}
+
+function renderLeagues() {
+    const select = document.getElementById('leagueSelect');
+    const settingsSelect = document.getElementById('settingsLeagueSelect');
+    if (!select) return;
+    select.innerHTML = '';
+    Object.keys(LEAGUES).forEach(key => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = LEAGUES[key].name;
+        if (key === state.currentLeague) option.selected = true;
+        select.appendChild(option);
+    });
+    if (settingsSelect) {
+        settingsSelect.innerHTML = select.innerHTML;
+        settingsSelect.value = state.currentLeague;
+    }
+    updateLeagueInfo();
+}
 
         const STADIUM_COORDS = {
             'london': { lat: 51.5074, lon: -0.1278 },
@@ -2656,5 +2668,5 @@ function quickAI() {
         }
     }, 300);
 }
-</body>
+loadLeaguesFromAPI();</body>
 </html>
