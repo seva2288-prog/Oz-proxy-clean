@@ -1306,8 +1306,9 @@
         // ====== КЛЮЧИ ======
         const API_KEY_FOOTBALL = 'api-40a548b23a46b859463c5bf4d4698aa1';
         const ODDS_API_KEY = '1a65316b9cba21b39cf5e6e008a3839e';
-        const PROXY_BASE = 'https://oz-proxy-clean.onrender.com
-            // ===== ДИНАМИЧЕСКИЙ СПИСОК ЛИГ =====
+        const PROXY_BASE = 'https://oz-proxy-clean.onrender.com/api/';
+        
+        // ===== ДИНАМИЧЕСКИЙ СПИСОК ЛИГ =====
 let LEAGUES = {};
 let dynamicLeaguesLoaded = false;
 
@@ -1319,22 +1320,24 @@ async function loadLeaguesFromAPI() {
         if (data.response) {
             const newLeagues = {};
             data.response.forEach(league => {
+                const id = league.league.id;
                 if (league.league.type === 'League') {
-                    newLeagues[league.league.id] = {
-                        name: league.league.name,
+                    newLeagues[id] = {
+                        name: `${league.country.flag || ''} ${league.league.name}`,
                         oz: 55,
                         avgGoals: 2.5,
-                        country: league.country.name || 'Unknown'
+                        country: league.country.name,
+                        understat: null
                     };
                 }
             });
             LEAGUES = newLeagues;
             dynamicLeaguesLoaded = true;
             renderLeagues();
-            console.log('✅ Загружено лиг:', Object.keys(LEAGUES).length);
+            console.log('✅ Лиги динамически загружены:', Object.keys(LEAGUES).length);
         }
     } catch (error) {
-        console.warn('⚠️ Ошибка, используем стандартные лиги');
+        console.warn('⚠️ Ошибка загрузки лиг, используем стандартный список.');
         LEAGUES = {
             '39': { name: '🏴 АПЛ', oz: 65, avgGoals: 2.8, country: 'Англия' },
             '140': { name: '🇪🇸 Ла Лига', oz: 60, avgGoals: 2.6, country: 'Испания' },
@@ -1349,6 +1352,7 @@ async function loadLeaguesFromAPI() {
 
 function renderLeagues() {
     const select = document.getElementById('leagueSelect');
+    const settingsSelect = document.getElementById('settingsLeagueSelect');
     if (!select) return;
     select.innerHTML = '';
     Object.keys(LEAGUES).forEach(key => {
@@ -1358,13 +1362,13 @@ function renderLeagues() {
         if (key === state.currentLeague) option.selected = true;
         select.appendChild(option);
     });
-    const settingsSelect = document.getElementById('settingsLeagueSelect');
     if (settingsSelect) {
         settingsSelect.innerHTML = select.innerHTML;
         settingsSelect.value = state.currentLeague;
     }
     updateLeagueInfo();
 }
+
         const STADIUM_COORDS = {
             'london': { lat: 51.5074, lon: -0.1278 },
             'manchester': { lat: 53.483, lon: -2.244 },
@@ -2664,7 +2668,7 @@ function quickAI() {
         }
     }, 300);
 }
-loadLeaguesFromAPI();
+//loadLeaguesFromAPI();
 
 </scrip>
 </body>
