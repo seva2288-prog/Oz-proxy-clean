@@ -2039,7 +2039,76 @@ document.addEventListener('DOMContentLoaded', function() {
                     state.isLoading = false;
                     return;
                 }
-                
+                // ===== ЗАГРУЗКА КОЭФФИЦИЕНТОВ (1 БК) =====
+async function loadOdds() {
+    const homeTeam = document.getElementById('homeTeamH2H')?.value?.trim() || '';
+    const awayTeam = document.getElementById('awayTeamH2H')?.value?.trim() || '';
+    
+    if (!homeTeam || !awayTeam) {
+        document.getElementById('oddsDisplay').innerHTML = '<span style="font-size:11px;color:#888;">Введите команды</span>';
+        return;
+    }
+
+    const loading = document.getElementById('oddsLoading');
+    const display = document.getElementById('oddsDisplay');
+    loading.style.display = 'block';
+    display.innerHTML = '⏳ Загрузка...';
+
+    try {
+        const searchUrl = `${PROXY_BASE}fixtures?search=${encodeURIComponent(homeTeam + ' vs ' + awayTeam)}&status=NS`;
+        const response = await fetch(searchUrl, {
+            headers: { 'x-apisports-key': API_KEY_FOOTBALL }
+        });
+        const data = await response.json();
+
+        if (!data.response || data.response.length === 0) {
+            display.innerHTML = '❌ Матч не найден';
+            loading.style.display = 'none';
+            return;
+        }
+
+        const fixture = data.response[0];
+        const bookmakers = fixture.bookmakers || [];
+
+        if (bookmakers.length === 0) {
+            display.innerHTML = '📊 Нет коэффициентов';
+            loading.style.display = 'none';
+            return;
+        }
+
+        const bk = bookmakers[0];
+        const bets = bk.bets || [];
+        const homeBet = bets.find(b => b.name === 'Home' || b.name === '1');
+        const drawBet = bets.find(b => b.name === 'Draw' || b.name === 'X');
+        const awayBet = bets.find(b => b.name === 'Away' || b.name === '2');
+        
+        const homeOdds = parseFloat(homeBet?.values?.[0]?.odd) || 0;
+        const drawOdds = parseFloat(drawBet?.values?.[0]?.odd) || 0;
+        const awayOdds = parseFloat(awayBet?.values?.[0]?.odd) || 0;
+
+        display.innerHTML = `
+            <div class="odds-book best" style="width:100%;text-align:center;">
+                <span class="name">${bk.name}</span><br>
+                <span class="line">1: ${homeOdds.toFixed(2)}</span>
+                <span class="line">X: ${drawOdds.toFixed(2)}</span>
+                <span class="line">2: ${awayOdds.toFixed(2)}</span>
+            </div>
+        `;
+
+        const avgLine = ((homeOdds + drawOdds + awayOdds) / 3).toFixed(2);
+        const bkInput = document.getElementById('bkLine');
+        if (bkInput) {
+            bkInput.value = avgLine;
+            bkInput.disabled = false;
+        }
+
+        loading.style.display = 'none';
+
+    } catch (error) {
+        display.innerHTML = '⚠️ Ошибка загрузки';
+        loading.style.display = 'none';
+    }
+}
                 // --- УМНЫЙ ПОИСК ХОЗЯЕВ ---
 let homeTeamData = data1.response.find(i => 
   !i.team.name.includes(' II') && 
