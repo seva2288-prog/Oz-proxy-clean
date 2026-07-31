@@ -1186,7 +1186,7 @@
         // КЛЮЧИ (Bzzoiro API)
         // ================================================================
         const API_KEY_FOOTBALL = 'c9cf100246773d04089779de017adc1356a17433';
-        const PROXY_BASE = 'https://sports.bzzoiro.com/api/';
+        const PROXY_BASE = 'https://oz-proxy-clean.onrender.com/api/';
 
         // ================================================================
         // ДИНАМИЧЕСКИЙ СПИСОК ЛИГ
@@ -1819,9 +1819,9 @@
         const url1 = `${PROXY_BASE}teams/?search=${encodeURIComponent(homeTeam)}`;
         console.log('📡 Запрос 1:', url1);
         
-        const resp1 = await fetch(url1, {
-            headers: { 'Authorization': `Token ${API_KEY_FOOTBALL}` }
-        });
+       const resp1 = await fetch(url1, {
+    headers: { 'x-apisports-key': API_KEY_FOOTBALL }  // ← ЗДЕСЬ
+});
         const data1 = await resp1.json();
         console.log('📦 Ответ 1:', data1);
         
@@ -1844,8 +1844,8 @@
         console.log('📡 Запрос 2:', url2);
         
         const resp2 = await fetch(url2, {
-            headers: { 'Authorization': `Token ${API_KEY_FOOTBALL}` }
-        });
+    headers: { 'x-apisports-key': API_KEY_FOOTBALL }  // ← ЗДЕСЬ
+});
         const data2 = await resp2.json();
         console.log('📦 Ответ 2:', data2);
         
@@ -1873,8 +1873,8 @@
         console.log('📡 Запрос 3:', eventsUrl);
         
         const eventsResp = await fetch(eventsUrl, {
-            headers: { 'Authorization': `Token ${API_KEY_FOOTBALL}` }
-        });
+    headers: { 'x-apisports-key': API_KEY_FOOTBALL }
+});
         const eventsData = await eventsResp.json();
         console.log('📦 Ответ 3:', eventsData);
         
