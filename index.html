@@ -1191,44 +1191,41 @@
         let dynamicLeaguesLoaded = false;
 
         async function loadLeaguesFromAPI() {
-            if (dynamicLeaguesLoaded) return;
-            try {
-                const response = await fetch(`${PROXY_BASE}leagues?current=true`);
-                const data = await response.json();
-                if (data.response) {
-                    const newLeagues = {};
-                    data.response.forEach(league => {
-                        const id = league.league.id;
-                        if (league.league.type === 'League') {
-                            newLeagues[id] = {
-                                name: `${league.country.flag || ''} ${league.league.name}`,
-                                oz: 55,
-                                avgGoals: 2.5,
-                                country: league.country.name,
-                                flag: league.country.flag || '',
-                                source: 'api'
-                            };
-                        }
-                    });
-                    LEAGUES = newLeagues;
-                    dynamicLeaguesLoaded = true;
-                    renderLeagues();
-                    console.log('✅ Лиги динамически загружены:', Object.keys(LEAGUES).length);
-                    await autoTrainLeagues();
-                }
-            } catch (error) {
-                console.warn('⚠️ Ошибка загрузки лиг, используем стандартный список.');
-                LEAGUES = {
-                    '39': { name: '🏴 АПЛ', oz: 65, avgGoals: 2.8, country: 'Англия' },
-                    '140': { name: '🇪🇸 Ла Лига', oz: 60, avgGoals: 2.6, country: 'Испания' },
-                    '78': { name: '🇩🇪 Бундеслига', oz: 68, avgGoals: 3.0, country: 'Германия' },
-                    '135': { name: '🇮🇹 Серия А', oz: 62, avgGoals: 2.7, country: 'Италия' },
-                    '61': { name: '🇫🇷 Лига 1', oz: 58, avgGoals: 2.5, country: 'Франция' },
-                    '2': { name: '🇷🇺 РПЛ', oz: 55, avgGoals: 2.2, country: 'Россия' }
+    if (dynamicLeaguesLoaded) return;
+    try {
+        const response = await fetch(`${PROXY_BASE}leagues/?season=2024`, {
+            headers: { 'Authorization': `Token ${API_KEY_FOOTBALL}` }
+        });
+        const data = await response.json();
+        if (data.results) {
+            const newLeagues = {};
+            data.results.forEach(league => {
+                newLeagues[league.id] = {
+                    name: league.name,
+                    oz: 55,
+                    avgGoals: 2.5,
+                    country: league.country || 'Unknown',
+                    flag: league.flag || ''
                 };
-                renderLeagues();
-            }
+            });
+            LEAGUES = newLeagues;
+            dynamicLeaguesLoaded = true;
+            renderLeagues();
+            console.log('✅ Загружено лиг:', Object.keys(LEAGUES).length);
         }
+    } catch (error) {
+        console.warn('⚠️ Ошибка загрузки лиг');
+        // Резервный список
+        LEAGUES = {
+            '1': { name: '🏴 Премьер-лига', oz: 65, avgGoals: 2.8, country: 'Англия' },
+            '2': { name: '🇪🇸 Ла Лига', oz: 60, avgGoals: 2.6, country: 'Испания' },
+            '3': { name: '🇩🇪 Бундеслига', oz: 68, avgGoals: 3.0, country: 'Германия' },
+            '4': { name: '🇮🇹 Серия А', oz: 62, avgGoals: 2.7, country: 'Италия' },
+            '5': { name: '🇫🇷 Лига 1', oz: 58, avgGoals: 2.5, country: 'Франция' }
+        };
+        renderLeagues();
+    }
+}
 
         function renderLeagues() {
             const select = document.getElementById('leagueSelect');
@@ -2033,74 +2030,43 @@
         // ЗАГРУЗКА КОЭФФИЦИЕНТОВ (1 БК)
         // ================================================================
         async function loadOdds() {
-            const homeTeam = document.getElementById('homeTeamH2H')?.value?.trim() || '';
-            const awayTeam = document.getElementById('awayTeamH2H')?.value?.trim() || '';
-            
-            if (!homeTeam || !awayTeam) {
-                document.getElementById('oddsDisplay').innerHTML = '<span style="font-size:11px;color:#888;">Введите команды</span>';
-                return;
-            }
+    const homeTeam = document.getElementById('homeTeamH2H')?.value?.trim() || '';
+    const awayTeam = document.getElementById('awayTeamH2H')?.value?.trim() || '';
+    
+    if (!homeTeam || !awayTeam) {
+        document.getElementById('oddsDisplay').innerHTML = '<span style="font-size:11px;color:#888;">Введите команды</span>';
+        return;
+    }
 
-            const loading = document.getElementById('oddsLoading');
-            const display = document.getElementById('oddsDisplay');
-            loading.style.display = 'block';
-            display.innerHTML = '⏳ Загрузка...';
+    const display = document.getElementById('oddsDisplay');
+    display.innerHTML = '⏳ Загрузка...';
 
-            try {
-                const searchUrl = `${PROXY_BASE}fixtures?search=${encodeURIComponent(homeTeam + ' vs ' + awayTeam)}&status=NS`;
-                const response = await fetch(searchUrl, {
-                    headers: { 'x-apisports-key': API_KEY_FOOTBALL }
-                });
-                const data = await response.json();
+    try {
+        const searchUrl = `${PROXY_BASE}odds/?search=${encodeURIComponent(homeTeam + ' vs ' + awayTeam)}`;
+        const response = await fetch(searchUrl, {
+            headers: { 'Authorization': `Token ${API_KEY_FOOTBALL}` }
+        });
+        const data = await response.json();
 
-                if (!data.response || data.response.length === 0) {
-                    display.innerHTML = '❌ Матч не найден';
-                    loading.style.display = 'none';
-                    return;
-                }
-
-                const fixture = data.response[0];
-                const bookmakers = fixture.bookmakers || [];
-
-                if (bookmakers.length === 0) {
-                    display.innerHTML = '📊 Нет коэффициентов';
-                    loading.style.display = 'none';
-                    return;
-                }
-
-                const bk = bookmakers[0];
-                const bets = bk.bets || [];
-                const homeBet = bets.find(b => b.name === 'Home' || b.name === '1');
-                const drawBet = bets.find(b => b.name === 'Draw' || b.name === 'X');
-                const awayBet = bets.find(b => b.name === 'Away' || b.name === '2');
-                
-                const homeOdds = parseFloat(homeBet?.values?.[0]?.odd) || 0;
-                const drawOdds = parseFloat(drawBet?.values?.[0]?.odd) || 0;
-                const awayOdds = parseFloat(awayBet?.values?.[0]?.odd) || 0;
-
-                display.innerHTML = `
-                    <div class="odds-book best" style="width:100%;text-align:center;">
-                        <span class="name">${bk.name}</span><br>
-                        <span class="line">1: ${homeOdds.toFixed(2)}</span>
-                        <span class="line">X: ${drawOdds.toFixed(2)}</span>
-                        <span class="line">2: ${awayOdds.toFixed(2)}</span>
-                    </div>
-                `;
-
-                const avgLine = ((homeOdds + drawOdds + awayOdds) / 3).toFixed(2);
-                const bkInput = document.getElementById('bkLine');
-                if (bkInput) {
-                    bkInput.value = avgLine;
-                    bkInput.disabled = false;
-                }
-
-                loading.style.display = 'none';
-
-            } catch (error) {
-                display.innerHTML = '⚠️ Ошибка загрузки';
-                loading.style.display = 'none';
-            }
+        if (!data.results || data.results.length === 0) {
+            display.innerHTML = '❌ Нет коэффициентов';
+            return;
         }
+
+        const odds = data.results[0];
+        display.innerHTML = `
+            <div class="odds-book best" style="width:100%;text-align:center;">
+                <span class="name">${odds.bookmaker || 'Bzzoiro'}</span><br>
+                <span class="line">1: ${odds.home_odd || '—'}</span>
+                <span class="line">X: ${odds.draw_odd || '—'}</span>
+                <span class="line">2: ${odds.away_odd || '—'}</span>
+            </div>
+        `;
+
+    } catch (error) {
+        display.innerHTML = '⚠️ Ошибка загрузки';
+    }
+}
 
         // ================================================================
         // LIVE ОБНОВЛЕНИЯ
