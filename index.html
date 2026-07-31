@@ -1821,7 +1821,9 @@
                 // 1. Поиск хозяев
                 const url1 = `${PROXY_BASE}teams/?search=${encodeURIComponent(homeTeam)}`;
                 const resp1 = await fetch(url1, {
-                    headers: { 'Authorization': `Token ${API_KEY_FOOTBALL}` }
+                    headers: { 
+       'Authorization': 'Token c9cf100246773d04089779de017adc1356a17433'
+}
                 });
                 const data1 = await resp1.json();
                 
@@ -1840,7 +1842,9 @@
                 // 2. Поиск гостей
                 const url2 = `${PROXY_BASE}teams/?search=${encodeURIComponent(awayTeam)}`;
                 const resp2 = await fetch(url2, {
-                    headers: { 'Authorization': `Token ${API_KEY_FOOTBALL}` }
+                    headers: { 
+    'Authorization': 'Token c9cf100246773d04089779de017adc1356a17433'
+}
                 });
                 const data2 = await resp2.json();
                 
@@ -1861,7 +1865,9 @@
                 // 3. Поиск матчей (через события команды)
                 const eventsUrl = `${PROXY_BASE}events/?team=${homeId}`;
                 const eventsResp = await fetch(eventsUrl, {
-                    headers: { 'Authorization': `Token ${API_KEY_FOOTBALL}` }
+                    headers: { 
+    'Authorization': 'Token c9cf100246773d04089779de017adc1356a17433'
+}
                 });
                 const eventsData = await eventsResp.json();
 
