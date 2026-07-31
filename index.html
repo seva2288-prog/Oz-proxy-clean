@@ -1133,6 +1133,26 @@
                     <div style="font-size:9px;color:#555;margin-top:2px;">📊 Требуется 10+ ставок с известным исходом</div>
                     <div id="aiTrainLog" style="font-size:10px;color:#888;margin-top:4px;max-height:60px;overflow-y:auto;display:none;background:#0b0e14;padding:4px 8px;border-radius:6px;"></div>
                 </div>
+
+                <!-- ===== НОВЫЙ БЛОК: ОБУЧЕНИЕ ЛИГ ===== -->
+                <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;">
+                    <span class="label">🏆 Обучение лиг</span>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn-ai-train" onclick="trainLeagues()" style="flex:2;background:#f7931a;color:#000;">
+                            📊 Обучить лиги
+                        </button>
+                        <button class="btn-ai-train" onclick="autoTrainLeagues()" style="flex:1;background:#3498db;">
+                            🔄 Авто
+                        </button>
+                    </div>
+                    <div id="leagueTrainStatus" style="font-size:11px;color:#888;margin-top:2px;">
+                        ⏳ Нажмите "Обучить лиги"
+                    </div>
+                    <div style="font-size:9px;color:#555;">
+                        📊 Обновляет средний тотал и % ОЗ на основе последних 30 матчей
+                    </div>
+                </div>
+
                 <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:4px;border-bottom:none;padding-bottom:4px;">
                     <span class="label">🔑 API статус</span>
                     <div style="display:flex;justify-content:space-between;font-size:12px;">
@@ -1981,6 +2001,111 @@
         }
 
         // ================================================================
+        // ОБУЧЕНИЕ ЛИГ
+        // ================================================================
+        async function trainLeagues() {
+            const status = document.getElementById('leagueTrainStatus');
+            if (status) status.textContent = '⏳ Обучение лиг...';
+            
+            try {
+                const leagues = Object.keys(LEAGUES);
+                let total = 0;
+                let updated = 0;
+                
+                for (const leagueId of leagues) {
+                    try {
+                        const url = `${PROXY_BASE}events/?league=${leagueId}&limit=30`;
+                        const response = await fetch(url, {
+                            headers: { 'Authorization': `Token ${API_KEY_FOOTBALL}` }
+                        });
+                        const data = await response.json();
+                        
+                        if (data.results && data.results.length > 0) {
+                            const matches = data.results.filter(m => 
+                                m.home_score !== null && m.away_score !== null
+                            );
+                            
+                            if (matches.length > 0) {
+                                let totalGoals = 0;
+                                let ozCount = 0;
+                                
+                                matches.forEach(m => {
+                                    const homeGoals = m.home_score || 0;
+                                    const awayGoals = m.away_score || 0;
+                                    totalGoals += homeGoals + awayGoals;
+                                    if (homeGoals > 0 && awayGoals > 0) ozCount++;
+                                });
+                                
+                                const avgGoals = (totalGoals / matches.length).toFixed(1);
+                                const oz = Math.round((ozCount / matches.length) * 100);
+                                
+                                if (LEAGUES[leagueId]) {
+                                    LEAGUES[leagueId].avgGoals = parseFloat(avgGoals);
+                                    LEAGUES[leagueId].oz = oz;
+                                    LEAGUES[leagueId].lastUpdated = new Date().toISOString();
+                                    updated++;
+                                }
+                                total += matches.length;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Ошибка загрузки лиги:', leagueId);
+                    }
+                }
+                
+                localStorage.setItem('quantum_league_training', JSON.stringify(LEAGUES));
+                localStorage.setItem('quantum_league_last_update', new Date().toISOString());
+                
+                renderLeagues();
+                updateLeagueInfo();
+                
+                if (status) {
+                    status.textContent = `✅ Обучено ${updated} лиг (${total} матчей)`;
+                    status.style.color = '#2ecc71';
+                }
+                showToast(`✅ Обучено ${updated} лиг!`, 'success');
+                
+            } catch (error) {
+                console.error('Ошибка обучения лиг:', error);
+                if (status) {
+                    status.textContent = '⚠️ Ошибка обучения';
+                    status.style.color = '#e74c3c';
+                }
+            }
+        }
+
+        async function autoTrainLeagues() {
+            const lastUpdate = localStorage.getItem('quantum_league_last_update');
+            const now = Date.now();
+            const day = 24 * 60 * 60 * 1000;
+            
+            if (!lastUpdate || (now - new Date(lastUpdate).getTime() > day)) {
+                console.log('🔄 Авто-обновление данных лиг...');
+                await trainLeagues();
+                return true;
+            }
+            
+            const saved = localStorage.getItem('quantum_league_training');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    Object.keys(data).forEach(key => {
+                        if (LEAGUES[key]) {
+                            LEAGUES[key].avgGoals = data[key].avgGoals || 2.5;
+                            LEAGUES[key].oz = data[key].oz || 55;
+                            LEAGUES[key].lastUpdated = data[key].lastUpdated;
+                        }
+                    });
+                    renderLeagues();
+                    updateLeagueInfo();
+                    console.log('📦 Данные лиг загружены из кэша');
+                    return true;
+                } catch (e) {}
+            }
+            return false;
+        }
+
+        // ================================================================
         // УЛУЧШЕННЫЙ AI КЛАСС
         // ================================================================
         class QuantumAI {
@@ -2557,6 +2682,9 @@
             
             await loadLeaguesFromAPI();
             renderLeagues();
+            
+            // Авто-обучение лиг
+            await autoTrainLeagues();
             
             renderHistory();
             renderStats();
