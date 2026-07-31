@@ -1306,7 +1306,8 @@
         // ====== КЛЮЧИ ======
         const API_KEY_FOOTBALL = 'api-40a548b23a46b859463c5bf4d4698aa1';
         const ODDS_API_KEY = '1a65316b9cba21b39cf5e6e008a3839e';
-        const PROXY_BASE = 'https://oz-proxy-clean.onrender.com/// ===== ДИНАМИЧЕСКИЙ СПИСОК ЛИГ =====
+        const PROXY_BASE = 'https://oz-proxy-clean.onrender.com
+            // ===== ДИНАМИЧЕСКИЙ СПИСОК ЛИГ =====
 let LEAGUES = {};
 let dynamicLeaguesLoaded = false;
 
@@ -1318,24 +1319,22 @@ async function loadLeaguesFromAPI() {
         if (data.response) {
             const newLeagues = {};
             data.response.forEach(league => {
-                const id = league.league.id;
                 if (league.league.type === 'League') {
-                    newLeagues[id] = {
-                        name: `${league.country.flag || ''} ${league.league.name}`,
+                    newLeagues[league.league.id] = {
+                        name: league.league.name,
                         oz: 55,
                         avgGoals: 2.5,
-                        country: league.country.name,
-                        understat: null
+                        country: league.country.name || 'Unknown'
                     };
                 }
             });
             LEAGUES = newLeagues;
             dynamicLeaguesLoaded = true;
             renderLeagues();
-            console.log('✅ Лиги динамически загружены:', Object.keys(LEAGUES).length);
+            console.log('✅ Загружено лиг:', Object.keys(LEAGUES).length);
         }
     } catch (error) {
-        console.warn('⚠️ Ошибка загрузки лиг, используем стандартный список.');
+        console.warn('⚠️ Ошибка, используем стандартные лиги');
         LEAGUES = {
             '39': { name: '🏴 АПЛ', oz: 65, avgGoals: 2.8, country: 'Англия' },
             '140': { name: '🇪🇸 Ла Лига', oz: 60, avgGoals: 2.6, country: 'Испания' },
@@ -1350,7 +1349,6 @@ async function loadLeaguesFromAPI() {
 
 function renderLeagues() {
     const select = document.getElementById('leagueSelect');
-    const settingsSelect = document.getElementById('settingsLeagueSelect');
     if (!select) return;
     select.innerHTML = '';
     Object.keys(LEAGUES).forEach(key => {
@@ -1360,6 +1358,7 @@ function renderLeagues() {
         if (key === state.currentLeague) option.selected = true;
         select.appendChild(option);
     });
+    const settingsSelect = document.getElementById('settingsLeagueSelect');
     if (settingsSelect) {
         settingsSelect.innerHTML = select.innerHTML;
         settingsSelect.value = state.currentLeague;
@@ -2665,7 +2664,7 @@ function quickAI() {
         }
     }, 300);
 }
-//loadLeaguesFromAPI();
+loadLeaguesFromAPI();
 
 </scrip>
 </body>
