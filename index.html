@@ -1787,38 +1787,42 @@ function renderLeagues() {
 
         // ====== НАВИГАЦИЯ ======
         function switchTab(tab) {
-            if (tab !== 'search') {
-                stopLiveUpdates();
-                if ($('liveCard')) $('liveCard').style.display = 'none';
-            }
-            state.currentTab = tab;
-
-            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-            const screenMap = {
-                'analysis': 'analysisScreen',
-                'search': 'searchScreen',
-                'stats': 'statsScreen',
-                'settings': 'settingsScreen'
-            };
-            if ($(screenMap[tab])) $(screenMap[tab]).classList.add('active');
-
-            document.querySelectorAll('.top-tab').forEach(el => el.classList.remove('active'));
-            const target = document.querySelector(`.top-tab[data-tab="${tab}"]`);
-            if (target) target.classList.add('active');
-
-            if (tab === 'stats') {
-                renderHistory();
-                renderStats();
-                renderDashboard();
-                renderChart();
-                renderInsights();
-            }
-            if (tab === 'settings') {
-                updateAPIStatus();
-                renderSettingsLeagues();
-                updateAIStatus();
-            }
-        }
+    // Скрываем все экраны
+    document.querySelectorAll('.screen').forEach(el => {
+        el.classList.remove('active');
+    });
+    
+    // Показываем нужный
+    const screenMap = {
+        'analysis': 'analysisScreen',
+        'search': 'searchScreen',
+        'stats': 'statsScreen',
+        'settings': 'settingsScreen'
+    };
+    const target = document.getElementById(screenMap[tab]);
+    if (target) target.classList.add('active');
+    
+    // Обновляем активную вкладку
+    document.querySelectorAll('.top-tab').forEach(el => {
+        el.classList.remove('active');
+    });
+    const tabBtn = document.querySelector(`.top-tab[data-tab="${tab}"]`);
+    if (tabBtn) tabBtn.classList.add('active');
+    
+    // Обновляем данные
+    if (tab === 'stats') {
+        renderHistory();
+        renderStats();
+        renderDashboard();
+        renderChart();
+        renderInsights();
+    }
+    if (tab === 'settings') {
+        renderSettingsLeagues();
+        updateAPIStatus();
+        updateAIStatus();
+    }
+}
 
         // ====== СВАЙПЫ ======
         let touchStartX = 0;
