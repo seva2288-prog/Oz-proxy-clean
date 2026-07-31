@@ -1800,26 +1800,51 @@ function renderLeagues() {
     if (target) target.classList.add('active');
     
     // Обновляем активную вкладку
-    document.querySelectorAll('.top-tab').forEach(el => {
-        el.classList.remove('active');
-    });
-    const tabBtn = document.querySelector(`.top-tab[data-tab="${tab}"]`);
-    if (tabBtn) tabBtn.classList.add('active');
-    
-    // Обновляем данные
-    if (tab === 'stats') {
-        renderHistory();
-        renderStats();
-        renderDashboard();
-        renderChart();
-        renderInsights();
-    }
-    if (tab === 'settings') {
-        renderLeagues();
-        updateAIStatus();
-        updateAPIStatus();
-    }
+document.querySelectorAll('.top-tab').forEach(el => {
+    el.classList.remove('active');
+});
+
+const tabBtn = document.querySelector(`.top-tab[data-tab="${tab}"]`);
+if (tabBtn) tabBtn.classList.add('active');
+
+// Обновляем данные
+if (tab === 'stats') {
+    renderHistory();
+    renderStats();
+    renderDashboard();
+    renderChart();
+    renderInsights();
 }
+
+if (tab === 'settings') {
+    renderLeagues();
+    updateAIStatus();
+    updateAPIStatus();
+}
+
+// ===== СВАЙНЫ =====
+let touchStartX = 0;
+let touchEndX = 0;
+const MIN_SWIPE_DISTANCE = 50;
+const tabs = ['analysis', 'search', 'stats', 'settings'];
+let currentTabIndex = 0;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadLeaguesFromAPI();
+    initTheme();
+    initSwipeIndicator();
+    renderLeagues();
+    renderHistory();
+    renderStats();
+    renderDashboard();
+    renderChart();
+    renderInsights();
+    updateSum();
+    renderSettingsLeagues();
+    updateAPIStatus();
+    quantumAI.init();
+    updateAIStatus();
+});
 
         // ====== СВАЙПЫ ======
         let touchStartX = 0;
