@@ -1788,40 +1788,20 @@ function renderLeagues() {
         // ====== НАВИГАЦИЯ ======
         function switchTab(tab) {
     // Скрываем все экраны
-    document.querySelectorAll('.screen').forEach(el => {
-        el.classList.remove('active');
-    });
+    document.getElementById('analysisScreen').style.display = 'none';
+    document.getElementById('searchScreen').style.display = 'none';
+    document.getElementById('statsScreen').style.display = 'none';
+    document.getElementById('settingsScreen').style.display = 'none';
     
     // Показываем нужный
-    const screenMap = {
-        'analysis': 'analysisScreen',
-        'search': 'searchScreen',
-        'stats': 'statsScreen',
-        'settings': 'settingsScreen'
-    };
-    const target = document.getElementById(screenMap[tab]);
-    if (target) target.classList.add('active');
+    if (tab === 'analysis') document.getElementById('analysisScreen').style.display = 'block';
+    if (tab === 'search') document.getElementById('searchScreen').style.display = 'block';
+    if (tab === 'stats') document.getElementById('statsScreen').style.display = 'block';
+    if (tab === 'settings') document.getElementById('settingsScreen').style.display = 'block';
     
     // Обновляем активную вкладку
-    document.querySelectorAll('.top-tab').forEach(el => {
-        el.classList.remove('active');
-    });
-    const tabBtn = document.querySelector(`.top-tab[data-tab="${tab}"]`);
-    if (tabBtn) tabBtn.classList.add('active');
-    
-    // Обновляем данные
-    if (tab === 'stats') {
-        renderHistory();
-        renderStats();
-        renderDashboard();
-        renderChart();
-        renderInsights();
-    }
-    if (tab === 'settings') {
-        renderSettingsLeagues();
-        updateAPIStatus();
-        updateAIStatus();
-    }
+    document.querySelectorAll('.top-tab').forEach(el => el.classList.remove('active'));
+    document.querySelector(`.top-tab[data-tab="${tab}"]`).classList.add('active');
 }
 
         // ====== СВАЙПЫ ======
