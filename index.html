@@ -1906,123 +1906,193 @@
     results.innerHTML = '';
 
     try {
-        // 1. Ищем хозяев
-        const url1 = `${PROXY_BASE}teams?search=${encodeURIComponent(homeTeam)}`;
-        const resp1 = await fetch(url1, {
-            headers: { 'x-apisports-key': API_KEY_FOOTBALL }
-        });
-        const data1 = await resp1.json();
-        
-        if (!data1.response || data1.response.length === 0) {
-            status.innerHTML = `❌ Команда "<strong>${homeTeam}</strong>" не найдена.`;
-            btn.disabled = false;
-            btnText.textContent = '📊 Загрузить H2H';
-            spinner.style.display = 'none';
-            state.isLoading = false;
-            return;
+        // === ПОИСК КОМАНД С АЛЬТЕРНАТИВНЫМИ НАЗВАНИЯМИ ===
+        const teamMap = {
+            'real madrid': 'Real Madrid',
+            'barcelona': 'Barcelona',
+            'atletico madrid': 'Atletico Madrid',
+            'manchester united': 'Manchester United',
+            'manchester city': 'Manchester City',
+            'liverpool': 'Liverpool',
+            'chelsea': 'Chelsea',
+            'arsenal': 'Arsenal',
+            'tottenham': 'Tottenham',
+            'juventus': 'Juventus',
+            'milan': 'AC Milan',
+            'inter': 'Inter Milan',
+            'roma': 'Roma',
+            'napoli': 'Napoli',
+            'bayern': 'Bayern Munich',
+            'dortmund': 'Borussia Dortmund',
+            'psg': 'Paris Saint-Germain',
+            'lyon': 'Lyon',
+            'marseille': 'Marseille',
+            'ajax': 'Ajax',
+            'porto': 'Porto',
+            'benfica': 'Benfica',
+            'zenit': 'Zenit',
+            'spartak': 'Spartak Moscow',
+            'cska': 'CSKA Moscow',
+            'dinamo': 'Dynamo Kyiv',
+            'shakhtar': 'Shakhtar Donetsk'
+        };
+
+        const searchHome = teamMap[homeTeam.toLowerCase()] || homeTeam;
+        const searchAway = teamMap[awayTeam.toLowerCase()] || awayTeam;
+
+        console.log('🔍 Поиск:', searchHome, 'vs', searchAway);
+
+        // === ПРЯМОЙ ПОИСК ПО ID ДЛЯ ИЗВЕСТНЫХ КОМАНД ===
+        const famousTeams = {
+            'real madrid': 541,
+            'barcelona': 529,
+            'atletico madrid': 530,
+            'manchester united': 520,
+            'manchester city': 550,
+            'liverpool': 522,
+            'chelsea': 526,
+            'arsenal': 525,
+            'tottenham': 527,
+            'juventus': 505,
+            'milan': 489,
+            'inter': 505,
+            'bayern': 503,
+            'dortmund': 504,
+            'psg': 476,
+            'ajax': 581,
+            'porto': 558,
+            'zenit': 548,
+            'shakhtar': 549
+        };
+
+        let homeId = null;
+        let awayId = null;
+        let homeName = searchHome;
+        let awayName = searchAway;
+
+        // Проверяем, есть ли команда в списке известных
+        if (famousTeams[homeTeam.toLowerCase()]) {
+            homeId = famousTeams[homeTeam.toLowerCase()];
+            homeName = homeTeam;
+            console.log('🏠 Найдена по ID:', homeId, homeName);
         }
-        
-        // Находим основную команду (не дубль, не молодёжку)
-        let homeTeamData = data1.response.find(i => 
-            !i.team.name.includes(' II') && 
-            !i.team.name.includes(' B') && 
-            !i.team.name.includes('U19') && 
-            !i.team.name.includes('U21') &&
-            !i.team.name.includes('Castilla') &&
-            !i.team.name.includes('Reserve')
-        );
-        if (!homeTeamData) homeTeamData = data1.response[0];
-        const homeId = homeTeamData.team.id;
-        const homeName = homeTeamData.team.name;
-        
-        // 2. Ищем гостей
-        const url2 = `${PROXY_BASE}teams?search=${encodeURIComponent(awayTeam)}`;
-        const resp2 = await fetch(url2, {
-            headers: { 'x-apisports-key': API_KEY_FOOTBALL }
-        });
-        const data2 = await resp2.json();
-        
-        if (!data2.response || data2.response.length === 0) {
-            status.innerHTML = `❌ Команда "<strong>${awayTeam}</strong>" не найдена.`;
-            btn.disabled = false;
-            btnText.textContent = '📊 Загрузить H2H';
-            spinner.style.display = 'none';
-            state.isLoading = false;
-            return;
+        if (famousTeams[awayTeam.toLowerCase()]) {
+            awayId = famousTeams[awayTeam.toLowerCase()];
+            awayName = awayTeam;
+            console.log('✈️ Найдена по ID:', awayId, awayName);
         }
-        
-        let awayTeamData = data2.response.find(i => 
-            !i.team.name.includes(' II') && 
-            !i.team.name.includes(' B') && 
-            !i.team.name.includes('U19') && 
-            !i.team.name.includes('U21') &&
-            !i.team.name.includes('Castilla') &&
-            !i.team.name.includes('Reserve')
-        );
-        if (!awayTeamData) awayTeamData = data2.response[0];
-        const awayId = awayTeamData.team.id;
-        const awayName = awayTeamData.team.name;
-        
+
+        // Если не нашли по ID — ищем через API
+        if (!homeId) {
+            const url1 = `${PROXY_BASE}teams?search=${encodeURIComponent(searchHome)}`;
+            const resp1 = await fetch(url1, {
+                headers: { 'x-apisports-key': API_KEY_FOOTBALL }
+            });
+            const data1 = await resp1.json();
+            
+            if (!data1.response || data1.response.length === 0) {
+                status.innerHTML = `❌ Команда "<strong>${homeTeam}</strong>" не найдена. Попробуйте полное название.`;
+                btn.disabled = false;
+                btnText.textContent = '📊 Загрузить H2H';
+                spinner.style.display = 'none';
+                state.isLoading = false;
+                return;
+            }
+            
+            let homeTeamData = data1.response.find(i => 
+                !i.team.name.includes(' II') && 
+                !i.team.name.includes(' B') && 
+                !i.team.name.includes('U19') && 
+                !i.team.name.includes('U21')
+            );
+            if (!homeTeamData) homeTeamData = data1.response[0];
+            homeId = homeTeamData.team.id;
+            homeName = homeTeamData.team.name;
+        }
+
+        if (!awayId) {
+            const url2 = `${PROXY_BASE}teams?search=${encodeURIComponent(searchAway)}`;
+            const resp2 = await fetch(url2, {
+                headers: { 'x-apisports-key': API_KEY_FOOTBALL }
+            });
+            const data2 = await resp2.json();
+            
+            if (!data2.response || data2.response.length === 0) {
+                status.innerHTML = `❌ Команда "<strong>${awayTeam}</strong>" не найдена. Попробуйте полное название.`;
+                btn.disabled = false;
+                btnText.textContent = '📊 Загрузить H2H';
+                spinner.style.display = 'none';
+                state.isLoading = false;
+                return;
+            }
+            
+            let awayTeamData = data2.response.find(i => 
+                !i.team.name.includes(' II') && 
+                !i.team.name.includes(' B') && 
+                !i.team.name.includes('U19') && 
+                !i.team.name.includes('U21')
+            );
+            if (!awayTeamData) awayTeamData = data2.response[0];
+            awayId = awayTeamData.team.id;
+            awayName = awayTeamData.team.name;
+        }
+
         status.innerHTML = `⏳ Ищем встречи <strong>${homeName}</strong> vs <strong>${awayName}</strong>...`;
-        
-        // 3. Ищем H2H через разные методы
-        let h2hData = null;
+
+        // === ПОИСК H2H ===
         let matches = [];
         
         // Метод 1: Прямой H2H
-        const h2hUrl = `${PROXY_BASE}fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
+        const h2hUrl = `${PROXY_BASE}fixtures/headtohead?h2h=${homeId}-${awayId}&last=20`;
         const h2hResp = await fetch(h2hUrl, {
             headers: { 'x-apisports-key': API_KEY_FOOTBALL }
         });
-        h2hData = await h2hResp.json();
+        const h2hData = await h2hResp.json();
         
         if (h2hData.response && h2hData.response.length > 0) {
             matches = h2hData.response;
+            console.log('✅ Найдено H2H:', matches.length);
         } else {
-            // Метод 2: Ищем матчи с участием обеих команд
-            const fixturesUrl = `${PROXY_BASE}fixtures?team=${homeId}&last=20`;
+            // Метод 2: Поиск по fixtures
+            console.log('⏳ Прямых H2H нет, ищем по fixtures...');
+            const fixturesUrl = `${PROXY_BASE}fixtures?team=${homeId}&last=30`;
             const fixturesResp = await fetch(fixturesUrl, {
                 headers: { 'x-apisports-key': API_KEY_FOOTBALL }
             });
             const fixturesData = await fixturesResp.json();
             
             if (fixturesData.response) {
-                // Фильтруем матчи с участием awayTeam
                 matches = fixturesData.response.filter(m => 
-                    (m.teams.home.id === awayId || m.teams.away.id === awayId)
+                    (m.teams.home.id === awayId || m.teams.away.id === awayId) &&
+                    (m.goals.home !== null && m.goals.away !== null)
                 );
+                console.log('✅ Найдено через fixtures:', matches.length);
             }
         }
-        
-        // Метод 3: Если матчей нет, пробуем найти по сезонам
+
+        // Метод 3: Поиск по сезонам
         if (matches.length === 0) {
-            status.innerHTML = `⏳ Ищем матчи за последние сезоны...`;
-            
-            // Получаем список сезонов
-            const seasonsUrl = `${PROXY_BASE}leagues/seasons?team=${homeId}`;
-            const seasonsResp = await fetch(seasonsUrl, {
-                headers: { 'x-apisports-key': API_KEY_FOOTBALL }
-            });
-            const seasonsData = await seasonsResp.json();
-            
-            if (seasonsData.response && seasonsData.response.length > 0) {
-                const seasons = seasonsData.response.slice(0, 3);
-                for (const season of seasons) {
-                    const url = `${PROXY_BASE}fixtures?team=${homeId}&season=${season}&last=20`;
-                    const resp = await fetch(url, {
-                        headers: { 'x-apisports-key': API_KEY_FOOTBALL }
-                    });
-                    const data = await resp.json();
-                    if (data.response) {
-                        const found = data.response.filter(m => 
-                            m.teams.home.id === awayId || m.teams.away.id === awayId
-                        );
+            console.log('⏳ Ищем по сезонам...');
+            const seasons = ['2024', '2023', '2022', '2021', '2020'];
+            for (const season of seasons) {
+                const url = `${PROXY_BASE}fixtures?team=${homeId}&season=${season}`;
+                const resp = await fetch(url, {
+                    headers: { 'x-apisports-key': API_KEY_FOOTBALL }
+                });
+                const data = await resp.json();
+                if (data.response) {
+                    const found = data.response.filter(m => 
+                        (m.teams.home.id === awayId || m.teams.away.id === awayId) &&
+                        (m.goals.home !== null && m.goals.away !== null)
+                    );
+                    if (found.length > 0) {
                         matches = matches.concat(found);
+                        console.log(`✅ Найдено в сезоне ${season}:`, found.length);
                     }
                 }
             }
         }
-        
+
         if (matches.length === 0) {
             status.innerHTML = `❌ Нет очных встреч между <strong>${homeName}</strong> и <strong>${awayName}</strong>`;
             btn.disabled = false;
@@ -2031,8 +2101,8 @@
             state.isLoading = false;
             return;
         }
-        
-        // 4. Обрабатываем результаты
+
+        // === ОБРАБОТКА РЕЗУЛЬТАТОВ ===
         const processedMatches = matches.map(m => ({
             home: m.teams.home.name,
             away: m.teams.away.name,
@@ -2044,7 +2114,7 @@
             date: m.fixture.date,
             league: m.league?.name || 'Unknown'
         }));
-        
+
         state.h2hData = processedMatches;
         
         const total = processedMatches.length;
@@ -2096,6 +2166,7 @@
         spinner.style.display = 'none';
     }
 }
+
 
         // ================================================================
         // ЗАГРУЗКА КОЭФФИЦИЕНТОВ (1 БК)
