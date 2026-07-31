@@ -984,7 +984,7 @@
                 <div class="confidence-bar"><div class="fill" id="confidenceFill" style="width:0%"></div></div>
             </div>
             <div class="ai-card">
-                <div class="card-title">🧠 AI Прогноз</div>
+                <div class="card-title">🧠 AI Прогноз (Улучшенный)</div>
                 <button class="btn-ai" id="aiBtn" onclick="generateAIPrediction()">🤖 Сгенерировать AI прогноз</button>
                 <div class="ai-result" id="aiResult">
                     <div class="ai-score-box">
@@ -995,6 +995,7 @@
                     <div class="section"><span class="label">📈 Средний тотал:</span><span class="value" id="aiAvgTotal">—</span></div>
                     <div class="section"><span class="label">🔥 Вероятность ОЗ:</span><span class="value" id="aiOzProb">—</span></div>
                     <div class="section"><span class="label">📊 Уверенность:</span><span class="value" id="aiConfidence">—</span></div>
+                    <div class="section"><span class="label">🧠 ML Усиление:</span><span class="value" id="aiMLBoost">—</span></div>
                     <div class="recommendation"><div class="label">🎯 РЕКОМЕНДАЦИЯ:</div><div class="big" id="aiRecommendation">—</div><div style="font-size:12px;color:#888;margin-top:4px;" id="aiAdvice">—</div></div>
                 </div>
             </div>
@@ -1020,7 +1021,7 @@
         <!-- СТАТИСТИКА -->
         <div class="screen" id="statsScreen">
             <div class="card">
-                <div class="card-title">📊 Дашборд</div>
+                <div class="card-title">📊 Дашборд KPI</div>
                 <div class="dashboard-grid">
                     <div class="dashboard-item"><div class="num" id="kpiTotal">0</div><div class="label">Всего</div></div>
                     <div class="dashboard-item"><div class="num" id="kpiWinRate">0%</div><div class="label">Винрейт</div></div>
@@ -1030,6 +1031,10 @@
             <div class="card">
                 <div class="card-title">📜 История</div>
                 <div id="historyList"><div class="text-muted text-center" style="padding:10px 0;">Нет ставок</div></div>
+            </div>
+            <div class="card">
+                <div class="card-title">📈 График баланса</div>
+                <div class="chart-bars" id="chartBars"></div>
             </div>
         </div>
 
@@ -1045,8 +1050,21 @@
                     <span class="label">🏆 Лига</span>
                     <select id="settingsLeagueSelect" onchange="changeDefaultLeague(this.value)"></select>
                 </div>
+                <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;">
+                    <span class="label">🧠 AI Обучение (TensorFlow.js)</span>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn-ai-train" id="trainAIBtn" onclick="trainAI()" style="flex:2;">🧠 Обучить AI</button>
+                        <button class="btn-ai-train" onclick="updateAIStatus()" style="flex:1;background:#3498db;">🔄 Статус</button>
+                    </div>
+                    <div class="ai-training-status" id="aiTrainingStatus">
+                        <span><span class="status-dot untrained" id="aiStatusDot"></span><span id="aiStatusText">⏳ Не обучен</span></span>
+                        <span class="accuracy" id="aiAccuracyDisplay">—</span>
+                    </div>
+                    <div style="font-size:9px;color:#555;margin-top:2px;">📊 Требуется 10+ ставок для обучения</div>
+                    <div id="aiTrainLog" style="font-size:10px;color:#888;margin-top:4px;max-height:60px;overflow-y:auto;display:none;background:#0b0e14;padding:4px 8px;border-radius:6px;"></div>
+                </div>
                 <div style="text-align:center;font-size:10px;color:#555;margin-top:8px;border-top:1px solid #2a3140;padding-top:8px;">
-                    ⚛️ Квантум v2.3 AI
+                    ⚛️ Квантум v2.3 AI · Улучшенный AI
                 </div>
             </div>
         </div>
@@ -1055,6 +1073,365 @@
     <div class="swipe-indicator show" id="swipeIndicator">👆 Свайп влево/вправо</div>
 
     <script>
+        // ============================================================
+        // УЛУЧШЕННЫЙ AI КЛАСС (ПОЛНАЯ ВЕРСИЯ)
+        // ============================================================
+
+        class QuantumAI {
+            constructor() {
+                this.model = null;
+                this.isTraining = false;
+                this.accuracy = 0;
+                this.initialized = false;
+                this.trainingHistory = [];
+                this.bestModel = null;
+                this.ensembleModels = [];
+                this.featureStats = { mean: [], std: [] };
+            }
+
+            async init() {
+                if (this.initialized) return this;
+                try {
+                    await this.loadModel();
+                    await this.loadEnsemble();
+                } catch (e) {
+                    console.log('AI не загружен, будет создан при обучении');
+                }
+                this.initialized = true;
+                updateAIStatus();
+                return this;
+            }
+
+            prepareData(bets) {
+                const features = [];
+                const labels = [];
+                
+                bets.forEach(bet => {
+                    if (bet.outcome === 'pending') return;
+                    
+                    const home = bet.home || 0;
+                    const away = bet.away || 0;
+                    const total = home + away;
+                    const diff = home - away;
+                    const confidence = (bet.confidence || 50) / 100;
+                    const form = this.calculateForm(bet);
+                    const motivation = this.getMotivationValue(bet);
+                    const restDays = bet.restDays || 3;
+                    const leagueFactor = this.getLeagueFactor(bet.league);
+                    const homeAdvantage = bet.isHome !== false ? 0.3 : -0.3;
+                    const importance = bet.importance || 1.0;
+                    const injuries = bet.injuries || 0;
+                    
+                    features.push([
+                        home, away, total, diff,
+                        confidence, form, motivation,
+                        restDays, leagueFactor, homeAdvantage,
+                        importance, injuries
+                    ]);
+                    
+                    labels.push(bet.outcome === 'win' ? 1 : 0);
+                });
+                
+                return this.standardizeFeatures(features, labels);
+            }
+
+            calculateForm(bet) {
+                if (bet.h2hData && bet.h2hData.length > 0) {
+                    const recent = bet.h2hData.slice(0, 5);
+                    const wins = recent.filter(m => m.diff > 0).length;
+                    return wins / recent.length;
+                }
+                return 0.5;
+            }
+
+            getMotivationValue(bet) {
+                const motiv = bet.motivation || 'none';
+                const values = {
+                    'none': 0.0,
+                    'derby': 0.3,
+                    'eurofight': 0.4,
+                    'relegation': 0.5,
+                    'title': 0.6
+                };
+                return values[motiv] || 0;
+            }
+
+            getLeagueFactor(league) {
+                const factors = {
+                    '39': 1.2,
+                    '140': 1.1,
+                    '78': 1.15,
+                    '135': 1.1,
+                    '61': 1.0,
+                    '2': 0.9
+                };
+                return factors[league] || 1.0;
+            }
+
+            standardizeFeatures(features, labels) {
+                if (features.length === 0) return { features: [], labels: [] };
+                
+                const numFeatures = features[0].length;
+                const means = [];
+                const stds = [];
+                
+                for (let i = 0; i < numFeatures; i++) {
+                    const col = features.map(f => f[i]);
+                    const mean = col.reduce((a,b) => a + b, 0) / col.length;
+                    const std = Math.sqrt(col.reduce((a,b) => a + (b - mean) ** 2, 0) / col.length);
+                    means.push(mean);
+                    stds.push(std || 1);
+                }
+                
+                this.featureStats = { mean: means, std: stds };
+                
+                const standardized = features.map(f => 
+                    f.map((v, i) => (v - means[i]) / stds[i])
+                );
+                
+                return { features: standardized, labels };
+            }
+
+            async createModel(inputShape = 12) {
+                if (this.model) return this.model;
+                
+                const model = tf.sequential();
+                
+                model.add(tf.layers.dense({
+                    units: 64,
+                    activation: 'relu',
+                    inputShape: [inputShape]
+                }));
+                model.add(tf.layers.batchNormalization());
+                model.add(tf.layers.dropout({ rate: 0.2 }));
+                
+                model.add(tf.layers.dense({
+                    units: 32,
+                    activation: 'relu'
+                }));
+                model.add(tf.layers.batchNormalization());
+                model.add(tf.layers.dropout({ rate: 0.15 }));
+                
+                model.add(tf.layers.dense({
+                    units: 16,
+                    activation: 'relu'
+                }));
+                model.add(tf.layers.dropout({ rate: 0.1 }));
+                
+                model.add(tf.layers.dense({
+                    units: 1,
+                    activation: 'sigmoid'
+                }));
+                
+                model.compile({
+                    optimizer: tf.train.adam(0.0005),
+                    loss: 'binaryCrossentropy',
+                    metrics: ['accuracy']
+                });
+                
+                this.model = model;
+                return model;
+            }
+
+            async train(bets, epochs = 100, onProgress = null) {
+                if (bets.length < 10) {
+                    showToast('⚠️ Нужно минимум 10 ставок', 'error');
+                    return false;
+                }
+
+                this.isTraining = true;
+                updateAIStatus();
+                showToast('🧠 Обучение AI началось...', 'info');
+
+                try {
+                    const { features, labels } = this.prepareData(bets);
+                    
+                    if (features.length === 0) {
+                        showToast('⚠️ Нет данных для обучения', 'error');
+                        this.isTraining = false;
+                        return false;
+                    }
+
+                    const split = Math.floor(features.length * 0.8);
+                    const trainX = features.slice(0, split);
+                    const trainY = labels.slice(0, split);
+                    const valX = features.slice(split);
+                    const valY = labels.slice(split);
+
+                    await this.createModel(features[0].length);
+
+                    const xs = tf.tensor2d(trainX);
+                    const ys = tf.tensor2d(trainY, [trainY.length, 1]);
+                    
+                    let valXs = null, valYs = null;
+                    if (valX.length > 0) {
+                        valXs = tf.tensor2d(valX);
+                        valYs = tf.tensor2d(valY, [valY.length, 1]);
+                    }
+
+                    const history = await this.model.fit(xs, ys, {
+                        epochs: epochs,
+                        batchSize: Math.min(32, trainX.length),
+                        validationData: (valXs && valYs) ? [valXs, valYs] : undefined,
+                        callbacks: {
+                            onEpochEnd: (epoch, logs) => {
+                                if (epoch % 10 === 0 || epoch === epochs - 1) {
+                                    const msg = `Epoch ${epoch+1}/${epochs}: loss=${logs.loss.toFixed(4)}, acc=${logs.acc.toFixed(4)}${logs.val_acc ? `, val_acc=${logs.val_acc.toFixed(4)}` : ''}`;
+                                    console.log(msg);
+                                    this.accuracy = logs.acc;
+                                    this.trainingHistory.push({ epoch, ...logs });
+                                    if (onProgress) onProgress(msg);
+                                    addAILog(msg);
+                                }
+                            }
+                        }
+                    });
+
+                    this.accuracy = history.history.acc[history.history.acc.length - 1] || 0;
+                    this.bestModel = this.model;
+                    
+                    await this.saveModel();
+                    await this.trainEnsemble(bets);
+                    
+                    this.isTraining = false;
+                    updateAIStatus();
+                    showToast(`✅ AI обучен! Точность: ${Math.round(this.accuracy * 100)}%`, 'success');
+                    return true;
+
+                } catch (error) {
+                    console.error('Train error:', error);
+                    showToast('⚠️ Ошибка обучения: ' + error.message, 'error');
+                    this.isTraining = false;
+                    updateAIStatus();
+                    return false;
+                }
+            }
+
+            async trainEnsemble(bets) {
+                const ensembleSize = 3;
+                this.ensembleModels = [];
+                
+                for (let i = 0; i < ensembleSize; i++) {
+                    const model = await this.createModel(12);
+                    this.ensembleModels.push(model);
+                }
+                
+                const shuffled = [...bets].sort(() => Math.random() - 0.5);
+                const size = Math.floor(shuffled.length / ensembleSize);
+                
+                for (let i = 0; i < ensembleSize; i++) {
+                    const subset = shuffled.slice(i * size, (i + 1) * size);
+                    if (subset.length > 5) {
+                        const { features, labels } = this.prepareData(subset);
+                        if (features.length > 0) {
+                            const xs = tf.tensor2d(features);
+                            const ys = tf.tensor2d(labels, [labels.length, 1]);
+                            await this.ensembleModels[i].fit(xs, ys, {
+                                epochs: 30,
+                                batchSize: Math.min(16, features.length)
+                            });
+                            xs.dispose();
+                            ys.dispose();
+                        }
+                    }
+                }
+                
+                localStorage.setItem('quantum_ensemble_trained', 'true');
+            }
+
+            async predictWithEnsemble(features) {
+                const predictions = [];
+                
+                const mainPred = await this.predict(features);
+                if (mainPred !== null) predictions.push(mainPred);
+                
+                for (const model of this.ensembleModels) {
+                    try {
+                        const input = tf.tensor2d([features]);
+                        const pred = model.predict(input);
+                        const result = pred.dataSync()[0];
+                        pred.dispose();
+                        input.dispose();
+                        if (result !== undefined && !isNaN(result)) {
+                            predictions.push(result);
+                        }
+                    } catch (e) {
+                        console.warn('Ensemble predict error:', e);
+                    }
+                }
+                
+                if (predictions.length === 0) return null;
+                
+                const weights = [0.4, 0.3, 0.3];
+                const totalWeight = weights.slice(0, predictions.length).reduce((a,b) => a + b, 0);
+                const weighted = predictions.reduce((sum, pred, i) => sum + pred * (weights[i] || 0.33), 0);
+                
+                return weighted / totalWeight;
+            }
+
+            async predict(features) {
+                if (!this.model) {
+                    await this.loadModel();
+                    if (!this.model) return null;
+                }
+
+                try {
+                    const input = tf.tensor2d([features]);
+                    const prediction = this.model.predict(input);
+                    const result = prediction.dataSync()[0];
+                    prediction.dispose();
+                    input.dispose();
+                    return result;
+                } catch (error) {
+                    console.error('Predict error:', error);
+                    return null;
+                }
+            }
+
+            async saveModel() {
+                if (!this.model) return;
+                try {
+                    await this.model.save('localstorage://quantum-ai-model');
+                    localStorage.setItem('quantum_ai_accuracy', this.accuracy.toString());
+                    localStorage.setItem('quantum_ai_trained', 'true');
+                    localStorage.setItem('quantum_feature_stats', JSON.stringify(this.featureStats));
+                } catch (e) {
+                    console.error('Save error:', e);
+                }
+            }
+
+            async loadModel() {
+                try {
+                    this.model = await tf.loadLayersModel('localstorage://quantum-ai-model');
+                    this.accuracy = parseFloat(localStorage.getItem('quantum_ai_accuracy')) || 0;
+                    const stats = localStorage.getItem('quantum_feature_stats');
+                    if (stats) this.featureStats = JSON.parse(stats);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            async loadEnsemble() {
+                const trained = localStorage.getItem('quantum_ensemble_trained') === 'true';
+                if (trained) {
+                    for (let i = 0; i < 3; i++) {
+                        try {
+                            const model = await tf.loadLayersModel(`localstorage://quantum-ensemble-${i}`);
+                            this.ensembleModels.push(model);
+                        } catch (e) {}
+                    }
+                }
+            }
+
+            isTrained() {
+                return this.model !== null && this.accuracy > 0;
+            }
+        }
+
+        // ===== ИНИЦИАЛИЗАЦИЯ =====
+        const quantumAI = new QuantumAI();
+
         // ===== КЛЮЧИ =====
         const API_KEY_FOOTBALL = 'api-40a548b23a46b859463c5bf4d4698aa1';
         const ODDS_API_KEY = '1a65316b9cba21b39cf5e6e008a3839e';
@@ -1150,6 +1527,23 @@
             setTimeout(() => { if (t.parentNode) t.remove(); }, 3000);
         }
 
+        function addAILog(msg) {
+            const log = document.getElementById('aiTrainLog');
+            if (!log) return;
+            log.style.display = 'block';
+            const entry = document.createElement('div');
+            entry.textContent = '🧠 ' + msg;
+            entry.style.borderBottom = '1px solid #2a3140';
+            entry.style.padding = '2px 0';
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function clearAILog() {
+            const log = document.getElementById('aiTrainLog');
+            if (log) log.innerHTML = '';
+        }
+
         // ===== ТЕМА =====
         function toggleTheme() {
             const isLight = document.body.classList.toggle('light');
@@ -1197,7 +1591,6 @@
                 renderStats();
                 renderDashboard();
                 renderChart();
-                renderInsights();
             }
         }
 
@@ -1221,39 +1614,6 @@
             }
         }
 
-        function swipeLeft() {
-            if (currentTabIndex < tabs.length - 1) {
-                currentTabIndex++;
-                switchTab(tabs[currentTabIndex]);
-                showSwipeFeedback('⬅️');
-            }
-        }
-
-        function swipeRight() {
-            if (currentTabIndex > 0) {
-                currentTabIndex--;
-                switchTab(tabs[currentTabIndex]);
-                showSwipeFeedback('➡️');
-            }
-        }
-
-        let swipeFeedbackTimer = null;
-
-        function showSwipeFeedback(direction) {
-            const indicator = document.getElementById('swipeIndicator');
-            if (!indicator) return;
-            indicator.textContent = direction;
-            indicator.style.opacity = '1';
-            indicator.classList.add('show');
-            clearTimeout(swipeFeedbackTimer);
-            swipeFeedbackTimer = setTimeout(() => {
-                indicator.style.opacity = '0';
-                setTimeout(() => {
-                    indicator.classList.remove('show');
-                }, 500);
-            }, 600);
-        }
-
         document.addEventListener('touchstart', function(e) {
             const main = document.getElementById('mainContent');
             if (!main) return;
@@ -1271,13 +1631,23 @@
             touchEndX = touch.clientX;
             const diff = touchStartX - touchEndX;
             if (Math.abs(diff) > MIN_SWIPE_DISTANCE) {
-                if (diff > 0) { swipeLeft(); } else { swipeRight(); }
+                if (diff > 0) {
+                    if (currentTabIndex < tabs.length - 1) {
+                        currentTabIndex++;
+                        switchTab(tabs[currentTabIndex]);
+                    }
+                } else {
+                    if (currentTabIndex > 0) {
+                        currentTabIndex--;
+                        switchTab(tabs[currentTabIndex]);
+                    }
+                }
             }
             touchStartX = 0;
             touchEndX = 0;
         }, { passive: true });
 
-        // ===== ФУНКЦИИ СТАТИСТИКИ =====
+        // ===== СТАТИСТИКА =====
         function renderHistory() {
             const list = $('historyList');
             if (!list) return;
@@ -1302,19 +1672,12 @@
             if ($('statTotal')) $('statTotal').textContent = total;
             if ($('statWinRate')) $('statWinRate').textContent = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) + '%' : '0%';
             if ($('statBalance')) $('statBalance').textContent = wins - losses;
-            if ($('statROI')) $('statROI').textContent = total > 0 ? Math.round(((wins - losses) / total) * 100) + '%' : '0%';
         }
 
         function renderDashboard() {
             const total = state.bets.length;
             const wins = state.bets.filter(b => b.outcome === 'win').length;
             const losses = state.bets.filter(b => b.outcome === 'loss').length;
-            let streak = 0, maxStreak = 0;
-            for (let i = state.bets.length - 1; i >= 0; i--) {
-                if (state.bets[i].outcome === 'win') { streak++; maxStreak = Math.max(maxStreak, streak); }
-                else if (state.bets[i].outcome === 'loss') streak = 0;
-                else break;
-            }
             if ($('kpiTotal')) $('kpiTotal').textContent = total;
             if ($('kpiWinRate')) $('kpiWinRate').textContent = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) + '%' : '0%';
             if ($('kpiProfit')) $('kpiProfit').textContent = wins - losses;
@@ -1324,18 +1687,6 @@
             const chart = $('chartBars');
             if (!chart) return;
             chart.innerHTML = '<span style="color:#888;font-size:11px;">Нет данных</span>';
-        }
-
-        function renderInsights() {
-            const container = $('insightsContent');
-            if (!container) return;
-            if (state.bets.length === 0) {
-                container.innerHTML = '<div class="text-muted text-center" style="padding:6px 0;">Нет данных</div>';
-                return;
-            }
-            const wins = state.bets.filter(b => b.outcome === 'win').length;
-            const rate = Math.round((wins / state.bets.length) * 100);
-            container.innerHTML = `<div style="font-size:12px;">📊 Всего: ${state.bets.length}, побед: ${wins} (${rate}%)</div>`;
         }
 
         // ===== ОСНОВНЫЕ ФУНКЦИИ =====
@@ -1359,13 +1710,18 @@
                 match: `${$('homeTeamH2H')?.value || 'Хозяева'} - ${$('awayTeamH2H')?.value || 'Гости'}`,
                 mode: state.currentMode,
                 value: $('resValue1')?.textContent || '--',
-                outcome: 'pending'
+                home: safeNum($('homeGoals')?.value),
+                away: safeNum($('awayGoals')?.value),
+                confidence: parseInt($('confidenceLabel')?.textContent) || 50,
+                outcome: 'pending',
+                resultText: '⏳ Ожидание'
             };
             state.bets.push(bet);
             localStorage.setItem('quantum_bets', JSON.stringify(state.bets));
             renderHistory();
             renderStats();
             renderDashboard();
+            updateAIStatus();
             showToast('✅ Ставка сохранена!', 'success');
         }
 
@@ -1374,13 +1730,14 @@
             if (!b) return;
             const newOutcome = prompt(`Исход для ${b.match}:\n1 - Выиграла\n2 - Проиграла\n3 - Неизвестно`, '3');
             if (newOutcome === null) return;
-            if (newOutcome === '1') { b.outcome = 'win'; }
-            else if (newOutcome === '2') { b.outcome = 'loss'; }
-            else { b.outcome = 'pending'; }
+            if (newOutcome === '1') { b.outcome = 'win'; b.resultText = '✅ Выигрыш'; }
+            else if (newOutcome === '2') { b.outcome = 'loss'; b.resultText = '❌ Проигрыш'; }
+            else { b.outcome = 'pending'; b.resultText = '⏳ Ожидание'; }
             localStorage.setItem('quantum_bets', JSON.stringify(state.bets));
             renderHistory();
             renderStats();
             renderDashboard();
+            updateAIStatus();
             showToast('✅ Обновлено', 'success');
         }
 
@@ -1424,6 +1781,75 @@
             if (document.getElementById('leagueSelect')) document.getElementById('leagueSelect').value = value;
             updateLeagueInfo();
             showToast(`🏆 Лига изменена`, 'success');
+        }
+
+        // ===== ОБУЧЕНИЕ AI =====
+        async function trainAI() {
+            const btn = document.getElementById('trainAIBtn');
+            if (quantumAI.isTraining) {
+                showToast('⏳ Обучение уже идёт...', 'info');
+                return;
+            }
+
+            const bets = state.bets.filter(b => b.outcome !== 'pending');
+            
+            if (bets.length < 10) {
+                showToast(`⚠️ Нужно минимум 10 ставок (сейчас ${bets.length})`, 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Обучение...';
+            clearAILog();
+            addAILog(`📊 Начало обучения на ${bets.length} ставках`);
+            addAILog(`🧠 Используется улучшенная модель с 12 параметрами`);
+            addAILog(`🔄 Ансамбль из 3 моделей`);
+
+            await quantumAI.train(bets, 100, (msg) => {
+                addAILog(msg);
+            });
+
+            btn.disabled = false;
+            btn.textContent = '🧠 Обучить AI';
+            updateAIStatus();
+            
+            const history = quantumAI.trainingHistory;
+            if (history.length > 0) {
+                const last = history[history.length - 1];
+                addAILog(`📈 Финальная точность: ${Math.round(last.acc * 100)}%`);
+                if (last.val_acc) {
+                    addAILog(`📊 Валидация: ${Math.round(last.val_acc * 100)}%`);
+                }
+            }
+        }
+
+        function updateAIStatus() {
+            const statusText = document.getElementById('aiStatusText');
+            const statusDot = document.getElementById('aiStatusDot');
+            const accuracyDisplay = document.getElementById('aiAccuracyDisplay');
+            
+            if (!statusText || !statusDot || !accuracyDisplay) return;
+
+            if (quantumAI.isTraining) {
+                statusText.textContent = '⏳ Обучение...';
+                statusDot.className = 'status-dot training';
+                accuracyDisplay.textContent = '⏳';
+                return;
+            }
+
+            if (quantumAI.isTrained()) {
+                const acc = Math.round(quantumAI.accuracy * 100);
+                const betsCount = state.bets.filter(b => b.outcome !== 'pending').length;
+                const ensemble = localStorage.getItem('quantum_ensemble_trained') === 'true' ? '🧠' : '';
+                statusText.textContent = `✅ Обучен (${betsCount} ставок) ${ensemble}`;
+                statusDot.className = 'status-dot trained';
+                accuracyDisplay.textContent = `🎯 ${acc}%`;
+                accuracyDisplay.style.color = acc > 70 ? '#2ecc71' : acc > 50 ? '#f1c40f' : '#e74c3c';
+            } else {
+                statusText.textContent = '⏳ Не обучен';
+                statusDot.className = 'status-dot untrained';
+                accuracyDisplay.textContent = '—';
+            }
         }
 
         // ===== ЗАГРУЗКА H2H =====
@@ -1588,23 +2014,55 @@
             let recommendation = '';
             let advice = '';
             let confidence = 0;
+            let mlBoost = '';
 
+            // AI предсказание с ансамблем
+            let mlPrediction = null;
+            if (quantumAI.isTrained()) {
+                const features = [
+                    parseFloat(avgTotal) / 2,
+                    parseFloat(avgTotal) / 2,
+                    parseFloat(avgTotal),
+                    0,
+                    0.5,
+                    homeWins / totalMatches,
+                    0,
+                    3,
+                    1.0,
+                    0,
+                    1.0,
+                    0
+                ];
+                mlPrediction = await quantumAI.predictWithEnsemble(features);
+                if (mlPrediction !== null) {
+                    confidence = Math.round(mlPrediction * 100);
+                    mlBoost = `🧠 ML: ${confidence}%`;
+                }
+            }
+
+            // Комбинируем AI и статистику
             if (parseFloat(avgTotal) >= 3.0 && ozPercent > 55) {
                 recommendation = '⚽ Тотал БОЛЬШЕ 2.5 + ОЗ';
                 advice = `Средний тотал ${avgTotal}, ОЗ ${ozPercent}%`;
-                confidence = 88;
+                confidence = Math.max(confidence, 88);
             } else if (parseFloat(avgTotal) >= 3.0) {
                 recommendation = '⚽ Тотал БОЛЬШЕ 2.5';
                 advice = `Средний тотал ${avgTotal}`;
-                confidence = 82;
+                confidence = Math.max(confidence, 82);
             } else if (parseFloat(avgTotal) <= 1.8) {
                 recommendation = '🛡️ Тотал МЕНЬШЕ 2.5';
                 advice = `Средний тотал ${avgTotal}`;
-                confidence = 92;
+                confidence = Math.max(confidence, 92);
             } else {
                 recommendation = '⚠️ Осторожно';
                 advice = `Средний тотал ${avgTotal}`;
-                confidence = 55;
+                confidence = Math.max(confidence, 55);
+            }
+
+            // Если есть ML предсказание, корректируем уверенность
+            if (mlPrediction !== null) {
+                const mlWeight = 0.3;
+                confidence = Math.round(confidence * (1 - mlWeight) + mlPrediction * 100 * mlWeight);
             }
 
             document.getElementById('aiHomeScore').textContent = (parseFloat(avgTotal) / 2).toFixed(1);
@@ -1614,6 +2072,7 @@
             document.getElementById('aiAvgTotal').textContent = avgTotal;
             document.getElementById('aiOzProb').textContent = ozPercent + '%';
             document.getElementById('aiConfidence').textContent = confidence + '%';
+            document.getElementById('aiMLBoost').textContent = mlBoost || '—';
             document.getElementById('aiRecommendation').textContent = recommendation;
             document.getElementById('aiAdvice').textContent = advice;
 
@@ -1641,8 +2100,8 @@
             renderStats();
             renderDashboard();
             renderChart();
-            renderInsights();
-            console.log('✅ Квантум 2.3 AI загружен!');
+            quantumAI.init();
+            console.log('✅ Квантум 2.3 AI (Улучшенный) загружен!');
         });
     </script>
 </body>
