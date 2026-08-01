@@ -1014,31 +1014,69 @@
             results.innerHTML = '';
 
             try {
-                const API_KEY = API_KEY_FOOTBALL;
+                // ⚡ ВАШ API-КЛЮЧ (ПРЯМОЙ, БЕЗ ПРОКСИ)
+                const API_KEY = 'api-40a548b23a46b859463c5bf4d4698aa1';
                 
-                const url1 = `${PROXY_BASE}/football/teams?search=${encodeURIComponent(homeTeam)}`;
-                const resp1 = await fetch(url1, { headers: { 'x-apisports-key': API_KEY, 'Content-Type': 'application/json' } });
+                // 1️⃣ ПОИСК ХОЗЯЕВ (ПРЯМОЙ ЗАПРОС)
+                const url1 = `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(homeTeam)}`;
+                console.log('📡 Запрос 1:', url1);
+                
+                const resp1 = await fetch(url1, {
+                    headers: {
+                        'x-apisports-key': API_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📊 Статус 1:', resp1.status);
                 const data1 = await resp1.json();
+                console.log('📦 Данные 1:', data1);
+                
                 if (!data1.response || data1.response.length === 0) {
                     status.innerHTML = `❌ Команда "${homeTeam}" не найдена. Попробуйте: Real Madrid, Barcelona, Arsenal`;
                     btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
                     state.isLoading = false; return;
                 }
                 const homeId = data1.response[0].team.id;
+                console.log('🏠 ID хозяев:', homeId, data1.response[0].team.name);
 
-                const url2 = `${PROXY_BASE}/football/teams?search=${encodeURIComponent(awayTeam)}`;
-                const resp2 = await fetch(url2, { headers: { 'x-apisports-key': API_KEY, 'Content-Type': 'application/json' } });
+                // 2️⃣ ПОИСК ГОСТЕЙ (ПРЯМОЙ ЗАПРОС)
+                const url2 = `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(awayTeam)}`;
+                console.log('📡 Запрос 2:', url2);
+                
+                const resp2 = await fetch(url2, {
+                    headers: {
+                        'x-apisports-key': API_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📊 Статус 2:', resp2.status);
                 const data2 = await resp2.json();
+                console.log('📦 Данные 2:', data2);
+                
                 if (!data2.response || data2.response.length === 0) {
                     status.innerHTML = `❌ Команда "${awayTeam}" не найдена. Попробуйте: Real Madrid, Barcelona, Arsenal`;
                     btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
                     state.isLoading = false; return;
                 }
                 const awayId = data2.response[0].team.id;
+                console.log('✈️ ID гостей:', awayId, data2.response[0].team.name);
 
-                const h2hUrl = `${PROXY_BASE}/football/fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
-                const h2hResp = await fetch(h2hUrl, { headers: { 'x-apisports-key': API_KEY, 'Content-Type': 'application/json' } });
+                // 3️⃣ ЗАГРУЗКА H2H (ПРЯМОЙ ЗАПРОС)
+                const h2hUrl = `https://v3.football.api-sports.io/fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
+                console.log('📡 Запрос H2H:', h2hUrl);
+                
+                const h2hResp = await fetch(h2hUrl, {
+                    headers: {
+                        'x-apisports-key': API_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📊 Статус H2H:', h2hResp.status);
                 const h2hData = await h2hResp.json();
+                console.log('📦 H2H данные:', h2hData);
 
                 if (!h2hData.response || h2hData.response.length === 0) {
                     status.innerHTML = `❌ Нет очных встреч между "${homeTeam}" и "${awayTeam}"`;
@@ -1046,6 +1084,7 @@
                     state.isLoading = false; return;
                 }
 
+                // 4️⃣ ОБРАБОТКА РЕЗУЛЬТАТОВ
                 const matches = h2hData.response.map(m => ({
                     home: m.teams.home.name, away: m.teams.away.name,
                     homeScore: m.goals.home || 0, awayScore: m.goals.away || 0,
@@ -1072,8 +1111,11 @@
                     ${matches.slice(0,5).map(m => `<div class="h2h-item">${m.home} ${m.homeScore}:${m.awayScore} ${m.away} ${m.oz ? '✅' : '❌'}</div>`).join('')}
                 `;
 
+                // 5️⃣ АВТО-ОПРЕДЕЛЕНИЕ ЛИГИ
                 try {
-                    const leagueResp = await fetch(`${PROXY_BASE}/football/teams?id=${homeId}`, { headers: { 'x-apisports-key': API_KEY } });
+                    const leagueResp = await fetch(`https://v3.football.api-sports.io/teams?id=${homeId}`, {
+                        headers: { 'x-apisports-key': API_KEY }
+                    });
                     const leagueData = await leagueResp.json();
                     if (leagueData.response && leagueData.response[0]?.team?.league) {
                         const leagueName = leagueData.response[0].team.league.name;
@@ -1096,11 +1138,22 @@
                 showToast(`✅ Загружено ${total} матчей!`, 'success');
 
             } catch(error) {
-                status.innerHTML = `❌ Ошибка загрузки. Проверьте прокси-сервер.`;
+                console.error('❌ Ошибка:', error);
+                status.innerHTML = `
+                    <div style="color:#e74c3c;padding:8px;background:#2a1a1a;border-radius:8px;border-left:4px solid #e74c3c;">
+                        <strong>❌ Ошибка загрузки:</strong><br>
+                        ${error.message}<br><br>
+                        <span style="color:#888;font-size:11px;">
+                            💡 Проверьте интернет и API-ключ (он активен до 01.09.2026)
+                        </span>
+                    </div>
+                `;
                 showToast('⚠️ Ошибка загрузки', 'error');
             } finally {
                 state.isLoading = false;
-                btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
+                btn.disabled = false;
+                btnText.textContent = '📊 Загрузить H2H';
+                spinner.style.display = 'none';
             }
         }
 
