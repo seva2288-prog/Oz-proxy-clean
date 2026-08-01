@@ -1014,11 +1014,20 @@
             results.innerHTML = '';
 
             try {
-                // ⚡ ВАШ API-КЛЮЧ (ПРЯМОЙ, БЕЗ ПРОКСИ)
                 const API_KEY = 'api-40a548b23a46b859463c5bf4d4698aa1';
                 
-                // 1️⃣ ПОИСК ХОЗЯЕВ (ПРЯМОЙ ЗАПРОС)
-                const url1 = `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(homeTeam)}`;
+                // ⚡ ВАРИАНТ 1: ПРЯМОЙ ЗАПРОС (если CORS разрешён)
+                // ⚡ ВАРИАНТ 2: ЧЕРЕЗ ПРОКСИ (если CORS блокирует)
+                const USE_PROXY = true;  // ← МЕНЯЙТЕ НА false, ЕСЛИ ПРЯМОЙ ЗАПРОС РАБОТАЕТ
+                
+                let url1;
+                if (USE_PROXY) {
+                    // Используем CORS-прокси
+                    url1 = `https://corsproxy.io/?https://v3.football.api-sports.io/teams?search=${encodeURIComponent(homeTeam)}`;
+                } else {
+                    url1 = `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(homeTeam)}`;
+                }
+                
                 console.log('📡 Запрос 1:', url1);
                 
                 const resp1 = await fetch(url1, {
@@ -1038,11 +1047,14 @@
                     state.isLoading = false; return;
                 }
                 const homeId = data1.response[0].team.id;
-                console.log('🏠 ID хозяев:', homeId, data1.response[0].team.name);
 
-                // 2️⃣ ПОИСК ГОСТЕЙ (ПРЯМОЙ ЗАПРОС)
-                const url2 = `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(awayTeam)}`;
-                console.log('📡 Запрос 2:', url2);
+                // Аналогично для гостей...
+                let url2;
+                if (USE_PROXY) {
+                    url2 = `https://corsproxy.io/?https://v3.football.api-sports.io/teams?search=${encodeURIComponent(awayTeam)}`;
+                } else {
+                    url2 = `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(awayTeam)}`;
+                }
                 
                 const resp2 = await fetch(url2, {
                     headers: {
@@ -1051,21 +1063,21 @@
                     }
                 });
                 
-                console.log('📊 Статус 2:', resp2.status);
                 const data2 = await resp2.json();
-                console.log('📦 Данные 2:', data2);
-                
                 if (!data2.response || data2.response.length === 0) {
                     status.innerHTML = `❌ Команда "${awayTeam}" не найдена. Попробуйте: Real Madrid, Barcelona, Arsenal`;
                     btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
                     state.isLoading = false; return;
                 }
                 const awayId = data2.response[0].team.id;
-                console.log('✈️ ID гостей:', awayId, data2.response[0].team.name);
 
-                // 3️⃣ ЗАГРУЗКА H2H (ПРЯМОЙ ЗАПРОС)
-                const h2hUrl = `https://v3.football.api-sports.io/fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
-                console.log('📡 Запрос H2H:', h2hUrl);
+                // H2H
+                let h2hUrl;
+                if (USE_PROXY) {
+                    h2hUrl = `https://corsproxy.io/?https://v3.football.api-sports.io/fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
+                } else {
+                    h2hUrl = `https://v3.football.api-sports.io/fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
+                }
                 
                 const h2hResp = await fetch(h2hUrl, {
                     headers: {
@@ -1074,17 +1086,14 @@
                     }
                 });
                 
-                console.log('📊 Статус H2H:', h2hResp.status);
                 const h2hData = await h2hResp.json();
-                console.log('📦 H2H данные:', h2hData);
-
                 if (!h2hData.response || h2hData.response.length === 0) {
                     status.innerHTML = `❌ Нет очных встреч между "${homeTeam}" и "${awayTeam}"`;
                     btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
                     state.isLoading = false; return;
                 }
 
-                // 4️⃣ ОБРАБОТКА РЕЗУЛЬТАТОВ
+                // Обработка результатов...
                 const matches = h2hData.response.map(m => ({
                     home: m.teams.home.name, away: m.teams.away.name,
                     homeScore: m.goals.home || 0, awayScore: m.goals.away || 0,
@@ -1111,26 +1120,6 @@
                     ${matches.slice(0,5).map(m => `<div class="h2h-item">${m.home} ${m.homeScore}:${m.awayScore} ${m.away} ${m.oz ? '✅' : '❌'}</div>`).join('')}
                 `;
 
-                // 5️⃣ АВТО-ОПРЕДЕЛЕНИЕ ЛИГИ
-                try {
-                    const leagueResp = await fetch(`https://v3.football.api-sports.io/teams?id=${homeId}`, {
-                        headers: { 'x-apisports-key': API_KEY }
-                    });
-                    const leagueData = await leagueResp.json();
-                    if (leagueData.response && leagueData.response[0]?.team?.league) {
-                        const leagueName = leagueData.response[0].team.league.name;
-                        for (let [id, league] of Object.entries(LEAGUES)) {
-                            if (league.name.includes(leagueName) || leagueName.includes(league.name.replace(/[^\w\s]/g, ''))) {
-                                state.currentLeague = id;
-                                localStorage.setItem('quantum_league', id);
-                                if ($('leagueSelect')) $('leagueSelect').value = id;
-                                updateLeagueInfo();
-                                break;
-                            }
-                        }
-                    }
-                } catch(e) {}
-
                 const badge = $('searchBadge');
                 if (badge) { badge.style.display = 'block'; badge.textContent = total; }
                 if ($('contextCard')) $('contextCard').style.display = 'block';
@@ -1142,9 +1131,10 @@
                 status.innerHTML = `
                     <div style="color:#e74c3c;padding:8px;background:#2a1a1a;border-radius:8px;border-left:4px solid #e74c3c;">
                         <strong>❌ Ошибка загрузки:</strong><br>
-                        ${error.message}<br><br>
+                        ${error.message || 'Load failed'}<br><br>
                         <span style="color:#888;font-size:11px;">
-                            💡 Проверьте интернет и API-ключ (он активен до 01.09.2026)
+                            💡 Проверьте интернет и API-ключ (он активен до 01.09.2026)<br>
+                            💡 Если ошибка CORS — включите USE_PROXY = true
                         </span>
                     </div>
                 `;
