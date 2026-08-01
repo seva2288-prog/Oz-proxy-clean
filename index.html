@@ -1076,134 +1076,232 @@
         
         // ====== ЗАГРУЗКА H2H ======
         async function loadH2H() {
-            const homeTeam = $('homeTeamH2H')?.value?.trim() || '';
-            const awayTeam = $('awayTeamH2H')?.value?.trim() || '';
-            if (!homeTeam || !awayTeam) { showToast('⚠️ Введите обе команды!', 'error'); return; }
-            if (state.isLoading) return;
-            state.isLoading = true;
+    const homeTeam = $('homeTeamH2H')?.value?.trim() || '';
+    const awayTeam = $('awayTeamH2H')?.value?.trim() || '';
+    if (!homeTeam || !awayTeam) { showToast('⚠️ Введите обе команды!', 'error'); return; }
+    if (state.isLoading) return;
+    state.isLoading = true;
+
+    const btn = $('loadH2HBtn'), btnText = $('loadBtnText'), spinner = $('loadSpinner');
+    const status = $('h2hStatus'), results = $('h2hResults');
+    btn.disabled = true; btnText.textContent = '⏳ Загрузка...';
+    spinner.style.display = 'inline-block';
+    status.innerHTML = '<span class="loading-text"><span class="spinner-small"></span> Поиск команд...</span>';
+    results.innerHTML = '';
+
+    try {
+        // === УМНЫЙ ПОИСК КОМАНДЫ ===
+        async function findTeam(teamName) {
+            const url = `${PROXY_BASE}teams?search=${encodeURIComponent(teamName)}`;
+            const resp = await fetch(url, { 
+                headers: { 'x-apisports-key': API_KEY_FOOTBALL, 'Content-Type': 'application/json' } 
+            });
+            const data = await resp.json();
             
-            const btn = $('loadH2HBtn'), btnText = $('loadBtnText'), spinner = $('loadSpinner');
-            const status = $('h2hStatus'), results = $('h2hResults');
-            btn.disabled = true; btnText.textContent = '⏳ Загрузка...';
-            spinner.style.display = 'inline-block';
-            status.innerHTML = '<span class="loading-text"><span class="spinner-small"></span> Поиск команд...</span>';
-            results.innerHTML = '';
-            
-            try {
-                const API_KEY = API_KEY_FOOTBALL;
+            if (data.response && data.response.length > 0) {
+                // Фильтруем дубли и молодёжку
+                let filtered = data.response.filter(t => 
+                    !t.team.name.includes('U19') && 
+                    !t.team.name.includes('U21') &&
+                    !t.team.name.includes('U23') &&
+                    !t.team.name.includes('Reserve') &&
+                    !t.team.name.includes('II') &&
+                    !t.team.name.includes('B')
+                );
                 
-                const url1 = `${PROXY_BASE}teams?search=${encodeURIComponent(homeTeam)}`;
-                console.log('📡 Запрос 1:', url1);
+                // Если ничего не осталось, берём все
+                if (filtered.length === 0) filtered = data.response;
                 
-                const resp1 = await fetch(url1, { 
-                    headers: { 'x-apisports-key': API_KEY, 'Content-Type': 'application/json' } 
-                });
-                const data1 = await resp1.json();
-                console.log('📦 Ответ 1:', data1);
-                
-                if (!data1.response || data1.response.length === 0) {
-                    status.innerHTML = `❌ Команда "${homeTeam}" не найдена. Попробуйте: Real Madrid, Barcelona, Arsenal`;
-                    btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
-                    state.isLoading = false; return;
-                }
-                const homeId = data1.response[0].team.id;
-                
-                const url2 = `${PROXY_BASE}teams?search=${encodeURIComponent(awayTeam)}`;
-                console.log('📡 Запрос 2:', url2);
-                
-                const resp2 = await fetch(url2, { 
-                    headers: { 'x-apisports-key': API_KEY, 'Content-Type': 'application/json' } 
-                });
-                const data2 = await resp2.json();
-                console.log('📦 Ответ 2:', data2);
-                
-                if (!data2.response || data2.response.length === 0) {
-                    status.innerHTML = `❌ Команда "${awayTeam}" не найдена. Попробуйте: Real Madrid, Barcelona, Arsenal`;
-                    btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
-                    state.isLoading = false; return;
-                }
-                const awayId = data2.response[0].team.id;
-                
-                const h2hUrl = `${PROXY_BASE}fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
-                console.log('📡 Запрос H2H:', h2hUrl);
-                
-                const h2hResp = await fetch(h2hUrl, { 
-                    headers: { 'x-apisports-key': API_KEY, 'Content-Type': 'application/json' } 
-                });
-                const h2hData = await h2hResp.json();
-                console.log('📦 Ответ H2H:', h2hData);
-                
-                if (!h2hData.response || h2hData.response.length === 0) {
-                    status.innerHTML = `❌ Нет очных встреч между "${homeTeam}" и "${awayTeam}"`;
-                    btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
-                    state.isLoading = false; return;
-                }
-                
-                const matches = h2hData.response.map(m => ({
-                    home: m.teams.home.name, away: m.teams.away.name,
-                    homeScore: m.goals.home || 0, awayScore: m.goals.away || 0,
-                    oz: (m.goals.home || 0) > 0 && (m.goals.away || 0) > 0,
-                    total: (m.goals.home || 0) + (m.goals.away || 0)
-                }));
-                
-                state.h2hData = matches;
-                const total = matches.length;
-                const ozCount = matches.filter(m => m.oz).length;
-                const avgTotal = (matches.reduce((s, m) => s + m.total, 0) / total).toFixed(1);
-                const homeWins = matches.filter(m => m.homeScore > m.awayScore).length;
-                const awayWins = matches.filter(m => m.awayScore > m.homeScore).length;
-                const draws = total - homeWins - awayWins;
-                
-                status.innerHTML = `✅ Найдено ${total} очных встреч!`;
-                results.innerHTML = `
-                    <div class="h2h-summary">
-                        <span class="item">📊 Всего: <span class="num">${total}</span></span>
-                        <span class="item">⚽ ОЗ: <span class="num">${Math.round((ozCount/total)*100)}%</span></span>
-                        <span class="item">📈 Тотал: <span class="num">${avgTotal}</span></span>
-                        <span class="item">🏠 ${homeWins} | ✈️ ${awayWins} | 🤝 ${draws}</span>
-                    </div>
-                    ${matches.slice(0,5).map(m => `<div class="h2h-item">${m.home} ${m.homeScore}:${m.awayScore} ${m.away} ${m.oz ? '✅' : '❌'}</div>`).join('')}
-                `;
-                
-                try {
-                    const leagueResp = await fetch(`${PROXY_BASE}teams?id=${homeId}`, {
-                        headers: { 'x-apisports-key': API_KEY }
-                    });
-                    const leagueData = await leagueResp.json();
-                    if (leagueData.response && leagueData.response[0]?.team?.league) {
-                        const leagueName = leagueData.response[0].team.league.name;
-                        for (let [id, league] of Object.entries(LEAGUES)) {
-                            if (league.name.includes(leagueName) || leagueName.includes(league.name.replace(/[^\w\s]/g, ''))) {
-                                state.currentLeague = id;
-                                localStorage.setItem('quantum_league', id);
-                                if ($('leagueSelect')) $('leagueSelect').value = id;
-                                updateLeagueInfo();
-                                break;
-                            }
-                        }
-                    }
-                } catch(e) {}
-                
-                const badge = $('searchBadge');
-                if (badge) { badge.style.display = 'block'; badge.textContent = total; }
-                if ($('contextCard')) $('contextCard').style.display = 'block';
-                calculate();
-                showToast(`✅ Загружено ${total} матчей!`, 'success');
-                
-            } catch(error) {
-                console.error('❌ Ошибка:', error);
-                status.innerHTML = `<div style="color:#e74c3c;padding:8px;background:#2a1a1a;border-radius:8px;border-left:4px solid #e74c3c;">
-                    <strong>❌ Ошибка загрузки:</strong><br>${error.message}<br><br>
-                    <span style="color:#888;font-size:11px;">💡 Проверьте интернет и API-ключ</span>
-                </div>`;
-                showToast('⚠️ Ошибка загрузки', 'error');
-            } finally {
-                state.isLoading = false;
-                btn.disabled = false;
-                btnText.textContent = '📊 Загрузить H2H';
-                spinner.style.display = 'none';
+                return filtered;
             }
+            return [];
         }
+
+        // === ПОИСК ХОЗЯЕВ ===
+        status.innerHTML = '🔍 Ищем хозяев...';
+        const homeResults = await findTeam(homeTeam);
+        
+        if (homeResults.length === 0) {
+            status.innerHTML = `❌ Команда "${homeTeam}" не найдена. Попробуйте другое название.`;
+            btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
+            state.isLoading = false; return;
+        }
+
+        // Если найдено несколько — показываем выбор
+        let homeId, homeName;
+        if (homeResults.length > 1) {
+            let listHtml = homeResults.map((t, i) => 
+                `<div class="h2h-item" onclick="selectTeam('home', ${i})" style="cursor:pointer;background:#2a3a4a;">
+                    ${i+1}. ${t.team.name} (${t.team.country || 'Unknown'})
+                </div>`
+            ).join('');
+            
+            status.innerHTML = `🔍 Найдено ${homeResults.length} команд-хозяев. Выберите:`;
+            results.innerHTML = listHtml;
+            // Сохраняем результаты для выбора
+            window._homeResults = homeResults;
+            window._awayResults = null;
+            window._awaitingTeam = 'home';
+            btn.disabled = false; btnText.textContent = '📊 Выберите команду'; spinner.style.display = 'none';
+            state.isLoading = false;
+            return;
+        } else {
+            homeId = homeResults[0].team.id;
+            homeName = homeResults[0].team.name;
+        }
+
+        // === ПОИСК ГОСТЕЙ ===
+        status.innerHTML = '🔍 Ищем гостей...';
+        const awayResults = await findTeam(awayTeam);
+        
+        if (awayResults.length === 0) {
+            status.innerHTML = `❌ Команда "${awayTeam}" не найдена. Попробуйте другое название.`;
+            btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
+            state.isLoading = false; return;
+        }
+
+        let awayId, awayName;
+        if (awayResults.length > 1) {
+            let listHtml = awayResults.map((t, i) => 
+                `<div class="h2h-item" onclick="selectTeam('away', ${i})" style="cursor:pointer;background:#2a3a4a;">
+                    ${i+1}. ${t.team.name} (${t.team.country || 'Unknown'})
+                </div>`
+            ).join('');
+            
+            status.innerHTML = `🔍 Найдено ${awayResults.length} команд-гостей. Выберите:`;
+            results.innerHTML = listHtml;
+            window._homeResults = homeResults;
+            window._awayResults = awayResults;
+            window._awaitingTeam = 'away';
+            btn.disabled = false; btnText.textContent = '📊 Выберите команду'; spinner.style.display = 'none';
+            state.isLoading = false;
+            return;
+        } else {
+            awayId = awayResults[0].team.id;
+            awayName = awayResults[0].team.name;
+        }
+
+        // === ЗАГРУЗКА H2H ===
+        await loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spinner, status, results);
+
+    } catch(error) {
+        console.error('❌ Ошибка:', error);
+        status.innerHTML = `<div style="color:#e74c3c;padding:8px;">❌ Ошибка: ${error.message}</div>`;
+        showToast('⚠️ Ошибка загрузки', 'error');
+    } finally {
+        state.isLoading = false;
+        btn.disabled = false;
+        btnText.textContent = '📊 Загрузить H2H';
+        spinner.style.display = 'none';
+    }
+}
+
+// === ФУНКЦИЯ ВЫБОРА КОМАНДЫ ===
+function selectTeam(type, index) {
+    const results = type === 'home' ? window._homeResults : window._awayResults;
+    if (!results || !results[index]) return;
+    
+    const team = results[index];
+    const teamId = team.team.id;
+    const teamName = team.team.name;
+    
+    // Запоминаем выбранную команду
+    if (type === 'home') {
+        window._selectedHomeId = teamId;
+        window._selectedHomeName = teamName;
+    } else {
+        window._selectedAwayId = teamId;
+        window._selectedAwayName = teamName;
+    }
+    
+    // Проверяем, выбраны ли обе команды
+    if (window._selectedHomeId && window._selectedAwayId) {
+        const btn = $('loadH2HBtn');
+        const btnText = $('loadBtnText');
+        const spinner = $('loadSpinner');
+        const status = $('h2hStatus');
+        const results = $('h2hResults');
+        
+        loadH2HData(
+            window._selectedHomeId, window._selectedHomeName,
+            window._selectedAwayId, window._selectedAwayName,
+            btn, btnText, spinner, status, results
+        );
+    } else {
+        showToast(`✅ Выбрана: ${teamName}`, 'success');
+        // Обновляем поле ввода
+        if (type === 'home') {
+            $('homeTeamH2H').value = teamName;
+        } else {
+            $('awayTeamH2H').value = teamName;
+        }
+        // Продолжаем поиск второй команды
+        loadH2H();
+    }
+}
+
+// === ОСНОВНАЯ ЗАГРУЗКА H2H ===
+async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spinner, status, results) {
+    status.innerHTML = `⏳ Ищем встречи <strong>${homeName}</strong> vs <strong>${awayName}</strong>...`;
+    results.innerHTML = '';
+    
+    try {
+        const h2hUrl = `${PROXY_BASE}fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
+        const h2hResp = await fetch(h2hUrl, { 
+            headers: { 'x-apisports-key': API_KEY_FOOTBALL, 'Content-Type': 'application/json' } 
+        });
+        const h2hData = await h2hResp.json();
+        
+        if (!h2hData.response || h2hData.response.length === 0) {
+            status.innerHTML = `❌ Нет очных встреч между <strong>${homeName}</strong> и <strong>${awayName}</strong>`;
+            return;
+        }
+        
+        const matches = h2hData.response.map(m => ({
+            home: m.teams.home.name, away: m.teams.away.name,
+            homeScore: m.goals.home || 0, awayScore: m.goals.away || 0,
+            oz: (m.goals.home || 0) > 0 && (m.goals.away || 0) > 0,
+            total: (m.goals.home || 0) + (m.goals.away || 0)
+        }));
+        
+        state.h2hData = matches;
+        const total = matches.length;
+        const ozCount = matches.filter(m => m.oz).length;
+        const avgTotal = (matches.reduce((s, m) => s + m.total, 0) / total).toFixed(1);
+        const homeWins = matches.filter(m => m.homeScore > m.awayScore).length;
+        const awayWins = matches.filter(m => m.awayScore > m.homeScore).length;
+        const draws = total - homeWins - awayWins;
+        
+        status.innerHTML = `✅ Найдено ${total} очных встреч!`;
+        results.innerHTML = `
+            <div class="h2h-summary">
+                <span class="item">📊 Всего: <span class="num">${total}</span></span>
+                <span class="item">⚽ ОЗ: <span class="num">${Math.round((ozCount/total)*100)}%</span></span>
+                <span class="item">📈 Тотал: <span class="num">${avgTotal}</span></span>
+                <span class="item">🏠 ${homeWins} | ✈️ ${awayWins} | 🤝 ${draws}</span>
+            </div>
+            ${matches.slice(0,5).map(m => `<div class="h2h-item">${m.home} ${m.homeScore}:${m.awayScore} ${m.away} ${m.oz ? '✅' : '❌'}</div>`).join('')}
+        `;
+        
+        const badge = $('searchBadge');
+        if (badge) { badge.style.display = 'block'; badge.textContent = total; }
+        if ($('contextCard')) $('contextCard').style.display = 'block';
+        calculate();
+        showToast(`✅ Загружено ${total} матчей!`, 'success');
+        
+        // Сброс выбранных команд
+        window._selectedHomeId = null;
+        window._selectedHomeName = null;
+        window._selectedAwayId = null;
+        window._selectedAwayName = null;
+        window._homeResults = null;
+        window._awayResults = null;
+        
+    } catch(error) {
+        console.error('❌ Ошибка H2H:', error);
+        status.innerHTML = `❌ Ошибка: ${error.message}`;
+    }
+}
         
         // ================================================================
         // НОВЫЕ ФУНКЦИИ ДЛЯ AI (ДОБАВЛЕНЫ)
