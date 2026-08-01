@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Квантум 2.3 PRO — МЕГА ПОЛНАЯ ВЕРСИЯ</title>
+    <title>Квантум 2.3 AI</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%230b0e14'/%3E%3Ctext x='50' y='72' font-size='60' text-anchor='middle' font-family='Arial'%3E%E2%9A%9B%3C/text%3E%3C/svg%3E">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,7 +12,6 @@
     <meta name="theme-color" content="#0b0e14">
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <style>
-        /* ====== ВЕСЬ CSS ====== */
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
         body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: #0b0e14; color: #e0e0e0; max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: background 0.3s, color 0.3s; }
         body.light { background: #f0f2f5; color: #1a1a1a; }
@@ -216,16 +215,6 @@
         .btn-ai-train:active { transform: scale(0.95); }
         .btn-ai-train:disabled { opacity: 0.5; cursor: not-allowed; }
         body.light .btn-ai-train { background: #8e44ad; }
-        .ai-checkbox { margin-top: 6px; font-size: 12px; }
-        .ai-checkbox label { color: #888; display: flex; align-items: center; gap: 6px; cursor: pointer; }
-        .ai-checkbox input[type="checkbox"] { width: 16px; height: 16px; accent-color: #f7931a; cursor: pointer; }
-        .stake-block { margin-top: 8px; padding: 8px; border-radius: 6px; background: #1a2a3a; font-size: 12px; border-left: 3px solid #f7931a; }
-        .checklist-item { display: flex; align-items: center; gap: 6px; padding: 2px 0; font-size: 11px; }
-        .checklist-item .check { color: #2ecc71; }
-        .checklist-item .cross { color: #e74c3c; }
-        .trend-up { color: #2ecc71; }
-        .trend-down { color: #e74c3c; }
-        .trend-neutral { color: #f1c40f; }
     </style>
 </head>
 <body>
@@ -250,49 +239,12 @@
                 <select id="leagueSelect"></select>
                 <div id="leagueInfo" style="font-size:10px;color:#888;margin-top:4px;"></div>
             </div>
-            <div class="card" id="metricsCard">
-                <div class="card-title">📊 Расширенные метрики</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;">
-                    <div><span style="color:#888;">xG:</span> <span id="xGDisplay">—</span></div>
-                    <div><span style="color:#888;">xGA:</span> <span id="xGADisplay">—</span></div>
-                    <div><span style="color:#888;">PPDA:</span> <span id="PPDADisplay">—</span></div>
-                    <div><span style="color:#888;">Форма дома:</span> <span id="homeFormDisplay">—</span></div>
-                    <div><span style="color:#888;">Форма выезда:</span> <span id="awayFormDisplay">—</span></div>
-                </div>
-            </div>
             <div class="mode-wrap" id="modeTabs">
                 <button class="mode-btn active" data-mode="total" onclick="switchMode('total',this)">⚽ Тотал</button>
                 <button class="mode-btn" data-mode="fora" onclick="switchMode('fora',this)">⚖️ Фора</button>
                 <button class="mode-btn" data-mode="oz" onclick="switchMode('oz',this)">⚽ ОЗ</button>
                 <button class="mode-btn" data-mode="ind_total" onclick="switchMode('ind_total',this)">🎯 Инд. тотал</button>
                 <button class="mode-btn" data-mode="both_halves" onclick="switchMode('both_halves',this)">⏰ Гол в 2-х таймах</button>
-            </div>
-            <div class="card" id="contextCard" style="display:none;">
-                <div class="card-title">📋 Контекст матча</div>
-                <div class="input-row">
-                    <div class="field"><label>🏠 Отдых (дней)</label><input type="number" id="restHome" value="3" min="1" max="10"/></div>
-                    <div class="field"><label>✈️ Отдых гостей</label><input type="number" id="restAway" value="3" min="1" max="10"/></div>
-                </div>
-                <div class="input-row">
-                    <div class="field">
-                        <label>Мотивация хозяев</label>
-                        <select id="motivHome">
-                            <option value="none">Нет</option>
-                            <option value="derby">Дерби</option>
-                            <option value="eurofight">Еврокубки</option>
-                            <option value="relegation">Выживание</option>
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label>Мотивация гостей</label>
-                        <select id="motivAway">
-                            <option value="none">Нет</option>
-                            <option value="derby">Дерби</option>
-                            <option value="eurofight">Еврокубки</option>
-                            <option value="relegation">Выживание</option>
-                        </select>
-                    </div>
-                </div>
             </div>
             <div id="inputArea">
                 <div class="input-row">
@@ -321,18 +273,6 @@
                     <span id="confidenceLabel">0%</span>
                 </div>
                 <div class="confidence-bar"><div class="fill" id="confidenceFill" style="width:0%"></div></div>
-                <div class="value-alert" id="valueAlert">💰 <strong>ВАЛУЙ!</strong> Разница с линией БК <span id="valueDiff">0</span> ⚽</div>
-            </div>
-            <div class="card" id="bankrollCard">
-                <div class="card-title">💰 Калькулятор банкролла (Келли)</div>
-                <div class="input-row">
-                    <div class="field"><label>Банкролл ($)</label><input type="number" id="bankrollInput" value="1000" min="1" /></div>
-                    <div class="field"><label>Коэффициент</label><input type="number" id="oddsInput" value="1.90" min="1.01" step="0.01" /></div>
-                </div>
-                <div class="bankroll-result">
-                    <div><span class="label">Рекомендуемая ставка:</span> <span class="value green" id="kellyBet">$0.00</span></div>
-                    <div><span class="label">% от банка:</span> <span class="value" id="kellyPercent">0%</span></div>
-                </div>
             </div>
             <div class="ai-card">
                 <div class="card-title">🧠 AI Прогноз (v2.3 PRO)</div>
@@ -359,35 +299,14 @@
                     <div class="section"><span class="label">⚡ Средний тотал:</span> <span class="value" id="aiAvgTotal">—</span></div>
                     <div class="section"><span class="label">🔥 Вероятность ОЗ:</span> <span class="value" id="aiOzProb">—</span></div>
                     <div class="section"><span class="label">📊 Уверенность:</span> <span class="value" id="aiConfidence">—</span></div>
-                    <div class="section"><span class="label">🧠 ML уверенность:</span> <span class="value" id="aiMLConfidence">—</span></div>
                     <div class="section"><span class="label">🧠 xG прогноз:</span> <span class="value" id="aiXG">—</span></div>
                     <div class="section"><span class="label">📉 xGA прогноз:</span> <span class="value" id="aiXGA">—</span></div>
-                    <!-- НОВЫЕ БЛОКИ -->
-                    <div class="section" id="stakeSection"><span class="label">💵 Рекомендация по ставке:</span> <span class="value" id="aiStakeRecommendation">—</span></div>
-                    <div class="section"><span class="label">📊 Сравнение с БК:</span> <span class="value" id="aiBkComparison">—</span></div>
-                    <div class="section"><span class="label">📈 Точность AI по похожим матчам:</span> <span class="value" id="aiHistoryAccuracy">—</span></div>
-                    <div class="section"><span class="label">📉 Динамика коэффициентов:</span> <span class="value" id="aiOddsDynamics">—</span></div>
-                    <div class="section"><span class="label">🏠 Статистика дома/выезда:</span> <span class="value" id="aiHomeAwayStats">—</span></div>
-                    <div class="section"><span class="label">🔥 Тренды команд:</span> <span class="value" id="aiTrends">—</span></div>
-                    <div class="section"><span class="label">📋 Чек-лист перед ставкой:</span> <div id="aiChecklist" style="font-size:11px;color:#888;margin-top:4px;"></div></div>
-                    <div class="section"><span class="label">🏦 Сравнение с рынком:</span> <span class="value" id="aiMarketComparison">—</span></div>
-                    <div class="section"><span class="label">📅 Календарь матчей:</span> <span class="value" id="aiCalendar">—</span></div>
-                    <div class="section"><span class="label">🏆 Мотивация команд:</span> <span class="value" id="aiMotivation">—</span></div>
                     <div class="recommendation">
                         <div class="label">🎯 РЕКОМЕНДАЦИЯ:</div>
                         <div class="big" id="aiRecommendation">—</div>
                         <div style="font-size:12px;color:#888;margin-top:4px;" id="aiAdvice">—</div>
                     </div>
                 </div>
-            </div>
-            <div class="card" id="xgCard" style="display:none;">
-                <div class="card-title">🎯 xG (Understat) <span id="xgStatus" style="font-size:9px;color:#888;font-weight:400;"></span></div>
-                <div class="xg-grid">
-                    <div class="xg-card"><div class="num" id="understatHomeXG">0.00</div><div class="label">xG Хозяев</div><div class="source">understat.com</div></div>
-                    <div class="xg-card"><div class="num away" id="understatAwayXG">0.00</div><div class="label">xG Гостей</div><div class="source">understat.com</div></div>
-                </div>
-                <div id="xgAdvice" style="font-size:11px;color:#888;text-align:center;margin-top:4px;"></div>
-                <div id="xgLoading" style="font-size:10px;color:#555;text-align:center;display:none;">⏳ Загрузка xG...</div>
             </div>
             <div class="card">
                 <div class="card-title">📊 Букмекерские линии <span id="oddsStatus" style="font-size:9px;color:#888;font-weight:400;"></span></div>
@@ -410,10 +329,6 @@
                 </div>
                 <div id="oddsLoading" style="font-size:10px;color:#555;text-align:center;display:none;">⏳ Загрузка линий...</div>
             </div>
-            <div class="card" id="aiCard" style="display:none;">
-                <div class="card-title">🧠 AI Паттерны (базовые)</div>
-                <div id="aiPatterns" class="ai-pattern"><div style="color:#888;font-size:11px;">Анализ данных...</div></div>
-            </div>
         </div>
         <!-- ====== ПОИСК ====== -->
         <div class="screen" id="searchScreen">
@@ -432,12 +347,6 @@
                     <div class="h2h-results" id="h2hResults"></div>
                 </div>
             </div>
-            <div class="card" id="liveCard" style="display:none;">
-                <div class="card-title"><span class="live-dot"></span> LIVE <span id="liveMatchTime" style="font-size:11px;color:#888;float:right;">—</span></div>
-                <div class="live-score"><span class="home" id="liveHomeScore">0</span><span class="vs">—</span><span class="away" id="liveAwayScore">0</span></div>
-                <div class="live-events" id="liveEvents"><div style="color:#555;text-align:center;padding:4px 0;">⏳ Поиск матча...</div></div>
-                <div style="font-size:9px;color:#555;text-align:center;margin-top:4px;">🔄 Обновляется каждые 15 сек · FlashScore + SofaScore</div>
-            </div>
         </div>
         <!-- ====== СТАТИСТИКА ====== -->
         <div class="screen" id="statsScreen">
@@ -453,9 +362,7 @@
                 </div>
             </div>
             <div class="card"><div class="card-title">📈 График баланса</div><div class="chart-bars" id="chartBars"></div></div>
-            <div class="card"><div class="card-title">📈 Винрейт по месяцам</div><div class="monthly-chart" id="monthlyChart"></div></div>
-            <div class="card">
-                <div class="card-title">📊 Общая статистика</div>
+            <div class="card"><div class="card-title">📊 Общая статистика</div>
                 <div class="stats-grid">
                     <div class="stats-card"><div class="num" id="statTotal">0</div><div class="label">Всего ставок</div></div>
                     <div class="stats-card"><div class="num" id="statWinRate">0%</div><div class="label">% побед</div></div>
@@ -507,14 +414,6 @@
                         <span>Лимит: 100/день</span>
                         <span id="apiFootballCount">Осталось: 95</span>
                     </div>
-                    <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px;">
-                        <span style="color:#888;">The Odds API</span>
-                        <span id="apiOddsStatus" style="color:#2ecc71;">✅ Активен</span>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#555;padding-left:4px;">
-                        <span>Лимит: 500/мес</span>
-                        <span id="apiOddsCount">Осталось: 499</span>
-                    </div>
                 </div>
                 <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;border-bottom:none;padding-bottom:4px;">
                     <span class="label">💾 Данные</span>
@@ -529,45 +428,37 @@
                     <button onclick="resetAll()" style="padding:6px 16px;border-radius:8px;border:1px solid #e74c3c;background:transparent;color:#e74c3c;cursor:pointer;font-size:12px;">Сбросить всё</button>
                 </div>
                 <div style="text-align:center;font-size:10px;color:#555;margin-top:8px;border-top:1px solid #2a3140;padding-top:8px;">
-                    ⚛️ Квантум v2.3 PRO · 80+ лиг · PWA · Расширенные метрики · TensorFlow.js
+                    ⚛️ Квантум v2.3 PRO · 80+ лиг · PWA · TensorFlow.js
                 </div>
             </div>
         </div>
     </div>
     <div class="swipe-indicator show" id="swipeIndicator">👆 Свайп влево/вправо</div>
     <script>
-        // ================================================================
-        // КЛЮЧИ
-        // ================================================================
+        // ====== КЛЮЧИ ======
         const API_KEY_FOOTBALL = 'api-40a548b23a46b859463c5bf4d4698aa1';
-        const ODDS_API_KEY = '1a65316b9cba21b39cf5e6e008a3839e';
         const PROXY_BASE = 'https://oz-proxy-clean.onrender.com/api/';
-        const CORS_PROXY = 'https://corsproxy.io/?';
-        
-        // ================================================================
-        // 80+ ЛИГ ВСЕГО МИРА
-        // ================================================================
+
+        // ====== 80+ ЛИГ ======
         const LEAGUES = {
-            '39': { name: '🏴 АПЛ', oz: 65, avgGoals: 2.8, country: 'Англия', understat: 'EPL' },
-            '140': { name: '🇪🇸 Ла Лига', oz: 60, avgGoals: 2.6, country: 'Испания', understat: 'La_liga' },
-            '78': { name: '🇩🇪 Бундеслига', oz: 68, avgGoals: 3.0, country: 'Германия', understat: 'Bundesliga' },
-            '135': { name: '🇮🇹 Серия А', oz: 62, avgGoals: 2.7, country: 'Италия', understat: 'Serie_A' },
-            '61': { name: '🇫🇷 Лига 1', oz: 58, avgGoals: 2.5, country: 'Франция', understat: 'Ligue_1' },
-            '2': { name: '🇷🇺 РПЛ', oz: 55, avgGoals: 2.2, country: 'Россия', understat: null },
-            '88': { name: '🇳🇱 Эредивизи', oz: 72, avgGoals: 3.2, country: 'Нидерланды', understat: null },
-            '94': { name: '🇵🇹 Примейра', oz: 60, avgGoals: 2.6, country: 'Португалия', understat: null },
-            '9': { name: '🇺🇸 MLS', oz: 68, avgGoals: 2.8, country: 'США', understat: null },
-            '253': { name: '🇯🇵 J-Лига', oz: 60, avgGoals: 2.4, country: 'Япония', understat: null },
-            '249': { name: '🇰🇷 K-Лига', oz: 58, avgGoals: 2.3, country: 'Корея', understat: null },
-            '233': { name: '🇨🇳 Суперлига', oz: 55, avgGoals: 2.2, country: 'Китай', understat: null },
-            '128': { name: '🇦🇷 Примера', oz: 58, avgGoals: 2.4, country: 'Аргентина', understat: null },
-            '98': { name: '🇧🇷 Серия А', oz: 62, avgGoals: 2.5, country: 'Бразилия', understat: null },
-            '1': { name: '🏆 Лига Чемпионов УЕФА', oz: 66, avgGoals: 2.8, country: 'Европа', understat: null },
-            '3': { name: '🏆 Лига Европы УЕФА', oz: 60, avgGoals: 2.6, country: 'Европа', understat: null },
-            '4': { name: '🏆 Лига Конференций УЕФА', oz: 58, avgGoals: 2.5, country: 'Европа', understat: null },
-            '11': { name: '🏆 Кубок Либертадорес', oz: 55, avgGoals: 2.3, country: 'Юж. Америка', understat: null }
+            '39': { name: '🏴 АПЛ', oz: 65, avgGoals: 2.8, country: 'Англия' },
+            '140': { name: '🇪🇸 Ла Лига', oz: 60, avgGoals: 2.6, country: 'Испания' },
+            '78': { name: '🇩🇪 Бундеслига', oz: 68, avgGoals: 3.0, country: 'Германия' },
+            '135': { name: '🇮🇹 Серия А', oz: 62, avgGoals: 2.7, country: 'Италия' },
+            '61': { name: '🇫🇷 Лига 1', oz: 58, avgGoals: 2.5, country: 'Франция' },
+            '2': { name: '🇷🇺 РПЛ', oz: 55, avgGoals: 2.2, country: 'Россия' },
+            '88': { name: '🇳🇱 Эредивизи', oz: 72, avgGoals: 3.2, country: 'Нидерланды' },
+            '94': { name: '🇵🇹 Примейра', oz: 60, avgGoals: 2.6, country: 'Португалия' },
+            '9': { name: '🇺🇸 MLS', oz: 68, avgGoals: 2.8, country: 'США' },
+            '253': { name: '🇯🇵 J-Лига', oz: 60, avgGoals: 2.4, country: 'Япония' },
+            '249': { name: '🇰🇷 K-Лига', oz: 58, avgGoals: 2.3, country: 'Корея' },
+            '128': { name: '🇦🇷 Примера', oz: 58, avgGoals: 2.4, country: 'Аргентина' },
+            '98': { name: '🇧🇷 Серия А', oz: 62, avgGoals: 2.5, country: 'Бразилия' },
+            '1': { name: '🏆 Лига Чемпионов УЕФА', oz: 66, avgGoals: 2.8, country: 'Европа' },
+            '3': { name: '🏆 Лига Европы УЕФА', oz: 60, avgGoals: 2.6, country: 'Европа' },
+            '4': { name: '🏆 Лига Конференций УЕФА', oz: 58, avgGoals: 2.5, country: 'Европа' }
         };
-        
+
         // ====== STATE ======
         let state = {
             bets: JSON.parse(localStorage.getItem('quantum_bets') || '[]'),
@@ -575,27 +466,17 @@
             currentMode: 'total',
             h2hData: null,
             isLoading: false,
-            liveTimer: null,
-            patterns: [],
-            currentOdds: null,
-            understatData: null,
             apiFootballCalls: parseInt(localStorage.getItem('quantum_api_football') || '0'),
-            apiOddsCalls: parseInt(localStorage.getItem('quantum_api_odds') || '0'),
             lastResetDate: localStorage.getItem('quantum_reset_date') || '',
             currentTab: 'analysis',
-            aiPredictedScore: null,
-            teamForm: null,
-            standingsData: null,
             eloRatings: JSON.parse(localStorage.getItem('quantum_elo') || '{}'),
             contextFactors: { restDaysHome: 3, restDaysAway: 3, motivationHome: 'none', motivationAway: 'none' },
             ensembleWeights: JSON.parse(localStorage.getItem('quantum_weights') || '{"poisson":0.5,"elo":0.3,"market":0.2}'),
-            lastErrors: { poisson: 1, elo: 1, market: 1 },
             injuries: {},
             matchImportance: 1.0,
-            recentForm: {},
-            aiHistory: JSON.parse(localStorage.getItem('quantum_ai_history') || '[]')
+            recentForm: {}
         };
-        
+
         // ====== AI КЛАСС ======
         class QuantumAI {
             constructor() {
@@ -686,16 +567,14 @@
             }
             isTrained() { return this.model !== null && this.accuracy > 0; }
         }
-        
+
         const quantumAI = new QuantumAI();
-        
-        // ================================================================
-        // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-        // ================================================================
+
+        // ====== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ======
         function $(id) { return document.getElementById(id); }
         function safeNum(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
         function getLeague() { return LEAGUES[state.currentLeague] || LEAGUES['39']; }
-        
+
         function showToast(msg, type = 'info') {
             const old = document.querySelector('.toast');
             if (old) old.remove();
@@ -705,7 +584,7 @@
             document.body.appendChild(t);
             setTimeout(() => { if (t.parentNode) t.remove(); }, 3000);
         }
-        
+
         function addAILog(msg) {
             const log = document.getElementById('aiTrainLog');
             if (!log) return;
@@ -717,12 +596,12 @@
             log.appendChild(entry);
             log.scrollTop = log.scrollHeight;
         }
-        
+
         function clearAILog() {
             const log = document.getElementById('aiTrainLog');
             if (log) log.innerHTML = '';
         }
-        
+
         // ====== ТЕМА ======
         function toggleTheme() {
             const isLight = document.body.classList.toggle('light');
@@ -735,7 +614,7 @@
             }
             localStorage.setItem('quantum_theme', isLight ? 'light' : 'dark');
         }
-        
+
         function initTheme() {
             const theme = localStorage.getItem('quantum_theme') || 'dark';
             if (theme === 'light') {
@@ -746,13 +625,9 @@
                 if (toggleBtn) { toggleBtn.textContent = '☀️ Светлая'; toggleBtn.classList.add('active'); }
             }
         }
-        
+
         // ====== НАВИГАЦИЯ ======
         function switchTab(tab) {
-            if (tab !== 'search') {
-                if (state.liveTimer) { clearInterval(state.liveTimer); state.liveTimer = null; }
-                if ($('liveCard')) $('liveCard').style.display = 'none';
-            }
             state.currentTab = tab;
             document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
             const map = { 'analysis': 'analysisScreen', 'search': 'searchScreen', 'stats': 'statsScreen', 'settings': 'settingsScreen' };
@@ -760,15 +635,15 @@
             document.querySelectorAll('.top-tab').forEach(el => el.classList.remove('active'));
             const target = document.querySelector(`.top-tab[data-tab="${tab}"]`);
             if (target) target.classList.add('active');
-            if (tab === 'stats') { renderHistory(); renderStats(); renderDashboard(); renderChart(); renderMonthlyChart(); renderInsights(); }
+            if (tab === 'stats') { renderHistory(); renderStats(); renderDashboard(); renderChart(); renderInsights(); }
             if (tab === 'settings') { renderSettingsLeagues(); updateAIStatus(); }
         }
-        
+
         // ====== СВАЙПЫ ======
         let touchStartX = 0, touchEndX = 0, currentTabIndex = 0;
         const tabs = ['analysis', 'search', 'stats', 'settings'];
         const MIN_SWIPE = 50;
-        
+
         document.addEventListener('DOMContentLoaded', async function() {
             const active = document.querySelector('.top-tab.active');
             if (active) { const idx = tabs.indexOf(active.dataset.tab); if (idx >= 0) currentTabIndex = idx; }
@@ -778,17 +653,13 @@
             renderStats();
             renderDashboard();
             renderChart();
-            renderMonthlyChart();
             renderInsights();
             updateSum();
             renderSettingsLeagues();
             await quantumAI.init();
             updateAIStatus();
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js').catch(() => {});
-            }
         });
-        
+
         document.addEventListener('touchstart', function(e) {
             const main = document.getElementById('mainContent');
             if (!main) return;
@@ -799,7 +670,7 @@
                 touchStartX = touch.clientX;
             }
         }, { passive: true });
-        
+
         document.addEventListener('touchend', function(e) {
             if (touchStartX === 0) return;
             const touch = e.changedTouches[0];
@@ -811,58 +682,28 @@
             }
             touchStartX = 0; touchEndX = 0;
         }, { passive: true });
-        
-        function swipeLeft() {
-            if (currentTabIndex < tabs.length - 1) { currentTabIndex++; switchTab(tabs[currentTabIndex]); showSwipeFeedback('⬅️'); }
-        }
-        
-        function swipeRight() {
-            if (currentTabIndex > 0) { currentTabIndex--; switchTab(tabs[currentTabIndex]); showSwipeFeedback('➡️'); }
-        }
-        
-        let swipeFeedbackTimer = null;
-        
-        function showSwipeFeedback(direction) {
-            const indicator = document.getElementById('swipeIndicator');
-            if (!indicator) return;
-            indicator.textContent = direction;
-            indicator.style.opacity = '1';
-            indicator.classList.add('show');
-            clearTimeout(swipeFeedbackTimer);
-            swipeFeedbackTimer = setTimeout(() => {
-                indicator.style.opacity = '0';
-                setTimeout(() => { indicator.classList.remove('show'); }, 500);
-            }, 600);
-        }
-        
+
         // ====== API ======
         function trackAPICall(type) {
             const today = new Date().toDateString();
             if (state.lastResetDate !== today) {
-                state.apiFootballCalls = 0; state.apiOddsCalls = 0;
+                state.apiFootballCalls = 0;
                 state.lastResetDate = today;
                 localStorage.setItem('quantum_reset_date', today);
             }
             if (type === 'football') { state.apiFootballCalls++; localStorage.setItem('quantum_api_football', state.apiFootballCalls); }
-            else if (type === 'odds') { state.apiOddsCalls++; localStorage.setItem('quantum_api_odds', state.apiOddsCalls); }
             updateAPIStatus();
         }
-        
+
         function updateAPIStatus() {
             const footballRemaining = Math.max(0, 100 - state.apiFootballCalls);
-            const oddsRemaining = Math.max(0, 500 - state.apiOddsCalls);
             if ($('apiFootballStatus')) {
                 $('apiFootballStatus').textContent = footballRemaining > 10 ? '✅ Активен' : '⚠️ Почти израсходован';
                 $('apiFootballStatus').style.color = footballRemaining > 10 ? '#2ecc71' : '#f1c40f';
                 $('apiFootballCount').textContent = `Осталось: ${footballRemaining}`;
             }
-            if ($('apiOddsStatus')) {
-                $('apiOddsStatus').textContent = oddsRemaining > 50 ? '✅ Активен' : '⚠️ Почти израсходован';
-                $('apiOddsStatus').style.color = oddsRemaining > 50 ? '#2ecc71' : '#f1c40f';
-                $('apiOddsCount').textContent = `Осталось: ${oddsRemaining}`;
-            }
         }
-        
+
         // ====== ЛИГИ ======
         function renderLeagues() {
             const select = $('leagueSelect');
@@ -877,7 +718,7 @@
             });
             updateLeagueInfo();
         }
-        
+
         function updateLeagueInfo() {
             const league = getLeague();
             const badge = $('autoLeagueBadge');
@@ -885,7 +726,7 @@
             const info = $('leagueInfo');
             if (info) info.textContent = `Ср. тотал: ${league.avgGoals} | ОЗ: ${league.oz}% | ${Object.keys(LEAGUES).length} лиг`;
         }
-        
+
         function renderSettingsLeagues() {
             const select = $('settingsLeagueSelect');
             if (!select) return;
@@ -898,7 +739,7 @@
                 select.appendChild(option);
             });
         }
-        
+
         function changeDefaultLeague(value) {
             state.currentLeague = value;
             localStorage.setItem('quantum_league', value);
@@ -906,7 +747,7 @@
             updateLeagueInfo();
             showToast(`🏆 Лига изменена: ${LEAGUES[value].name}`, 'success');
         }
-        
+
         // ====== РЕЖИМЫ ======
         function switchMode(mode, btn) {
             state.currentMode = mode;
@@ -928,37 +769,9 @@
             if (adv) { adv.textContent = '⏳ Введите данные для расчёта'; adv.className = 'advice info'; }
             if ($('confidenceLabel')) $('confidenceLabel').textContent = '0%';
             if ($('confidenceFill')) $('confidenceFill').style.width = '0%';
-            if ($('valueAlert')) $('valueAlert').classList.remove('show');
             calculate();
         }
-        
-        // ====== РАСШИРЕННЫЕ МЕТРИКИ ======
-        function updateMetrics(home, away, homeForm, awayForm) {
-            const league = getLeague();
-            const avgGoals = league.avgGoals || 2.5;
-            const homeXG = home > 0 ? (home / 2.5) * avgGoals * 0.6 : avgGoals * 0.5;
-            const awayXG = away > 0 ? (away / 2.5) * avgGoals * 0.5 : avgGoals * 0.4;
-            if ($('xGDisplay')) $('xGDisplay').textContent = homeXG.toFixed(2);
-            if ($('xGADisplay')) $('xGADisplay').textContent = awayXG.toFixed(2);
-            const ppda = (home + away > 0) ? Math.round(15 - (home + away) * 0.8) : 12;
-            if ($('PPDADisplay')) $('PPDADisplay').textContent = ppda;
-            if (homeForm && $('homeFormDisplay')) $('homeFormDisplay').textContent = homeForm.formString || '—';
-            if (awayForm && $('awayFormDisplay')) $('awayFormDisplay').textContent = awayForm.formString || '—';
-        }
-        
-        // ====== КАЛЬКУЛЯТОР КЕЛЛИ ======
-        function calculateKelly() {
-            const bankroll = safeNum($('bankrollInput')?.value) || 1000;
-            const odds = safeNum($('oddsInput')?.value) || 1.9;
-            const confidence = safeNum($('confidenceLabel')?.textContent) || 50;
-            const p = confidence / 100;
-            const b = odds - 1;
-            const kelly = Math.max(0, (b * p - (1 - p)) / b);
-            const betAmount = Math.round(kelly * bankroll * 100) / 100;
-            if ($('kellyBet')) $('kellyBet').textContent = `$${betAmount.toFixed(2)}`;
-            if ($('kellyPercent')) $('kellyPercent').textContent = `${(kelly * 100).toFixed(1)}%`;
-        }
-        
+
         // ====== РАСЧЁТ ======
         function calculate() {
             const home = safeNum($('homeGoals')?.value);
@@ -968,9 +781,9 @@
             const mode = state.currentMode;
             const bkLine = safeNum($('bkLine')?.value);
             const hasBk = bkLine !== 0;
-            
+
             if ($('sumDisplay')) $('sumDisplay').textContent = total;
-            
+
             if (total === 0 && (!state.h2hData || state.h2hData.length === 0)) {
                 if ($('resValue1')) $('resValue1').textContent = '--';
                 if ($('resValue2')) $('resValue2').textContent = '--';
@@ -979,12 +792,11 @@
                 if (adv) { adv.textContent = '⏳ Введите данные для расчёта'; adv.className = 'advice info'; }
                 if ($('confidenceLabel')) $('confidenceLabel').textContent = '0%';
                 if ($('confidenceFill')) $('confidenceFill').style.width = '0%';
-                if ($('valueAlert')) $('valueAlert').classList.remove('show');
                 return;
             }
-            
+
             let result = { value: 0, prob: 50, advice: '', className: 'info' };
-            
+
             if (mode === 'oz') {
                 const prob = Math.min(100, Math.max(0, Math.round((home > 0 && away > 0 ? 75 : 25 + (league.oz || 60)) / 2)));
                 result.value = home > 0 && away > 0 ? '✅ Да' : '❌ Нет';
@@ -997,25 +809,12 @@
                     const avgH2H = state.h2hData.reduce((s, m) => s + m.total, 0) / state.h2hData.length;
                     expected = Math.round((expected + avgH2H) / 2);
                 }
-                if (state.understatData) {
-                    const xgTotal = parseFloat(state.understatData.homeXG) + parseFloat(state.understatData.awayXG);
-                    expected = Math.round((expected + xgTotal) / 2);
-                }
-                if (state.matchImportance > 1.0) { expected = Math.round(expected * state.matchImportance); }
                 result.value = expected;
                 result.prob = 50 + Math.min(Math.abs(expected - (league.avgGoals || 2.5)) * 5, 30);
                 if (hasBk) {
                     const diff = expected - bkLine;
                     result.advice = Math.abs(diff) > 1 ? `✅ ${diff > 0 ? 'ОВЕР' : 'АНДЕР'} (разница ${Math.abs(diff).toFixed(1)})` : `⏳ Линии близки (разница ${diff.toFixed(1)})`;
                     result.className = Math.abs(diff) > 1 ? 'good' : 'warn';
-                    const alert = $('valueAlert');
-                    const diffDisplay = $('valueDiff');
-                    if (alert && diffDisplay) {
-                        if (Math.abs(diff) > 1.5) {
-                            alert.classList.add('show');
-                            diffDisplay.textContent = diff.toFixed(1);
-                        } else { alert.classList.remove('show'); }
-                    }
                 } else {
                     result.advice = '📊 Линия БК загружается...';
                     result.className = 'info';
@@ -1026,7 +825,6 @@
                     const avgDiff = state.h2hData.reduce((s, m) => s + (m.homeScore - m.awayScore), 0) / state.h2hData.length;
                     expected = Math.round((expected + avgDiff) / 2);
                 }
-                if (state.matchImportance > 1.0) { expected = Math.round(expected * state.matchImportance); }
                 result.value = (expected >= 0 ? '+' : '') + expected;
                 result.prob = 50 + Math.min(Math.abs(expected) * 10, 30);
                 if (hasBk) {
@@ -1051,7 +849,7 @@
                 result.advice = prob > 60 ? `✅ Вероятность ${Math.round(prob)}%` : `🔴 Низкая ${Math.round(prob)}%`;
                 result.className = prob > 60 ? 'good' : 'bad';
             }
-            
+
             if ($('resValue1')) $('resValue1').textContent = result.value;
             if ($('resValue2')) $('resValue2').textContent = hasBk ? bkLine : '--';
             if ($('resValue3')) {
@@ -1060,21 +858,18 @@
             }
             const adv = $('resAdvice');
             if (adv) { adv.textContent = result.advice; adv.className = 'advice ' + result.className; }
-            
-            const confidence = Math.min(100, Math.max(0, Math.round(result.prob + (state.understatData ? 5 : 0) + (state.matchImportance > 1.0 ? 5 : 0))));
+
+            const confidence = Math.min(100, Math.max(0, Math.round(result.prob)));
             if ($('confidenceLabel')) $('confidenceLabel').textContent = confidence + '%';
             if ($('confidenceFill')) $('confidenceFill').style.width = confidence + '%';
-            
-            updateMetrics(home, away, state.recentForm?.home, state.recentForm?.away);
-            calculateKelly();
         }
-        
+
         function updateSum() {
             const total = safeNum($('homeGoals')?.value) + safeNum($('awayGoals')?.value);
             if ($('sumDisplay')) $('sumDisplay').textContent = total;
         }
-        
-        // ====== ЗАГРУЗКА H2H ======
+
+        // ====== ЗАГРУЗКА H2H (ОБНОВЛЁННАЯ) ======
         async function loadH2H() {
     const homeTeam = $('homeTeamH2H')?.value?.trim() || '';
     const awayTeam = $('awayTeamH2H')?.value?.trim() || '';
@@ -1086,184 +881,192 @@
     const status = $('h2hStatus'), results = $('h2hResults');
     btn.disabled = true; btnText.textContent = '⏳ Загрузка...';
     spinner.style.display = 'inline-block';
-    status.innerHTML = '<span class="loading-text"><span class="spinner-small"></span> Поиск команд...</span>';
+    status.innerHTML = '⏳ Поиск...';
     results.innerHTML = '';
 
     try {
-        // === УМНЫЙ ПОИСК КОМАНДЫ ===
-        async function findTeam(teamName) {
-            const url = `${PROXY_BASE}teams?search=${encodeURIComponent(teamName)}`;
-            const resp = await fetch(url, { 
-                headers: { 'x-apisports-key': API_KEY_FOOTBALL, 'Content-Type': 'application/json' } 
-            });
-            const data = await resp.json();
-            
-            if (data.response && data.response.length > 0) {
-                // Фильтруем дубли и молодёжку
-                let filtered = data.response.filter(t => 
-                    !t.team.name.includes('U19') && 
-                    !t.team.name.includes('U21') &&
-                    !t.team.name.includes('U23') &&
-                    !t.team.name.includes('Reserve') &&
-                    !t.team.name.includes('II') &&
-                    !t.team.name.includes('B')
-                );
-                
-                // Если ничего не осталось, берём все
-                if (filtered.length === 0) filtered = data.response;
-                
-                return filtered;
+        // Поиск команды с несколькими попытками
+        async function findTeam(name) {
+            // Попытка 1: поиск как есть
+            let url = `${PROXY_BASE}teams?search=${encodeURIComponent(name)}`;
+            let resp = await fetch(url, { headers: { 'x-apisports-key': API_KEY_FOOTBALL } });
+            let data = await resp.json();
+            if (data.response && data.response.length > 0) return data.response;
+
+            // Попытка 2: если есть пробел, ищем только первое слово
+            const firstWord = name.split(' ')[0];
+            if (firstWord && firstWord.length > 2) {
+                url = `${PROXY_BASE}teams?search=${encodeURIComponent(firstWord)}`;
+                resp = await fetch(url, { headers: { 'x-apisports-key': API_KEY_FOOTBALL } });
+                data = await resp.json();
+                if (data.response && data.response.length > 0) return data.response;
             }
+
+            // Попытка 3: ищем по ID (для известных команд)
+            const knownIds = {
+                'real madrid': 541,
+                'barcelona': 529,
+                'atletico madrid': 530,
+                'manchester united': 520,
+                'manchester city': 550,
+                'liverpool': 522,
+                'chelsea': 526,
+                'arsenal': 525,
+                'tottenham': 527,
+                'juventus': 505,
+                'milan': 489,
+                'inter': 505,
+                'bayern': 503,
+                'dortmund': 504,
+                'psg': 476,
+                'ajax': 581,
+                'porto': 558,
+                'zenit': 548,
+                'shakhtar': 549
+            };
+            const key = name.toLowerCase().trim();
+            if (knownIds[key]) {
+                url = `${PROXY_BASE}teams?id=${knownIds[key]}`;
+                resp = await fetch(url, { headers: { 'x-apisports-key': API_KEY_FOOTBALL } });
+                data = await resp.json();
+                if (data.response && data.response.length > 0) return data.response;
+            }
+
             return [];
         }
 
-        // === ПОИСК ХОЗЯЕВ ===
+        // Ищем хозяев
         status.innerHTML = '🔍 Ищем хозяев...';
-        const homeResults = await findTeam(homeTeam);
-        
-        if (homeResults.length === 0) {
+        let homeData = await findTeam(homeTeam);
+        if (homeData.length === 0) {
             status.innerHTML = `❌ Команда "${homeTeam}" не найдена. Попробуйте другое название.`;
             btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
             state.isLoading = false; return;
         }
 
-        // Если найдено несколько — показываем выбор
-        let homeId, homeName;
-        if (homeResults.length > 1) {
-            let listHtml = homeResults.map((t, i) => 
-                `<div class="h2h-item" onclick="selectTeam('home', ${i})" style="cursor:pointer;background:#2a3a4a;">
-                    ${i+1}. ${t.team.name} (${t.team.country || 'Unknown'})
-                </div>`
-            ).join('');
-            
-            status.innerHTML = `🔍 Найдено ${homeResults.length} команд-хозяев. Выберите:`;
-            results.innerHTML = listHtml;
-            // Сохраняем результаты для выбора
-            window._homeResults = homeResults;
-            window._awayResults = null;
-            window._awaitingTeam = 'home';
+        // Если несколько хозяев — показываем выбор
+        if (homeData.length > 1) {
+            status.innerHTML = `🔍 Найдено ${homeData.length} команд. Выберите хозяев:`;
+            results.innerHTML = homeData.map((t, i) => `
+                <div class="h2h-item" onclick="window._selectHomeTeam(${i})" style="cursor:pointer;background:#2a3a4a;padding:6px 10px;margin:2px 0;border-radius:6px;">
+                    ${i+1}. ${t.team.name} (${t.team.country})
+                </div>
+            `).join('');
+            window._homeList = homeData;
+            window._awayList = null;
+            window._step = 'home';
             btn.disabled = false; btnText.textContent = '📊 Выберите команду'; spinner.style.display = 'none';
             state.isLoading = false;
             return;
-        } else {
-            homeId = homeResults[0].team.id;
-            homeName = homeResults[0].team.name;
         }
 
-        // === ПОИСК ГОСТЕЙ ===
+        const homeId = homeData[0].team.id;
+        const homeName = homeData[0].team.name;
+        document.getElementById('homeTeamH2H').value = homeName;
+
+        // Ищем гостей
         status.innerHTML = '🔍 Ищем гостей...';
-        const awayResults = await findTeam(awayTeam);
-        
-        if (awayResults.length === 0) {
+        let awayData = await findTeam(awayTeam);
+        if (awayData.length === 0) {
             status.innerHTML = `❌ Команда "${awayTeam}" не найдена. Попробуйте другое название.`;
             btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
             state.isLoading = false; return;
         }
 
-        let awayId, awayName;
-        if (awayResults.length > 1) {
-            let listHtml = awayResults.map((t, i) => 
-                `<div class="h2h-item" onclick="selectTeam('away', ${i})" style="cursor:pointer;background:#2a3a4a;">
-                    ${i+1}. ${t.team.name} (${t.team.country || 'Unknown'})
-                </div>`
-            ).join('');
-            
-            status.innerHTML = `🔍 Найдено ${awayResults.length} команд-гостей. Выберите:`;
-            results.innerHTML = listHtml;
-            window._homeResults = homeResults;
-            window._awayResults = awayResults;
-            window._awaitingTeam = 'away';
+        if (awayData.length > 1) {
+            status.innerHTML = `🔍 Найдено ${awayData.length} команд. Выберите гостей:`;
+            results.innerHTML = awayData.map((t, i) => `
+                <div class="h2h-item" onclick="window._selectAwayTeam(${i})" style="cursor:pointer;background:#2a3a4a;padding:6px 10px;margin:2px 0;border-radius:6px;">
+                    ${i+1}. ${t.team.name} (${t.team.country})
+                </div>
+            `).join('');
+            window._homeList = homeData;
+            window._awayList = awayData;
+            window._step = 'away';
+            window._homeId = homeId;
+            window._homeName = homeName;
             btn.disabled = false; btnText.textContent = '📊 Выберите команду'; spinner.style.display = 'none';
             state.isLoading = false;
             return;
-        } else {
-            awayId = awayResults[0].team.id;
-            awayName = awayResults[0].team.name;
         }
 
-        // === ЗАГРУЗКА H2H ===
-        await loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spinner, status, results);
+        const awayId = awayData[0].team.id;
+        const awayName = awayData[0].team.name;
+        document.getElementById('awayTeamH2H').value = awayName;
+
+        // Загружаем матчи
+        await loadMatches(homeId, homeName, awayId, awayName, status, results);
+        btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
+        state.isLoading = false;
 
     } catch(error) {
-        console.error('❌ Ошибка:', error);
-        status.innerHTML = `<div style="color:#e74c3c;padding:8px;">❌ Ошибка: ${error.message}</div>`;
-        showToast('⚠️ Ошибка загрузки', 'error');
-    } finally {
+        console.error(error);
+        status.innerHTML = `❌ Ошибка: ${error.message}`;
+        showToast('⚠️ Ошибка', 'error');
+        btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
         state.isLoading = false;
-        btn.disabled = false;
-        btnText.textContent = '📊 Загрузить H2H';
-        spinner.style.display = 'none';
     }
 }
 
-// === ФУНКЦИЯ ВЫБОРА КОМАНДЫ ===
-function selectTeam(type, index) {
-    const results = type === 'home' ? window._homeResults : window._awayResults;
-    if (!results || !results[index]) return;
-    
-    const team = results[index];
-    const teamId = team.team.id;
-    const teamName = team.team.name;
-    
-    // Запоминаем выбранную команду
-    if (type === 'home') {
-        window._selectedHomeId = teamId;
-        window._selectedHomeName = teamName;
-    } else {
-        window._selectedAwayId = teamId;
-        window._selectedAwayName = teamName;
-    }
-    
-    // Проверяем, выбраны ли обе команды
-    if (window._selectedHomeId && window._selectedAwayId) {
-        const btn = $('loadH2HBtn');
-        const btnText = $('loadBtnText');
-        const spinner = $('loadSpinner');
-        const status = $('h2hStatus');
-        const results = $('h2hResults');
-        
-        loadH2HData(
-            window._selectedHomeId, window._selectedHomeName,
-            window._selectedAwayId, window._selectedAwayName,
-            btn, btnText, spinner, status, results
-        );
-    } else {
-        showToast(`✅ Выбрана: ${teamName}`, 'success');
-        // Обновляем поле ввода
-        if (type === 'home') {
-            $('homeTeamH2H').value = teamName;
-        } else {
-            $('awayTeamH2H').value = teamName;
-        }
-        // Продолжаем поиск второй команды
-        loadH2H();
-    }
-}
+// === ВЫБОР ХОЗЯЕВ ===
+window._selectHomeTeam = function(index) {
+    const list = window._homeList;
+    if (!list || !list[index]) return;
+    const team = list[index];
+    document.getElementById('homeTeamH2H').value = team.team.name;
+    window._homeId = team.team.id;
+    window._homeName = team.team.name;
+    showToast(`✅ Выбраны: ${team.team.name}`, 'success');
+    // Продолжаем поиск гостей
+    loadH2H();
+};
 
-// === ОСНОВНАЯ ЗАГРУЗКА H2H ===
-async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spinner, status, results) {
-    status.innerHTML = `⏳ Ищем встречи <strong>${homeName}</strong> vs <strong>${awayName}</strong>...`;
+// === ВЫБОР ГОСТЕЙ ===
+window._selectAwayTeam = function(index) {
+    const list = window._awayList;
+    if (!list || !list[index]) return;
+    const team = list[index];
+    document.getElementById('awayTeamH2H').value = team.team.name;
+    const homeId = window._homeId;
+    const homeName = window._homeName;
+    const awayId = team.team.id;
+    const awayName = team.team.name;
+    showToast(`✅ Выбраны: ${team.team.name}`, 'success');
+
+    const status = document.getElementById('h2hStatus');
+    const results = document.getElementById('h2hResults');
+    loadMatches(homeId, homeName, awayId, awayName, status, results);
+    const btn = document.getElementById('loadH2HBtn');
+    btn.disabled = false;
+    btn.textContent = '📊 Загрузить H2H';
+    document.getElementById('loadSpinner').style.display = 'none';
+    state.isLoading = false;
+};
+
+// === ЗАГРУЗКА МАТЧЕЙ ===
+async function loadMatches(homeId, homeName, awayId, awayName, status, results) {
+    status.innerHTML = `⏳ Ищем ${homeName} vs ${awayName}...`;
     results.innerHTML = '';
-    
+
     try {
         const h2hUrl = `${PROXY_BASE}fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
-        const h2hResp = await fetch(h2hUrl, { 
-            headers: { 'x-apisports-key': API_KEY_FOOTBALL, 'Content-Type': 'application/json' } 
+        const resp = await fetch(h2hUrl, { 
+            headers: { 'x-apisports-key': API_KEY_FOOTBALL } 
         });
-        const h2hData = await h2hResp.json();
-        
-        if (!h2hData.response || h2hData.response.length === 0) {
-            status.innerHTML = `❌ Нет очных встреч между <strong>${homeName}</strong> и <strong>${awayName}</strong>`;
+        const data = await resp.json();
+
+        if (!data.response || data.response.length === 0) {
+            status.innerHTML = `❌ Нет встреч между ${homeName} и ${awayName}`;
             return;
         }
-        
-        const matches = h2hData.response.map(m => ({
+
+        const matches = data.response.map(m => ({
             home: m.teams.home.name, away: m.teams.away.name,
             homeScore: m.goals.home || 0, awayScore: m.goals.away || 0,
             oz: (m.goals.home || 0) > 0 && (m.goals.away || 0) > 0,
             total: (m.goals.home || 0) + (m.goals.away || 0)
         }));
-        
+
         state.h2hData = matches;
         const total = matches.length;
         const ozCount = matches.filter(m => m.oz).length;
@@ -1271,8 +1074,8 @@ async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spi
         const homeWins = matches.filter(m => m.homeScore > m.awayScore).length;
         const awayWins = matches.filter(m => m.awayScore > m.homeScore).length;
         const draws = total - homeWins - awayWins;
-        
-        status.innerHTML = `✅ Найдено ${total} очных встреч!`;
+
+        status.innerHTML = `✅ Найдено ${total} встреч!`;
         results.innerHTML = `
             <div class="h2h-summary">
                 <span class="item">📊 Всего: <span class="num">${total}</span></span>
@@ -1282,477 +1085,69 @@ async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spi
             </div>
             ${matches.slice(0,5).map(m => `<div class="h2h-item">${m.home} ${m.homeScore}:${m.awayScore} ${m.away} ${m.oz ? '✅' : '❌'}</div>`).join('')}
         `;
-        
-        const badge = $('searchBadge');
-        if (badge) { badge.style.display = 'block'; badge.textContent = total; }
-        if ($('contextCard')) $('contextCard').style.display = 'block';
+
+        if ($('searchBadge')) { $('searchBadge').style.display = 'block'; $('searchBadge').textContent = total; }
         calculate();
         showToast(`✅ Загружено ${total} матчей!`, 'success');
-        
-        // Сброс выбранных команд
-        window._selectedHomeId = null;
-        window._selectedHomeName = null;
-        window._selectedAwayId = null;
-        window._selectedAwayName = null;
-        window._homeResults = null;
-        window._awayResults = null;
-        
+
     } catch(error) {
-        console.error('❌ Ошибка H2H:', error);
+        console.error(error);
         status.innerHTML = `❌ Ошибка: ${error.message}`;
     }
 }
-        
-        // ================================================================
-        // НОВЫЕ ФУНКЦИИ ДЛЯ AI (ДОБАВЛЕНЫ)
-        // ================================================================
-        
-        // 1. КОНКРЕТНАЯ РЕКОМЕНДАЦИЯ ПО СТАВКЕ
-        function getStakeRecommendation(confidence, bankroll, odds) {
-            const p = confidence / 100;
-            const b = odds - 1;
-            const kelly = Math.max(0, (b * p - (1 - p)) / b);
-            const stakePercent = Math.round(kelly * 100);
-            const stakeAmount = Math.round(kelly * bankroll * 100) / 100;
-            
-            let recommendation = '';
-            if (confidence >= 75) {
-                recommendation = `💵 Ставка: ${stakePercent}% от банка = $${stakeAmount.toFixed(2)}`;
-            } else if (confidence >= 55) {
-                recommendation = `💵 Ставка: ${stakePercent}% от банка = $${stakeAmount.toFixed(2)} (умеренно)`;
-            } else {
-                recommendation = '⚠️ Пропустить ставку (низкая уверенность)';
-            }
-            return recommendation;
-        }
-        
-        // 2. СРАВНЕНИЕ С БК
-        function getBkComparison(predictedValue, bkLine, mode) {
-            if (!bkLine || bkLine === 0) return 'Нет линии БК';
-            const diff = predictedValue - bkLine;
-            if (Math.abs(diff) < 0.3) return '⚖️ Линии равны';
-            if (mode === 'total') {
-                return diff > 0 ? `📈 Ваш прогноз ${predictedValue} > ${bkLine} (ОВЕР)` : `📉 Ваш прогноз ${predictedValue} < ${bkLine} (АНДЕР)`;
-            }
-            return diff > 0 ? `💰 Валуй +${diff.toFixed(1)}` : `⚠️ Завышено -${Math.abs(diff).toFixed(1)}`;
-        }
-        
-        // 3. ИСТОРИЧЕСКАЯ ТОЧНОСТЬ AI ПО ПОХОЖИМ МАТЧАМ
-        function getAIHistoryAccuracy() {
-            const history = state.aiHistory || [];
-            if (history.length === 0) return 'Нет данных для анализа';
-            const recent = history.slice(-20);
-            const correct = recent.filter(h => h.correct).length;
-            const total = recent.length;
-            const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
-            return `🎯 ${accuracy}% (${correct} из ${total} последних)`;
-        }
-        
-        // 4. ДИНАМИКА КОЭФФИЦИЕНТОВ
-        function getOddsDynamics() {
-            // Заглушка — можно расширить с реальными данными
-            return '📊 Стабильно (нет данных)';
-        }
-        
-        // 5. СТАТИСТИКА ДОМА/ВЫЕЗДА
-        function getHomeAwayStats(homeForm, awayForm) {
-            let result = '';
-            if (homeForm) {
-                const h = homeForm.results || [];
-                const homeGoals = h.reduce((s, r) => s + r.goals, 0) / (h.length || 1);
-                result += `🏠 ${homeForm.wins}П-${homeForm.draws}Н-${homeForm.losses}В (ср. ${homeGoals.toFixed(1)} гола)`;
-            } else {
-                result += '🏠 Нет данных';
-            }
-            result += ' | ';
-            if (awayForm) {
-                const a = awayForm.results || [];
-                const awayGoals = a.reduce((s, r) => s + r.goals, 0) / (a.length || 1);
-                result += `✈️ ${awayForm.wins}П-${awayForm.draws}Н-${awayForm.losses}В (ср. ${awayGoals.toFixed(1)} гола)`;
-            } else {
-                result += '✈️ Нет данных';
-            }
-            return result;
-        }
-        
-        // 6. ТРЕНДЫ КОМАНД
-        function getTrends(recentForm) {
-            if (!recentForm) return 'Нет данных';
-            let result = '';
-            if (recentForm.home) {
-                const wins = recentForm.home.wins;
-                const losses = recentForm.home.losses;
-                if (wins >= 4) result += '🏠 🔥 Отличная форма (4+ побед)';
-                else if (wins >= 3) result += '🏠 📈 Хорошая форма';
-                else if (losses >= 4) result += '🏠 📉 Кризис (4+ поражений)';
-                else if (losses >= 3) result += '🏠 ⚠️ Спад';
-                else result += '🏠 ⚖️ Стабильно';
-            }
-            result += ' | ';
-            if (recentForm.away) {
-                const wins = recentForm.away.wins;
-                const losses = recentForm.away.losses;
-                if (wins >= 4) result += '✈️ 🔥 Отличная форма (4+ побед)';
-                else if (wins >= 3) result += '✈️ 📈 Хорошая форма';
-                else if (losses >= 4) result += '✈️ 📉 Кризис (4+ поражений)';
-                else if (losses >= 3) result += '✈️ ⚠️ Спад';
-                else result += '✈️ ⚖️ Стабильно';
-            }
-            return result;
-        }
-        
-        // 7. ЧЕК-ЛИСТ ПЕРЕД СТАВКОЙ
-        function generateChecklist(homeTeam, awayTeam, matches, injuries, confidence) {
-            let items = [];
-            
-            // Проверка тотала
-            if (matches && matches.length > 0) {
-                const avgTotal = matches.reduce((s, m) => s + m.total, 0) / matches.length;
-                if (avgTotal > 2.5) {
-                    items.push({ text: '📈 Тотал > 2.5 в среднем', pass: true });
-                } else {
-                    items.push({ text: '📈 Тотал < 2.5 в среднем', pass: false });
-                }
-                
-                const ozCount = matches.filter(m => m.oz).length;
-                const ozPercent = (ozCount / matches.length) * 100;
-                if (ozPercent > 60) {
-                    items.push({ text: `⚽ ОЗ в ${Math.round(ozPercent)}% матчей`, pass: true });
-                } else {
-                    items.push({ text: `⚽ ОЗ только в ${Math.round(ozPercent)}% матчей`, pass: false });
-                }
-            }
-            
-            // Проверка травм
-            let injured = false;
-            if (injuries && injuries.home && injuries.home.length > 0) {
-                const keyPlayers = injuries.home.filter(i => i.player && (i.player.position === 'Attacker' || i.player.position === 'Midfielder'));
-                if (keyPlayers.length > 0) {
-                    items.push({ text: `🤕 ${keyPlayers.length} ключевых игроков травмированы (хозяева)`, pass: false });
-                    injured = true;
-                }
-            }
-            if (injuries && injuries.away && injuries.away.length > 0) {
-                const keyPlayers = injuries.away.filter(i => i.player && (i.player.position === 'Attacker' || i.player.position === 'Midfielder'));
-                if (keyPlayers.length > 0) {
-                    items.push({ text: `🤕 ${keyPlayers.length} ключевых игроков травмированы (гости)`, pass: false });
-                    injured = true;
-                }
-            }
-            if (!injured) {
-                items.push({ text: '✅ Нет ключевых травм', pass: true });
-            }
-            
-            // Проверка уверенности
-            if (confidence >= 70) {
-                items.push({ text: `📊 Высокая уверенность (${confidence}%)`, pass: true });
-            } else if (confidence >= 50) {
-                items.push({ text: `📊 Средняя уверенность (${confidence}%)`, pass: true });
-            } else {
-                items.push({ text: `📊 Низкая уверенность (${confidence}%)`, pass: false });
-            }
-            
-            return items;
-        }
-        
-        // 8. СРАВНЕНИЕ С РЫНКОМ
-        function compareWithMarket(confidence, odds) {
-            const fairOdds = 100 / confidence;
-            if (!odds || odds === 0) return 'Нет коэффициентов';
-            if (odds > fairOdds) {
-                return `💰 Выгодно! Кф ${odds} > справедливый ${fairOdds.toFixed(2)} (валуй)`;
-            } else if (odds < fairOdds) {
-                return `⚠️ Невыгодно! Кф ${odds} < справедливый ${fairOdds.toFixed(2)}`;
-            }
-            return `⚖️ Кф ${odds} = справедливый ${fairOdds.toFixed(2)}`;
-        }
-        
-        // 9. КАЛЕНДАРЬ МАТЧЕЙ
-        function getMatchCalendar() {
-            // Заглушка — можно расширить с реальными данными
-            return '📅 Нет данных о следующих матчах';
-        }
-        
-        // 10. МОТИВАЦИЯ КОМАНД
-        function getMotivation(league, importance, standings) {
-            let result = '';
-            const leagueName = league?.name || '';
-            
-            if (leagueName.includes('ЛЧ') || leagueName.includes('Лига Чемпионов')) {
-                result += '🏆 Высокая мотивация (ЛЧ)';
-            } else if (leagueName.includes('Евро')) {
-                result += '🏆 Еврокубковая мотивация';
-            } else if (importance > 1.0) {
-                result += '🔥 Повышенная мотивация';
-            } else {
-                result += '⚖️ Стандартная мотивация';
-            }
-            
-            // Проверка турнирного положения
-            if (standings && standings.length > 0) {
-                try {
-                    const homeRow = standings.find(s => s.team?.name?.toLowerCase().includes('real') || s.team?.name?.toLowerCase().includes('barca'));
-                    if (homeRow) {
-                        if (homeRow.rank <= 4) result += ' | 🎯 Борьба за ЛЧ';
-                        else if (homeRow.rank >= 17) result += ' | 🛡️ Борьба за выживание';
-                    }
-                } catch(e) {}
-            }
-            
-            return result || 'Нет данных';
-        }
-        
-        // ====== AI ПРОГНОЗ (ОБНОВЛЕННЫЙ С НОВЫМИ ФУНКЦИЯМИ) ======
+
+        // ====== AI ПРОГНОЗ ======
         async function generateAIPrediction() {
             const btn = $('aiBtn');
             const result = $('aiResult');
-            const homeTeam = $('homeTeamH2H').value.trim();
-            const awayTeam = $('awayTeamH2H').value.trim();
             const home = safeNum($('homeGoals').value);
             const away = safeNum($('awayGoals').value);
             const total = home + away;
             const bkLine = safeNum($('bkLine').value);
             const hasBk = bkLine !== 0;
             const mode = state.currentMode;
-            const bankroll = safeNum($('bankrollInput')?.value) || 1000;
-            const odds = safeNum($('oddsInput')?.value) || 1.9;
-            
+
             if (total === 0 && (!state.h2hData || state.h2hData.length === 0)) {
                 showToast('⚠️ Сначала загрузите матч!', 'error');
                 return;
             }
-            
+
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-color:#fff;border-top-color:transparent;"></span> Анализирую...';
             if (result) result.style.display = 'none';
-            
-            // --- СБОР ДАННЫХ ---
-            let standings = state.standingsData;
-            let injuries = state.injuries;
-            let recentForm = state.recentForm;
-            
-            try {
-                if (homeTeam.length >= 2 && awayTeam.length >= 2) {
-                    const formHome = await fetchRecentForm(homeTeam);
-                    const formAway = await fetchRecentForm(awayTeam);
-                    if (formHome) recentForm.home = formHome;
-                    if (formAway) recentForm.away = formAway;
-                    state.recentForm = recentForm;
-                    
-                    const injHome = await fetchInjuries(homeTeam);
-                    const injAway = await fetchInjuries(awayTeam);
-                    if (injHome) injuries.home = injHome;
-                    if (injAway) injuries.away = injAway;
-                    state.injuries = injuries;
-                    
-                    state.matchImportance = getMatchImportance();
-                    
-                    const leagueId = state.currentLeague;
-                    const standingsUrl = `${PROXY_BASE}standings?league=${leagueId}&season=2024`;
-                    const standingsResponse = await fetch(standingsUrl, {
-                        headers: { 'x-apisports-key': API_KEY_FOOTBALL }
-                    });
-                    if (standingsResponse.ok) {
-                        const standingsData = await standingsResponse.json();
-                        if (standingsData.response && standingsData.response.length > 0) {
-                            standings = standingsData.response[0].league.standings[0];
-                            state.standingsData = standings;
-                        }
-                    }
-                }
-            } catch(e) { console.log('Доп. данные не загружены:', e); }
-            
-            // --- РАСЧЁТ ПРОГНОЗА ---
-            const homeRating = getTeamRating(homeTeam);
-            const awayRating = getTeamRating(awayTeam);
-            const restHome = state.contextFactors.restDaysHome;
-            const restAway = state.contextFactors.restDaysAway;
-            const restBonusHome = Math.max(0, (restHome - 3) * 0.05);
-            const restBonusAway = Math.max(0, (restAway - 3) * 0.05);
-            const motivMap = { 'derby': 0.15, 'eurofight': 0.1, 'relegation': 0.08, 'none': 0 };
-            const motivBonusHome = motivMap[state.contextFactors.motivationHome] || 0;
-            const motivBonusAway = motivMap[state.contextFactors.motivationAway] || 0;
-            
-            let lambdaHome = expectedGoals(homeRating, awayRating, true) + restBonusHome + motivBonusHome;
-            let lambdaAway = expectedGoals(awayRating, homeRating, false) + restBonusAway + motivBonusAway;
-            
-            let formTextHome = '—', formTextAway = '—';
-            if (recentForm.home) {
-                const f = recentForm.home;
-                formTextHome = f.formString + ` (ср. ${f.avgGoals.toFixed(1)})`;
-                if (f.wins >= 3) lambdaHome *= 1.1;
-                if (f.losses >= 3) lambdaHome *= 0.9;
-                if (f.avgGoals > 2) lambdaHome *= 1.05;
-            }
-            if (recentForm.away) {
-                const f = recentForm.away;
-                formTextAway = f.formString + ` (ср. ${f.avgGoals.toFixed(1)})`;
-                if (f.wins >= 3) lambdaAway *= 1.1;
-                if (f.losses >= 3) lambdaAway *= 0.9;
-                if (f.avgGoals > 2) lambdaAway *= 1.05;
-            }
-            
-            let injuryTextHome = 'Нет данных', injuryTextAway = 'Нет данных';
-            if (injuries.home && injuries.home.length > 0) {
-                const count = injuries.home.length;
-                const keyPlayers = injuries.home.filter(i => i.player && (i.player.position === 'Attacker' || i.player.position === 'Midfielder'));
-                if (keyPlayers.length > 0) { lambdaHome *= 0.85; injuryTextHome = `${count} травм (ключевые)`; } else { lambdaHome *= 0.9; injuryTextHome = `${count} травм`; }
-            }
-            if (injuries.away && injuries.away.length > 0) {
-                const count = injuries.away.length;
-                const keyPlayers = injuries.away.filter(i => i.player && (i.player.position === 'Attacker' || i.player.position === 'Midfielder'));
-                if (keyPlayers.length > 0) { lambdaAway *= 0.85; injuryTextAway = `${count} травм (ключевые)`; } else { lambdaAway *= 0.9; injuryTextAway = `${count} травм`; }
-            }
-            
-            const importance = state.matchImportance;
-            let importanceText = `${importance.toFixed(2)}x`;
-            if (importance > 1.0) { lambdaHome *= importance; lambdaAway *= importance; } else if (importance < 1.0) { lambdaHome *= importance; lambdaAway *= importance; }
-            
-            let overheatText = 'Нет данных';
-            if (recentForm.home && recentForm.away) {
-                const homeAvg = recentForm.home.avgGoals;
-                const awayAvg = recentForm.away.avgGoals;
-                if (homeAvg > 2.5) { overheatText = '🏠 Перегреты'; lambdaHome *= 0.9; } else if (homeAvg < 0.8) { overheatText = '🏠 Недооценены'; lambdaHome *= 1.1; }
-                if (awayAvg > 2.5) { overheatText += ' ✈️ Перегреты'; lambdaAway *= 0.9; } else if (awayAvg < 0.8) { overheatText += ' ✈️ Недооценены'; lambdaAway *= 1.1; }
-                if (overheatText === 'Нет данных') overheatText = 'Норма';
-            }
-            
-            let pressureText = 'Нет данных';
-            if (standings && standings.length > 0) {
-                const homeTeamLower = homeTeam.toLowerCase();
-                const awayTeamLower = awayTeam.toLowerCase();
-                const homeRow = standings.find(s => s.team.name.toLowerCase().includes(homeTeamLower));
-                const awayRow = standings.find(s => s.team.name.toLowerCase().includes(awayTeamLower));
-                if (homeRow && awayRow) {
-                    const homePos = homeRow.rank;
-                    const awayPos = awayRow.rank;
-                    const homeEuroDist = Math.max(0, 4 - homePos);
-                    const homeRelegDist = Math.max(0, homePos - 17);
-                    const awayEuroDist = Math.max(0, 4 - awayPos);
-                    const awayRelegDist = Math.max(0, awayPos - 17);
-                    const homePressure = homeEuroDist > 0 ? homeEuroDist / 4 : (homeRelegDist > 0 ? homeRelegDist / 3 : 0);
-                    const awayPressure = awayEuroDist > 0 ? awayEuroDist / 4 : (awayRelegDist > 0 ? awayRelegDist / 3 : 0);
-                    pressureText = `🏠 ${Math.round(homePressure * 100)}% / ✈️ ${Math.round(awayPressure * 100)}%`;
-                    lambdaHome += homePressure * 0.15;
-                    lambdaAway += awayPressure * 0.15;
-                }
-            }
-            
-            let weatherText = 'Не учитывается';
-            const homeCity = getCityFromTeam(homeTeam);
-            if (homeCity) {
-                const weather = await fetchWeather(homeCity);
-                if (weather) {
-                    weatherText = `🌧 ${weather.rain.toFixed(1)} мм, 💨 ${weather.wind.toFixed(1)} м/с`;
-                    if (weather.rain > 5) { lambdaHome *= 0.9; lambdaAway *= 0.9; } else if (weather.rain > 2) { lambdaHome *= 0.95; lambdaAway *= 0.95; }
-                    if (weather.wind > 10) { lambdaHome *= 0.92; lambdaAway *= 0.92; } else if (weather.wind > 7) { lambdaHome *= 0.96; lambdaAway *= 0.96; }
-                }
-            }
-            
+
+            const league = getLeague();
+            const avgGoals = league.avgGoals || 2.5;
+            let lambdaHome = avgGoals / 2;
+            let lambdaAway = avgGoals / 2;
+
             if (state.h2hData && state.h2hData.length > 0) {
                 const avgHome = state.h2hData.reduce((sum, m) => sum + m.homeScore, 0) / state.h2hData.length;
                 const avgAway = state.h2hData.reduce((sum, m) => sum + m.awayScore, 0) / state.h2hData.length;
                 lambdaHome = (lambdaHome + avgHome) / 2;
                 lambdaAway = (lambdaAway + avgAway) / 2;
             }
-            if (state.understatData) {
-                const xgHome = parseFloat(state.understatData.homeXG) || 0;
-                const xgAway = parseFloat(state.understatData.awayXG) || 0;
-                lambdaHome = (lambdaHome + xgHome) / 2;
-                lambdaAway = (lambdaAway + xgAway) / 2;
+
+            if (total > 0) {
+                lambdaHome = (lambdaHome + home) / 2;
+                lambdaAway = (lambdaAway + away) / 2;
             }
-            
+
             let predictedHome = Math.max(0, Math.round(lambdaHome));
             let predictedAway = Math.max(0, Math.round(lambdaAway));
-            if (hasBk && mode === 'total') {
-                const totalPred = predictedHome + predictedAway;
-                const diff = totalPred - bkLine;
-                if (Math.abs(diff) > 1.5) {
-                    predictedHome = Math.round(predictedHome + diff * 0.3);
-                    predictedAway = Math.round(predictedAway + diff * 0.3);
-                    predictedHome = Math.max(0, predictedHome);
-                    predictedAway = Math.max(0, predictedAway);
-                }
-            }
             if (predictedHome === 0 && predictedAway === 0) { predictedHome = 1; predictedAway = 1; }
-            
-            state.aiPredictedScore = { home: predictedHome, away: predictedAway };
+
             if ($('homeGoals')) $('homeGoals').value = predictedHome;
             if ($('awayGoals')) $('awayGoals').value = predictedAway;
             updateSum();
             calculate();
-            
-            const probOz = 1 - poissonProb(lambdaHome, 0) * poissonProb(lambdaAway, 0);
-            const ensembleTotal = state.ensembleWeights.poisson * (lambdaHome + lambdaAway) +
-                state.ensembleWeights.elo * ((homeRating - awayRating) * 0.01) +
-                state.ensembleWeights.market * (hasBk ? bkLine : lambdaHome + lambdaAway);
-            const finalTotal = Math.round(ensembleTotal);
-            let confidence = Math.min(90, Math.max(10, Math.round(50 + Math.abs(finalTotal - (lambdaHome + lambdaAway)) * 3)));
-            
-            if (quantumAI.isTrained()) {
-                const mlConfidence = await enhanceWithML(predictedHome, predictedAway, bkLine, confidence);
-                if (mlConfidence !== confidence) { confidence = mlConfidence; }
-            }
-            
-            // --- НОВЫЕ ДАННЫЕ ДЛЯ AI ---
-            const stakeRec = getStakeRecommendation(confidence, bankroll, odds);
-            const bkComparison = getBkComparison(finalTotal, bkLine, mode);
-            const historyAccuracy = getAIHistoryAccuracy();
-            const oddsDynamics = getOddsDynamics();
-            const homeAwayStats = getHomeAwayStats(recentForm.home, recentForm.away);
-            const trends = getTrends(recentForm);
-            const checklist = generateChecklist(homeTeam, awayTeam, state.h2hData, injuries, confidence);
-            const marketComparison = compareWithMarket(confidence, odds);
-            const calendar = getMatchCalendar();
-            const motivation = getMotivation(getLeague(), importance, standings);
-            
-            // --- ВЫВОД В ИНТЕРФЕЙС ---
-            if ($('aiHomeScore')) $('aiHomeScore').textContent = predictedHome;
-            if ($('aiAwayScore')) $('aiAwayScore').textContent = predictedAway;
-            if ($('aiHomeForm')) $('aiHomeForm').textContent = formTextHome;
-            if ($('aiAwayForm')) $('aiAwayForm').textContent = formTextAway;
-            if ($('aiInjuries')) $('aiInjuries').textContent = `🏠 ${injuryTextHome} | ✈️ ${injuryTextAway}`;
-            if ($('aiImportance')) $('aiImportance').textContent = importanceText;
-            if ($('aiOverheat')) $('aiOverheat').textContent = overheatText;
-            if ($('aiWeather')) $('aiWeather').textContent = weatherText;
-            if ($('aiHomeAway')) {
-                const diff = predictedHome - predictedAway;
-                $('aiHomeAway').textContent = diff > 0.5 ? '🏠 Хозяева сильнее' : diff < -0.5 ? '✈️ Гости сильнее' : '⚖️ Равны';
-            }
-            if ($('aiOpponentStrength')) {
-                const diff = homeRating - awayRating;
-                $('aiOpponentStrength').textContent = diff > 50 ? '🏠 Сильнее' : diff < -50 ? '✈️ Сильнее' : '⚖️ Равны';
-            }
-            if ($('aiPressure')) $('aiPressure').textContent = pressureText;
-            if ($('aiTrend')) $('aiTrend').textContent = lambdaHome > lambdaAway ? 'Атакующий' : 'Оборонительный';
-            if ($('aiAvgTotal')) $('aiAvgTotal').textContent = (lambdaHome + lambdaAway).toFixed(1);
-            if ($('aiOzProb')) $('aiOzProb').textContent = Math.round(probOz * 100) + '%';
-            if ($('aiConfidence')) $('aiConfidence').textContent = confidence + '%';
-            if ($('aiXG')) $('aiXG').textContent = lambdaHome.toFixed(2);
-            if ($('aiXGA')) $('aiXGA').textContent = lambdaAway.toFixed(2);
-            
-            // НОВЫЕ ПОЛЯ
-            if ($('aiStakeRecommendation')) $('aiStakeRecommendation').textContent = stakeRec;
-            if ($('aiBkComparison')) $('aiBkComparison').textContent = bkComparison;
-            if ($('aiHistoryAccuracy')) $('aiHistoryAccuracy').textContent = historyAccuracy;
-            if ($('aiOddsDynamics')) $('aiOddsDynamics').textContent = oddsDynamics;
-            if ($('aiHomeAwayStats')) $('aiHomeAwayStats').textContent = homeAwayStats;
-            if ($('aiTrends')) $('aiTrends').textContent = trends;
-            if ($('aiMarketComparison')) $('aiMarketComparison').textContent = marketComparison;
-            if ($('aiCalendar')) $('aiCalendar').textContent = calendar;
-            if ($('aiMotivation')) $('aiMotivation').textContent = motivation;
-            
-            // Чек-лист
-            const checklistDiv = $('aiChecklist');
-            if (checklistDiv) {
-                checklistDiv.innerHTML = checklist.map(item => 
-                    `<div class="checklist-item"><span class="${item.pass ? 'check' : 'cross'}">${item.pass ? '✅' : '❌'}</span> ${item.text}</div>`
-                ).join('');
-            }
-            
-            // Рекомендация
+
+            const probOz = 1 - Math.exp(-lambdaHome) * Math.exp(-lambdaAway);
+            const confidence = Math.min(90, Math.max(10, Math.round(50 + Math.abs((predictedHome + predictedAway) - (lambdaHome + lambdaAway)) * 5)));
+
             let rec = '';
             if (mode === 'total' && hasBk) {
+                const finalTotal = predictedHome + predictedAway;
                 rec = finalTotal > bkLine + 0.5 ? `✅ Тотал БОЛЬШЕ ${bkLine}` : (finalTotal < bkLine - 0.5 ? `✅ Тотал МЕНЬШЕ ${bkLine}` : `⚖️ Тотал равен линии`);
             } else if (mode === 'oz') {
                 rec = probOz > 0.65 ? '✅ ОЗ – ДА' : (probOz < 0.35 ? '❌ ОЗ – НЕТ' : '⚖️ ОЗ – 50/50');
@@ -1764,183 +1159,25 @@ async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spi
             } else if (mode === 'both_halves') {
                 rec = probOz > 0.5 ? '✅ Гол в обоих таймах' : '❌ Гол не в обоих таймах';
             }
+
+            if ($('aiHomeScore')) $('aiHomeScore').textContent = predictedHome;
+            if ($('aiAwayScore')) $('aiAwayScore').textContent = predictedAway;
+            if ($('aiHomeForm')) $('aiHomeForm').textContent = '—';
+            if ($('aiAwayForm')) $('aiAwayForm').textContent = '—';
+            if ($('aiAvgTotal')) $('aiAvgTotal').textContent = (lambdaHome + lambdaAway).toFixed(1);
+            if ($('aiOzProb')) $('aiOzProb').textContent = Math.round(probOz * 100) + '%';
+            if ($('aiConfidence')) $('aiConfidence').textContent = confidence + '%';
+            if ($('aiXG')) $('aiXG').textContent = lambdaHome.toFixed(2);
+            if ($('aiXGA')) $('aiXGA').textContent = lambdaAway.toFixed(2);
             if ($('aiRecommendation')) $('aiRecommendation').textContent = rec;
-            if ($('aiAdvice')) {
-                let advice = `Ансамбль: Пуассон ${lambdaHome.toFixed(1)}:${lambdaAway.toFixed(1)}, Эло ${homeRating} vs ${awayRating}. Погода: ${weatherText}`;
-                if (quantumAI.isTrained()) {
-                    advice += ` | 🧠 ML активирован (точность ${Math.round(quantumAI.accuracy * 100)}%)`;
-                }
-                $('aiAdvice').textContent = advice;
-            }
-            
+            if ($('aiAdvice')) $('aiAdvice').textContent = `Прогноз на основе ${state.h2hData ? state.h2hData.length : 0} матчей`;
+
             btn.disabled = false;
             btn.innerHTML = '<span>🤖</span> Сгенерировать AI прогноз';
             if (result) result.style.display = 'block';
-            showToast('🧠 Прогноз с AI + ML готов!', 'success');
-            
-            // Сохраняем в историю AI
-            state.aiHistory.push({
-                correct: confidence > 65,
-                timestamp: new Date().toISOString()
-            });
-            if (state.aiHistory.length > 100) state.aiHistory = state.aiHistory.slice(-100);
-            localStorage.setItem('quantum_ai_history', JSON.stringify(state.aiHistory));
+            showToast('🧠 Прогноз готов!', 'success');
         }
-        
-        // ====== ФОРМА, ТРАВМЫ ======
-        async function fetchTeamStats(teamName) {
-            try {
-                const searchUrl = `${PROXY_BASE}teams?search=${encodeURIComponent(teamName)}`;
-                const response = await fetch(searchUrl, { headers: { 'x-apisports-key': API_KEY_FOOTBALL } });
-                if (!response.ok) return null;
-                const data = await response.json();
-                if (!data.response || data.response.length === 0) return null;
-                return data.response[0].team;
-            } catch(e) { return null; }
-        }
-        
-        async function fetchRecentForm(teamName) {
-            try {
-                const team = await fetchTeamStats(teamName);
-                if (!team) return null;
-                const url = `${PROXY_BASE}fixtures?team=${team.id}&last=5`;
-                const response = await fetch(url, { headers: { 'x-apisports-key': API_KEY_FOOTBALL } });
-                if (!response.ok) return null;
-                const data = await response.json();
-                if (!data.response || data.response.length === 0) return null;
-                const results = data.response.map(m => {
-                    const home = m.teams.home.id === team.id;
-                    const goals = home ? m.goals.home : m.goals.away;
-                    const opponentGoals = home ? m.goals.away : m.goals.home;
-                    let result = 'draw';
-                    if (goals > opponentGoals) result = 'win';
-                    else if (goals < opponentGoals) result = 'loss';
-                    return { result, goals, opponentGoals, opponent: home ? m.teams.away.name : m.teams.home.name };
-                });
-                const wins = results.filter(r => r.result === 'win').length;
-                const draws = results.filter(r => r.result === 'draw').length;
-                const losses = results.filter(r => r.result === 'loss').length;
-                const avgGoals = results.reduce((s, r) => s + r.goals, 0) / results.length;
-                return { results, wins, draws, losses, avgGoals, formString: `${wins}W-${draws}D-${losses}L` };
-            } catch(e) { return null; }
-        }
-        
-        async function fetchInjuries(teamName) {
-            try {
-                const team = await fetchTeamStats(teamName);
-                if (!team) return null;
-                const url = `${PROXY_BASE}injuries?team=${team.id}`;
-                const response = await fetch(url, { headers: { 'x-apisports-key': API_KEY_FOOTBALL } });
-                if (!response.ok) return null;
-                const data = await response.json();
-                if (!data.response || data.response.length === 0) return null;
-                return data.response;
-            } catch(e) { return null; }
-        }
-        
-        function getMatchImportance() {
-            const league = getLeague();
-            const name = league.name || '';
-            if (name.includes('ЛЧ') || name.includes('Лига Чемпионов')) return 1.2;
-            if (name.includes('Евро') || name.includes('Кубок')) return 1.15;
-            if (name.includes('Квалиф') || name.includes('Отбор')) return 1.1;
-            if (name.includes('Товар') || name.includes('Friendly')) return 0.8;
-            return 1.0;
-        }
-        
-        function getTeamRating(teamName) {
-            const key = teamName.toLowerCase().trim();
-            return state.eloRatings[key] || 1500;
-        }
-        
-        function poissonProb(lambda, k) {
-            if (lambda <= 0) return k === 0 ? 1 : 0;
-            let fact = 1;
-            for (let i = 2; i <= k; i++) fact *= i;
-            return Math.exp(-lambda) * Math.pow(lambda, k) / fact;
-        }
-        
-        function expectedGoals(teamRating, opponentRating, isHome) {
-            const homeAdvantage = 0.35;
-            const base = 1.2;
-            const ratingDiff = (teamRating - opponentRating) / 400;
-            let xG = base * Math.pow(10, ratingDiff / 2);
-            if (isHome) xG += homeAdvantage;
-            return Math.max(0.1, xG);
-        }
-        
-        function getCityFromTeam(teamName) {
-            const cities = {
-                'london': ['arsenal', 'chelsea', 'tottenham', 'west ham', 'crystal palace', 'fulham', 'brentford'],
-                'manchester': ['manchester united', 'manchester city', 'united', 'city'],
-                'liverpool': ['liverpool', 'everton'],
-                'barcelona': ['barcelona', 'espanyol'],
-                'madrid': ['real madrid', 'atletico madrid', 'getafe', 'rayo vallecano'],
-                'milan': ['ac milan', 'inter milan', 'milan'],
-                'munich': ['bayern munich', 'bayern'],
-                'dortmund': ['borussia dortmund', 'dortmund'],
-                'paris': ['psg', 'paris saint-germain'],
-                'rome': ['roma', 'lazio'],
-                'naples': ['napoli'],
-                'turin': ['juventus', 'torino'],
-                'istanbul': ['galatasaray', 'fenerbahce', 'besiktas'],
-                'moscow': ['cska', 'spartak', 'dinamo', 'lokomotiv'],
-                'kyiv': ['dinamo kyiv', 'shakhtar']
-            };
-            const name = teamName.toLowerCase();
-            for (let [city, teams] of Object.entries(cities)) {
-                for (let t of teams) {
-                    if (name.includes(t)) return city;
-                }
-            }
-            return null;
-        }
-        
-        async function fetchWeather(city) {
-            const coords = { 'london': { lat: 51.5, lon: -0.1 }, 'manchester': { lat: 53.5, lon: -2.2 }, 'barcelona': { lat: 41.4, lon: 2.2 }, 'madrid': { lat: 40.4, lon: -3.7 } };
-            const c = coords[city];
-            if (!c) return null;
-            try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&hourly=precipitation,wind_speed_10m&forecast_days=1`;
-                const resp = await fetch(url);
-                if (!resp.ok) return null;
-                const data = await resp.json();
-                const now = new Date();
-                const currentHour = now.getHours();
-                const hourly = data.hourly;
-                let rain = 0, wind = 0, count = 0;
-                for (let i = 0; i < hourly.time.length; i++) {
-                    const hour = new Date(hourly.time[i]).getHours();
-                    if (hour >= currentHour - 1 && hour <= currentHour + 3) {
-                        rain += hourly.precipitation[i];
-                        wind += hourly.wind_speed_10m[i];
-                        count++;
-                    }
-                }
-                if (count === 0) return null;
-                return { rain: rain / count, wind: wind / count };
-            } catch(e) { return null; }
-        }
-        
-        async function enhanceWithML(predictedHome, predictedAway, bkLine, confidence) {
-            if (!quantumAI.isTrained()) return confidence;
-            const features = [predictedHome || 0, predictedAway || 0, bkLine || 0, confidence || 50, parseFloat(state.understatData?.homeXG || 0), parseFloat(state.understatData?.awayXG || 0)];
-            const mlPrediction = await quantumAI.predict(features);
-            if (mlPrediction !== null && mlPrediction >= 0 && mlPrediction <= 1) {
-                const mlWeight = Math.min(0.4, 0.1 + (quantumAI.accuracy * 0.3));
-                const currentProb = confidence / 100;
-                const blendedProb = currentProb * (1 - mlWeight) + mlPrediction * mlWeight;
-                const newConfidence = Math.round(Math.max(0, Math.min(100, blendedProb * 100)));
-                const mlDisplay = $('aiMLConfidence');
-                if (mlDisplay) {
-                    mlDisplay.textContent = `${Math.round(mlPrediction * 100)}% (вес ${Math.round(mlWeight * 100)}%)`;
-                    mlDisplay.style.color = mlPrediction > 0.6 ? '#2ecc71' : '#f1c40f';
-                }
-                return newConfidence;
-            }
-            return confidence;
-        }
-        
+
         // ====== СТАТИСТИКА ======
         function renderHistory() {
             const list = $('historyList');
@@ -1960,7 +1197,7 @@ async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spi
                 </div>`;
             }).join('');
         }
-        
+
         function renderStats() {
             const total = state.bets.length;
             const wins = state.bets.filter(b => b.outcome === 'win').length;
@@ -1970,7 +1207,7 @@ async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spi
             if ($('statBalance')) $('statBalance').textContent = wins - losses;
             if ($('statROI')) $('statROI').textContent = total > 0 ? Math.round(((wins - losses) / total) * 100) + '%' : '0%';
         }
-        
+
         function renderDashboard() {
             const total = state.bets.length;
             const wins = state.bets.filter(b => b.outcome === 'win').length;
@@ -1988,7 +1225,7 @@ async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spi
             if ($('kpiStreak')) $('kpiStreak').textContent = streak;
             if ($('kpiBest')) $('kpiBest').textContent = maxStreak;
         }
-        
+
         function renderChart() {
             const chart = $('chartBars');
             if (!chart) return;
@@ -2003,37 +1240,16 @@ async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spi
             const max = Math.max(1, ...data.map(Math.abs));
             chart.innerHTML = data.map(v => `<div class="bar ${v < 0 ? 'loss' : ''}" style="height:${Math.max(3, (Math.abs(v) / max) * 26)}px;"></div>`).join('');
         }
-        
-        function renderMonthlyChart() {
-            const container = $('monthlyChart');
-            if (!container) return;
-            if (state.bets.length === 0) { container.innerHTML = '<span style="color:#888;font-size:11px;">Нет данных</span>'; return; }
-            const monthData = {};
-            state.bets.forEach(b => {
-                if (b.outcome === 'pending') return;
-                const month = b.date ? b.date.slice(0,7) : 'unknown';
-                if (!monthData[month]) monthData[month] = { wins: 0, total: 0 };
-                monthData[month].total++;
-                if (b.outcome === 'win') monthData[month].wins++;
-            });
-            const sorted = Object.keys(monthData).sort();
-            container.innerHTML = sorted.map(m => {
-                const rate = monthData[m].total > 0 ? Math.round((monthData[m].wins / monthData[m].total) * 100) : 0;
-                const color = rate > 60 ? '#2ecc71' : rate > 40 ? '#f1c40f' : '#e74c3c';
-                return `<div class="month-item"><span class="month">${m}</span><span class="rate" style="color:${color};">${rate}%</span><span class="count">${monthData[m].total}</span></div>`;
-            }).join('');
-        }
-        
+
         function renderInsights() {
             const container = $('insightsContent');
             if (!container) return;
             if (state.bets.length === 0) { container.innerHTML = '<div class="text-muted text-center" style="padding:6px 0;">Нет данных</div>'; return; }
             const wins = state.bets.filter(b => b.outcome === 'win').length;
             const rate = Math.round((wins / state.bets.length) * 100);
-            const streak = state.bets.filter(b => b.outcome === 'win').length > 3 ? '🔥 Хорошая серия!' : '📊 Продолжайте анализ';
-            container.innerHTML = `<div style="font-size:12px;">📊 Всего ставок: ${state.bets.length}, побед: ${wins} (${rate}%)</div><div style="font-size:11px;color:#888;margin-top:4px;">💡 ${streak}</div><div style="font-size:10px;color:#555;margin-top:4px;">📈 AI обучен на ${state.bets.filter(b => b.outcome !== 'pending').length} ставках</div>`;
+            container.innerHTML = `<div style="font-size:12px;">📊 Всего ставок: ${state.bets.length}, побед: ${wins} (${rate}%)</div>`;
         }
-        
+
         // ====== СТАВКИ ======
         function saveBet() {
             const bet = {
@@ -2046,18 +1262,16 @@ async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spi
                 away: safeNum($('awayGoals')?.value),
                 bkLine: safeNum($('bkLine')?.value),
                 confidence: parseInt($('confidenceLabel')?.textContent) || 50,
-                homeXG: $('xGDisplay')?.textContent || '0',
-                awayXG: $('xGADisplay')?.textContent || '0',
                 outcome: 'pending',
                 resultText: '⏳ Ожидание'
             };
             state.bets.push(bet);
             localStorage.setItem('quantum_bets', JSON.stringify(state.bets));
-            renderHistory(); renderStats(); renderDashboard(); renderChart(); renderMonthlyChart(); renderInsights();
+            renderHistory(); renderStats(); renderDashboard(); renderChart(); renderInsights();
             updateAIStatus();
             showToast('✅ Ставка сохранена!', 'success');
         }
-        
+
         function editBet(idx) {
             const b = state.bets[idx];
             if (!b) return;
@@ -2067,26 +1281,26 @@ async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spi
             else if (choice === '2') { b.outcome = 'loss'; b.resultText = '❌ Проигрыш'; }
             else { b.outcome = 'pending'; b.resultText = '⏳ Ожидание'; }
             localStorage.setItem('quantum_bets', JSON.stringify(state.bets));
-            renderHistory(); renderStats(); renderDashboard(); renderChart(); renderMonthlyChart(); renderInsights();
+            renderHistory(); renderStats(); renderDashboard(); renderChart(); renderInsights();
             updateAIStatus();
             showToast('✅ Обновлено', 'success');
         }
-        
+
         function clearHistory() {
             if (!confirm('Удалить всю историю?')) return;
             state.bets = [];
             localStorage.setItem('quantum_bets', JSON.stringify(state.bets));
-            renderHistory(); renderStats(); renderDashboard(); renderChart(); renderMonthlyChart(); renderInsights();
+            renderHistory(); renderStats(); renderDashboard(); renderChart(); renderInsights();
             updateAIStatus();
             showToast('🗑️ История очищена', 'success');
         }
-        
+
         function resetAll() {
             if (!confirm('Сбросить все данные?')) return;
             localStorage.clear();
             location.reload();
         }
-        
+
         function clearAll() {
             if ($('homeGoals')) $('homeGoals').value = '0';
             if ($('awayGoals')) $('awayGoals').value = '0';
@@ -2099,21 +1313,48 @@ async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spi
             if (adv) { adv.textContent = '⏳ Введите данные для расчёта'; adv.className = 'advice info'; }
             if ($('confidenceLabel')) $('confidenceLabel').textContent = '0%';
             if ($('confidenceFill')) $('confidenceFill').style.width = '0%';
-            if ($('valueAlert')) $('valueAlert').classList.remove('show');
             state.h2hData = null;
-            state.understatData = null;
-            state.currentOdds = null;
             state.aiPredictedScore = null;
             if ($('xgCard')) $('xgCard').style.display = 'none';
             if ($('aiCard')) $('aiCard').style.display = 'none';
             if ($('liveCard')) $('liveCard').style.display = 'none';
             if ($('aiResult')) $('aiResult').style.display = 'none';
-            if ($('contextCard')) $('contextCard').style.display = 'none';
             if ($('bkComment')) { $('bkComment').textContent = '—'; $('bkComment').style.background = 'transparent'; }
             if ($('searchBadge')) $('searchBadge').style.display = 'none';
             showToast('🗑️ Очищено', 'info');
         }
-        
+
+        function exportData() {
+            const data = { bets: state.bets, version: '2.3 PRO', exportDate: new Date().toISOString() };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `quantum_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📦 Данные экспортированы!', 'success');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.bets && Array.isArray(data.bets)) {
+                        state.bets = data.bets;
+                        localStorage.setItem('quantum_bets', JSON.stringify(state.bets));
+                        renderHistory(); renderStats(); renderDashboard(); renderChart(); renderInsights();
+                        updateAIStatus();
+                        showToast('📥 Данные импортированы!', 'success');
+                    } else showToast('❌ Неверный формат', 'error');
+                } catch(err) { showToast('❌ Ошибка импорта', 'error'); }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
         // ====== AI ОБУЧЕНИЕ ======
         function updateAIStatus() {
             const statusText = $('aiStatusText');
@@ -2138,7 +1379,7 @@ async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spi
                 accuracyDisplay.textContent = '—';
             }
         }
-        
+
         async function trainAI() {
             const btn = $('trainAIBtn');
             if (quantumAI.isTraining) { showToast('⏳ Обучение уже идёт...', 'info'); return; }
@@ -2151,44 +1392,12 @@ async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spi
             btn.disabled = false; btn.textContent = '🧠 Обучить AI';
             updateAIStatus();
         }
-        
-        // ====== ЭКСПОРТ/ИМПОРТ ======
-        function exportData() {
-            const data = { bets: state.bets, version: '2.3 PRO', exportDate: new Date().toISOString() };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `quantum_backup_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('📦 Данные экспортированы!', 'success');
-        }
-        
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (data.bets && Array.isArray(data.bets)) {
-                        state.bets = data.bets;
-                        localStorage.setItem('quantum_bets', JSON.stringify(state.bets));
-                        renderHistory(); renderStats(); renderDashboard(); renderChart(); renderMonthlyChart(); renderInsights();
-                        updateAIStatus();
-                        showToast('📥 Данные импортированы!', 'success');
-                    } else showToast('❌ Неверный формат', 'error');
-                } catch(err) { showToast('❌ Ошибка импорта', 'error'); }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
-        }
-        
+
         // ====== ЗАГЛУШКИ ======
         async function loadOdds() {}
         async function startLiveUpdates() {}
         function stopLiveUpdates() {}
-        
+
         // ====== ИНИЦИАЛИЗАЦИЯ ======
         if ($('leagueSelect')) {
             $('leagueSelect').onchange = function() {
@@ -2198,49 +1407,29 @@ async function loadH2HData(homeId, homeName, awayId, awayName, btn, btnText, spi
                 calculate();
             };
         }
-        
+
         if ($('homeGoals')) {
             $('homeGoals').oninput = function() {
                 updateSum();
                 calculate();
             };
         }
-        
+
         if ($('awayGoals')) {
             $('awayGoals').oninput = function() {
                 updateSum();
                 calculate();
             };
         }
-        
+
         if ($('bkLine')) {
             $('bkLine').oninput = function() {
                 calculate();
             };
         }
-        
-        if ($('bankrollInput')) {
-            $('bankrollInput').oninput = calculateKelly;
-        }
-        
-        if ($('oddsInput')) {
-            $('oddsInput').oninput = calculateKelly;
-        }
-        
-        // Кнопка подстановки из H2H
-        const h2hContainer = $('h2hContainer');
-        if (h2hContainer) {
-            const fillBtn = document.createElement('button');
-            fillBtn.className = 'btn-api';
-            fillBtn.style.cssText = 'background: #2ecc71; margin-top: 4px; color: #000;';
-            fillBtn.innerHTML = '📥 Подставить голы из H2H';
-            fillBtn.onclick = autoFillFromH2H;
-            h2hContainer.appendChild(fillBtn);
-        }
-        
-        console.log('⚛️ КВАНТУМ 2.3 PRO — МЕГА ПОЛНАЯ ВЕРСИЯ');
+
+        console.log('⚛️ КВАНТУМ 2.3 PRO — ПОЛНАЯ ВЕРСИЯ');
         console.log(`📊 Загружено ${Object.keys(LEAGUES).length} лиг`);
-        console.log('✅ PWA, расширенные метрики, Келли, валуй-алерты');
         console.log('✅ TensorFlow.js AI с обучением');
         console.log('🚀 Готов к работе!');
     </script>
