@@ -12,7 +12,7 @@
     <meta name="theme-color" content="#0b0e14">
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <style>
-        /* ====== ВЕСЬ CSS ОТ А ДО Я ====== */
+        /* ====== ВЕСЬ CSS ====== */
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
         body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: #0b0e14; color: #e0e0e0; max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: background 0.3s, color 0.3s; }
         body.light { background: #f0f2f5; color: #1a1a1a; }
@@ -216,6 +216,16 @@
         .btn-ai-train:active { transform: scale(0.95); }
         .btn-ai-train:disabled { opacity: 0.5; cursor: not-allowed; }
         body.light .btn-ai-train { background: #8e44ad; }
+        .ai-checkbox { margin-top: 6px; font-size: 12px; }
+        .ai-checkbox label { color: #888; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .ai-checkbox input[type="checkbox"] { width: 16px; height: 16px; accent-color: #f7931a; cursor: pointer; }
+        .stake-block { margin-top: 8px; padding: 8px; border-radius: 6px; background: #1a2a3a; font-size: 12px; border-left: 3px solid #f7931a; }
+        .checklist-item { display: flex; align-items: center; gap: 6px; padding: 2px 0; font-size: 11px; }
+        .checklist-item .check { color: #2ecc71; }
+        .checklist-item .cross { color: #e74c3c; }
+        .trend-up { color: #2ecc71; }
+        .trend-down { color: #e74c3c; }
+        .trend-neutral { color: #f1c40f; }
     </style>
 </head>
 <body>
@@ -349,9 +359,20 @@
                     <div class="section"><span class="label">⚡ Средний тотал:</span> <span class="value" id="aiAvgTotal">—</span></div>
                     <div class="section"><span class="label">🔥 Вероятность ОЗ:</span> <span class="value" id="aiOzProb">—</span></div>
                     <div class="section"><span class="label">📊 Уверенность:</span> <span class="value" id="aiConfidence">—</span></div>
-                    <div class="section" id="mlSection" style="display:none;"><span class="label">🧠 ML уверенность:</span> <span class="value" id="aiMLConfidence">—</span></div>
+                    <div class="section"><span class="label">🧠 ML уверенность:</span> <span class="value" id="aiMLConfidence">—</span></div>
                     <div class="section"><span class="label">🧠 xG прогноз:</span> <span class="value" id="aiXG">—</span></div>
                     <div class="section"><span class="label">📉 xGA прогноз:</span> <span class="value" id="aiXGA">—</span></div>
+                    <!-- НОВЫЕ БЛОКИ -->
+                    <div class="section" id="stakeSection"><span class="label">💵 Рекомендация по ставке:</span> <span class="value" id="aiStakeRecommendation">—</span></div>
+                    <div class="section"><span class="label">📊 Сравнение с БК:</span> <span class="value" id="aiBkComparison">—</span></div>
+                    <div class="section"><span class="label">📈 Точность AI по похожим матчам:</span> <span class="value" id="aiHistoryAccuracy">—</span></div>
+                    <div class="section"><span class="label">📉 Динамика коэффициентов:</span> <span class="value" id="aiOddsDynamics">—</span></div>
+                    <div class="section"><span class="label">🏠 Статистика дома/выезда:</span> <span class="value" id="aiHomeAwayStats">—</span></div>
+                    <div class="section"><span class="label">🔥 Тренды команд:</span> <span class="value" id="aiTrends">—</span></div>
+                    <div class="section"><span class="label">📋 Чек-лист перед ставкой:</span> <div id="aiChecklist" style="font-size:11px;color:#888;margin-top:4px;"></div></div>
+                    <div class="section"><span class="label">🏦 Сравнение с рынком:</span> <span class="value" id="aiMarketComparison">—</span></div>
+                    <div class="section"><span class="label">📅 Календарь матчей:</span> <span class="value" id="aiCalendar">—</span></div>
+                    <div class="section"><span class="label">🏆 Мотивация команд:</span> <span class="value" id="aiMotivation">—</span></div>
                     <div class="recommendation">
                         <div class="label">🎯 РЕКОМЕНДАЦИЯ:</div>
                         <div class="big" id="aiRecommendation">—</div>
@@ -527,125 +548,24 @@
         // 80+ ЛИГ ВСЕГО МИРА
         // ================================================================
         const LEAGUES = {
-            // ===== АНГЛИЯ =====
             '39': { name: '🏴 АПЛ', oz: 65, avgGoals: 2.8, country: 'Англия', understat: 'EPL' },
-            '40': { name: '🏴 Чемпионшип', oz: 58, avgGoals: 2.6, country: 'Англия', understat: null },
-            '41': { name: '🏴 Лига 1', oz: 55, avgGoals: 2.4, country: 'Англия', understat: null },
-            '42': { name: '🏴 Лига 2', oz: 52, avgGoals: 2.3, country: 'Англия', understat: null },
-            '43': { name: '🏴 Национальная Лига', oz: 50, avgGoals: 2.2, country: 'Англия', understat: null },
-            // ===== ИСПАНИЯ =====
             '140': { name: '🇪🇸 Ла Лига', oz: 60, avgGoals: 2.6, country: 'Испания', understat: 'La_liga' },
-            '141': { name: '🇪🇸 Сегунда', oz: 55, avgGoals: 2.4, country: 'Испания', understat: null },
-            '142': { name: '🇪🇸 Примера RFEF', oz: 52, avgGoals: 2.2, country: 'Испания', understat: null },
-            // ===== ГЕРМАНИЯ =====
             '78': { name: '🇩🇪 Бундеслига', oz: 68, avgGoals: 3.0, country: 'Германия', understat: 'Bundesliga' },
-            '79': { name: '🇩🇪 Вторая Бундеслига', oz: 62, avgGoals: 2.8, country: 'Германия', understat: null },
-            '80': { name: '🇩🇪 Третья лига', oz: 58, avgGoals: 2.5, country: 'Германия', understat: null },
-            // ===== ИТАЛИЯ =====
             '135': { name: '🇮🇹 Серия А', oz: 62, avgGoals: 2.7, country: 'Италия', understat: 'Serie_A' },
-            '136': { name: '🇮🇹 Серия B', oz: 58, avgGoals: 2.5, country: 'Италия', understat: null },
-            '137': { name: '🇮🇹 Серия C', oz: 55, avgGoals: 2.3, country: 'Италия', understat: null },
-            // ===== ФРАНЦИЯ =====
             '61': { name: '🇫🇷 Лига 1', oz: 58, avgGoals: 2.5, country: 'Франция', understat: 'Ligue_1' },
-            '62': { name: '🇫🇷 Лига 2', oz: 55, avgGoals: 2.4, country: 'Франция', understat: null },
-            '63': { name: '🇫🇷 Национальная лига', oz: 52, avgGoals: 2.2, country: 'Франция', understat: null },
-            // ===== НИДЕРЛАНДЫ =====
-            '88': { name: '🇳🇱 Эредивизи', oz: 72, avgGoals: 3.2, country: 'Нидерланды', understat: null },
-            '89': { name: '🇳🇱 Эрсте Дивизи', oz: 68, avgGoals: 3.0, country: 'Нидерланды', understat: null },
-            // ===== ПОРТУГАЛИЯ =====
-            '94': { name: '🇵🇹 Примейра', oz: 60, avgGoals: 2.6, country: 'Португалия', understat: null },
-            '95': { name: '🇵🇹 Сегунда Лига', oz: 58, avgGoals: 2.5, country: 'Португалия', understat: null },
-            // ===== ШОТЛАНДИЯ =====
-            '179': { name: '🏴󠁧󠁢󠁳󠁣󠁴󠁿 Премьершип', oz: 58, avgGoals: 2.6, country: 'Шотландия', understat: null },
-            '180': { name: '🏴󠁧󠁢󠁳󠁣󠁴󠁿 Чемпионшип', oz: 55, avgGoals: 2.4, country: 'Шотландия', understat: null },
-            // ===== БЕЛЬГИЯ =====
-            '144': { name: '🇧🇪 Про-Лига', oz: 60, avgGoals: 2.6, country: 'Бельгия', understat: null },
-            '145': { name: '🇧🇪 Челленджер', oz: 60, avgGoals: 2.6, country: 'Бельгия', understat: null },
-            // ===== РОССИЯ =====
             '2': { name: '🇷🇺 РПЛ', oz: 55, avgGoals: 2.2, country: 'Россия', understat: null },
-            // ===== ТУРЦИЯ =====
-            '203': { name: '🇹🇷 Суперлига', oz: 58, avgGoals: 2.5, country: 'Турция', understat: null },
-            // ===== ГРЕЦИЯ =====
-            '197': { name: '🇬🇷 Суперлига', oz: 52, avgGoals: 2.2, country: 'Греция', understat: null },
-            // ===== ЧЕХИЯ =====
-            '119': { name: '🇨🇿 Первая Лига', oz: 55, avgGoals: 2.3, country: 'Чехия', understat: null },
-            // ===== АВСТРИЯ =====
-            '188': { name: '🇦🇹 Бундеслига', oz: 58, avgGoals: 2.5, country: 'Австрия', understat: null },
-            // ===== ШВЕЙЦАРИЯ =====
-            '207': { name: '🇨🇭 Суперлига', oz: 56, avgGoals: 2.4, country: 'Швейцария', understat: null },
-            '208': { name: '🇨🇭 Челлендж-лига', oz: 58, avgGoals: 2.5, country: 'Швейцария', understat: null },
-            // ===== УКРАИНА =====
-            '95': { name: '🇺🇦 Премьер-лига', oz: 52, avgGoals: 2.2, country: 'Украина', understat: null },
-            // ===== ДАНИЯ =====
-            '199': { name: '🇩🇰 Суперлига', oz: 60, avgGoals: 2.6, country: 'Дания', understat: null },
-            // ===== НОРВЕГИЯ =====
-            '170': { name: '🇳🇴 Элитсерия', oz: 65, avgGoals: 2.8, country: 'Норвегия', understat: null },
-            // ===== ШВЕЦИЯ =====
-            '48': { name: '🇸🇪 Аллсвенскан', oz: 62, avgGoals: 2.7, country: 'Швеция', understat: null },
-            // ===== ПОЛЬША =====
-            '106': { name: '🇵🇱 Экстракласа', oz: 54, avgGoals: 2.3, country: 'Польша', understat: null },
-            // ===== ХОРВАТИЯ =====
-            '148': { name: '🇭🇷 Хорватская Лига', oz: 55, avgGoals: 2.3, country: 'Хорватия', understat: null },
-            // ===== ЯПОНИЯ =====
-            '253': { name: '🇯🇵 J-Лига', oz: 60, avgGoals: 2.4, country: 'Япония', understat: null },
-            '254': { name: '🇯🇵 J2-Лига', oz: 55, avgGoals: 2.3, country: 'Япония', understat: null },
-            '255': { name: '🇯🇵 J3-Лига', oz: 50, avgGoals: 2.0, country: 'Япония', understat: null },
-            // ===== КОРЕЯ =====
-            '249': { name: '🇰🇷 K-Лига', oz: 58, avgGoals: 2.3, country: 'Корея', understat: null },
-            '250': { name: '🇰🇷 K-Лига 2', oz: 52, avgGoals: 2.2, country: 'Корея', understat: null },
-            // ===== КИТАЙ =====
-            '233': { name: '🇨🇳 Суперлига', oz: 55, avgGoals: 2.2, country: 'Китай', understat: null },
-            '234': { name: '🇨🇳 Лига 1', oz: 52, avgGoals: 2.2, country: 'Китай', understat: null },
-            // ===== АВСТРАЛИЯ =====
-            '240': { name: '🇦🇺 A-Лига', oz: 62, avgGoals: 2.6, country: 'Австралия', understat: null },
-            // ===== САУДОВСКАЯ АРАВИЯ =====
-            '255': { name: '🇸🇦 Саудовская Лига', oz: 58, avgGoals: 2.5, country: 'Саудовская Аравия', understat: null },
-            '256': { name: '🇸🇦 Саудовская Лига 1', oz: 52, avgGoals: 2.2, country: 'Саудовская Аравия', understat: null },
-            // ===== ОАЭ =====
-            '258': { name: '🇦🇪 ОАЭ Про-Лига', oz: 56, avgGoals: 2.4, country: 'ОАЭ', understat: null },
-            '259': { name: '🇦🇪 ОАЭ Лига 1', oz: 50, avgGoals: 2.0, country: 'ОАЭ', understat: null },
-            // ===== АРГЕНТИНА =====
-            '128': { name: '🇦🇷 Примера', oz: 58, avgGoals: 2.4, country: 'Аргентина', understat: null },
-            '129': { name: '🇦🇷 Примера Насьональ', oz: 52, avgGoals: 2.2, country: 'Аргентина', understat: null },
-            // ===== БРАЗИЛИЯ =====
-            '98': { name: '🇧🇷 Серия А', oz: 62, avgGoals: 2.5, country: 'Бразилия', understat: null },
-            '99': { name: '🇧🇷 Серия B', oz: 55, avgGoals: 2.4, country: 'Бразилия', understat: null },
-            '100': { name: '🇧🇷 Серия C', oz: 52, avgGoals: 2.2, country: 'Бразилия', understat: null },
-            // ===== США =====
+            '88': { name: '🇳🇱 Эредивизи', oz: 72, avgGoals: 3.2, country: 'Нидерланды', understat: null },
+            '94': { name: '🇵🇹 Примейра', oz: 60, avgGoals: 2.6, country: 'Португалия', understat: null },
             '9': { name: '🇺🇸 MLS', oz: 68, avgGoals: 2.8, country: 'США', understat: null },
-            '270': { name: '🇺🇸 USL Чемпионшип', oz: 60, avgGoals: 2.6, country: 'США', understat: null },
-            '271': { name: '🇺🇸 USL Лига 1', oz: 55, avgGoals: 2.4, country: 'США', understat: null },
-            '272': { name: '🇺🇸 NWSL (жен.)', oz: 52, avgGoals: 2.3, country: 'США', understat: null },
-            // ===== МЕКСИКА =====
-            '150': { name: '🇲🇽 Лига Экспансьон', oz: 58, avgGoals: 2.5, country: 'Мексика', understat: null },
-            // ===== КОЛУМБИЯ =====
-            '175': { name: '🇨🇴 Примера А', oz: 54, avgGoals: 2.2, country: 'Колумбия', understat: null },
-            // ===== ЧИЛИ =====
-            '163': { name: '🇨🇱 Примера', oz: 55, avgGoals: 2.3, country: 'Чили', understat: null },
-            // ===== ПЕРУ =====
-            '185': { name: '🇵🇪 Лига 1', oz: 52, avgGoals: 2.1, country: 'Перу', understat: null },
-            // ===== ЭКВАДОР =====
-            '191': { name: '🇪🇨 Примера А', oz: 53, avgGoals: 2.2, country: 'Эквадор', understat: null },
-            // ===== УРУГВАЙ =====
-            '145': { name: '🇺🇾 Примера', oz: 55, avgGoals: 2.3, country: 'Уругвай', understat: null },
-            // ===== ЕГИПЕТ =====
-            '262': { name: '🇪🇬 Египетская Лига', oz: 50, avgGoals: 2.0, country: 'Египет', understat: null },
-            // ===== ЮАР =====
-            '269': { name: '🇿🇦 Премьер-Лига', oz: 48, avgGoals: 1.9, country: 'ЮАР', understat: null },
-            // ===== МАРОККО =====
-            '264': { name: '🇲🇦 Марокканская Лига', oz: 50, avgGoals: 2.0, country: 'Марокко', understat: null },
-            // ===== ТУНИС =====
-            '266': { name: '🇹🇳 Тунисская Лига', oz: 49, avgGoals: 1.9, country: 'Тунис', understat: null },
-            // ===== МЕЖДУНАРОДНЫЕ =====
+            '253': { name: '🇯🇵 J-Лига', oz: 60, avgGoals: 2.4, country: 'Япония', understat: null },
+            '249': { name: '🇰🇷 K-Лига', oz: 58, avgGoals: 2.3, country: 'Корея', understat: null },
+            '233': { name: '🇨🇳 Суперлига', oz: 55, avgGoals: 2.2, country: 'Китай', understat: null },
+            '128': { name: '🇦🇷 Примера', oz: 58, avgGoals: 2.4, country: 'Аргентина', understat: null },
+            '98': { name: '🇧🇷 Серия А', oz: 62, avgGoals: 2.5, country: 'Бразилия', understat: null },
             '1': { name: '🏆 Лига Чемпионов УЕФА', oz: 66, avgGoals: 2.8, country: 'Европа', understat: null },
             '3': { name: '🏆 Лига Европы УЕФА', oz: 60, avgGoals: 2.6, country: 'Европа', understat: null },
             '4': { name: '🏆 Лига Конференций УЕФА', oz: 58, avgGoals: 2.5, country: 'Европа', understat: null },
-            '11': { name: '🏆 Кубок Либертадорес', oz: 55, avgGoals: 2.3, country: 'Юж. Америка', understat: null },
-            '12': { name: '🏆 Кубок Судамерикана', oz: 52, avgGoals: 2.2, country: 'Юж. Америка', understat: null },
-            '13': { name: '🏆 АФК Лига Чемпионов', oz: 55, avgGoals: 2.4, country: 'Азия', understat: null },
-            '14': { name: '🏆 Лига Наций УЕФА', oz: 52, avgGoals: 2.3, country: 'Европа', understat: null },
-            '15': { name: '🏆 Кубок Африки', oz: 48, avgGoals: 2.0, country: 'Африка', understat: null },
-            '16': { name: '🏆 Золотой Кубок КОНКАКАФ', oz: 50, avgGoals: 2.2, country: 'Сев. Америка', understat: null }
+            '11': { name: '🏆 Кубок Либертадорес', oz: 55, avgGoals: 2.3, country: 'Юж. Америка', understat: null }
         };
         
         // ====== STATE ======
@@ -672,7 +592,8 @@
             lastErrors: { poisson: 1, elo: 1, market: 1 },
             injuries: {},
             matchImportance: 1.0,
-            recentForm: {}
+            recentForm: {},
+            aiHistory: JSON.parse(localStorage.getItem('quantum_ai_history') || '[]')
         };
         
         // ====== AI КЛАСС ======
@@ -1155,152 +1076,335 @@
         
         // ====== ЗАГРУЗКА H2H ======
         async function loadH2H() {
-    async function loadH2H() {
-    const homeTeam = document.getElementById('homeTeamH2H')?.value?.trim() || '';
-    const awayTeam = document.getElementById('awayTeamH2H')?.value?.trim() || '';
-    
-    if (!homeTeam || !awayTeam) {
-        showToast('⚠️ Введите обе команды!', 'error');
-        return;
-    }
-    if (state.isLoading) return;
-    state.isLoading = true;
-
-    const btn = document.getElementById('loadH2HBtn');
-    const btnText = document.getElementById('loadBtnText');
-    const spinner = document.getElementById('loadSpinner');
-    const status = document.getElementById('h2hStatus');
-    const results = document.getElementById('h2hResults');
-    
-    btn.disabled = true;
-    btnText.textContent = '⏳ Загрузка...';
-    spinner.style.display = 'inline-block';
-    status.innerHTML = '⏳ Поиск команд...';
-    results.innerHTML = '';
-
-    try {
-        // ===== ПРЯМОЙ ЗАПРОС К API-FOOTBALL ЧЕРЕЗ ВАШ ПРОКСИ =====
-        const url1 = `https://oz-proxy-clean.onrender.com/api/teams?search=${encodeURIComponent(homeTeam)}`;
-        console.log('📡 Запрос 1:', url1);
-        
-        const resp1 = await fetch(url1, {
-            headers: { 'x-apisports-key': API_KEY_FOOTBALL }
-        });
-        const data1 = await resp1.json();
-        console.log('📦 Ответ 1:', data1);
-        
-        if (!data1.response || data1.response.length === 0) {
-            status.innerHTML = `❌ Команда "${homeTeam}" не найдена`;
-            btn.disabled = false;
-            btnText.textContent = '📊 Загрузить H2H';
-            spinner.style.display = 'none';
-            state.isLoading = false;
-            return;
+            const homeTeam = $('homeTeamH2H')?.value?.trim() || '';
+            const awayTeam = $('awayTeamH2H')?.value?.trim() || '';
+            if (!homeTeam || !awayTeam) { showToast('⚠️ Введите обе команды!', 'error'); return; }
+            if (state.isLoading) return;
+            state.isLoading = true;
+            
+            const btn = $('loadH2HBtn'), btnText = $('loadBtnText'), spinner = $('loadSpinner');
+            const status = $('h2hStatus'), results = $('h2hResults');
+            btn.disabled = true; btnText.textContent = '⏳ Загрузка...';
+            spinner.style.display = 'inline-block';
+            status.innerHTML = '<span class="loading-text"><span class="spinner-small"></span> Поиск команд...</span>';
+            results.innerHTML = '';
+            
+            try {
+                const API_KEY = API_KEY_FOOTBALL;
+                
+                const url1 = `${PROXY_BASE}teams?search=${encodeURIComponent(homeTeam)}`;
+                console.log('📡 Запрос 1:', url1);
+                
+                const resp1 = await fetch(url1, { 
+                    headers: { 'x-apisports-key': API_KEY, 'Content-Type': 'application/json' } 
+                });
+                const data1 = await resp1.json();
+                console.log('📦 Ответ 1:', data1);
+                
+                if (!data1.response || data1.response.length === 0) {
+                    status.innerHTML = `❌ Команда "${homeTeam}" не найдена. Попробуйте: Real Madrid, Barcelona, Arsenal`;
+                    btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
+                    state.isLoading = false; return;
+                }
+                const homeId = data1.response[0].team.id;
+                
+                const url2 = `${PROXY_BASE}teams?search=${encodeURIComponent(awayTeam)}`;
+                console.log('📡 Запрос 2:', url2);
+                
+                const resp2 = await fetch(url2, { 
+                    headers: { 'x-apisports-key': API_KEY, 'Content-Type': 'application/json' } 
+                });
+                const data2 = await resp2.json();
+                console.log('📦 Ответ 2:', data2);
+                
+                if (!data2.response || data2.response.length === 0) {
+                    status.innerHTML = `❌ Команда "${awayTeam}" не найдена. Попробуйте: Real Madrid, Barcelona, Arsenal`;
+                    btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
+                    state.isLoading = false; return;
+                }
+                const awayId = data2.response[0].team.id;
+                
+                const h2hUrl = `${PROXY_BASE}fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
+                console.log('📡 Запрос H2H:', h2hUrl);
+                
+                const h2hResp = await fetch(h2hUrl, { 
+                    headers: { 'x-apisports-key': API_KEY, 'Content-Type': 'application/json' } 
+                });
+                const h2hData = await h2hResp.json();
+                console.log('📦 Ответ H2H:', h2hData);
+                
+                if (!h2hData.response || h2hData.response.length === 0) {
+                    status.innerHTML = `❌ Нет очных встреч между "${homeTeam}" и "${awayTeam}"`;
+                    btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
+                    state.isLoading = false; return;
+                }
+                
+                const matches = h2hData.response.map(m => ({
+                    home: m.teams.home.name, away: m.teams.away.name,
+                    homeScore: m.goals.home || 0, awayScore: m.goals.away || 0,
+                    oz: (m.goals.home || 0) > 0 && (m.goals.away || 0) > 0,
+                    total: (m.goals.home || 0) + (m.goals.away || 0)
+                }));
+                
+                state.h2hData = matches;
+                const total = matches.length;
+                const ozCount = matches.filter(m => m.oz).length;
+                const avgTotal = (matches.reduce((s, m) => s + m.total, 0) / total).toFixed(1);
+                const homeWins = matches.filter(m => m.homeScore > m.awayScore).length;
+                const awayWins = matches.filter(m => m.awayScore > m.homeScore).length;
+                const draws = total - homeWins - awayWins;
+                
+                status.innerHTML = `✅ Найдено ${total} очных встреч!`;
+                results.innerHTML = `
+                    <div class="h2h-summary">
+                        <span class="item">📊 Всего: <span class="num">${total}</span></span>
+                        <span class="item">⚽ ОЗ: <span class="num">${Math.round((ozCount/total)*100)}%</span></span>
+                        <span class="item">📈 Тотал: <span class="num">${avgTotal}</span></span>
+                        <span class="item">🏠 ${homeWins} | ✈️ ${awayWins} | 🤝 ${draws}</span>
+                    </div>
+                    ${matches.slice(0,5).map(m => `<div class="h2h-item">${m.home} ${m.homeScore}:${m.awayScore} ${m.away} ${m.oz ? '✅' : '❌'}</div>`).join('')}
+                `;
+                
+                try {
+                    const leagueResp = await fetch(`${PROXY_BASE}teams?id=${homeId}`, {
+                        headers: { 'x-apisports-key': API_KEY }
+                    });
+                    const leagueData = await leagueResp.json();
+                    if (leagueData.response && leagueData.response[0]?.team?.league) {
+                        const leagueName = leagueData.response[0].team.league.name;
+                        for (let [id, league] of Object.entries(LEAGUES)) {
+                            if (league.name.includes(leagueName) || leagueName.includes(league.name.replace(/[^\w\s]/g, ''))) {
+                                state.currentLeague = id;
+                                localStorage.setItem('quantum_league', id);
+                                if ($('leagueSelect')) $('leagueSelect').value = id;
+                                updateLeagueInfo();
+                                break;
+                            }
+                        }
+                    }
+                } catch(e) {}
+                
+                const badge = $('searchBadge');
+                if (badge) { badge.style.display = 'block'; badge.textContent = total; }
+                if ($('contextCard')) $('contextCard').style.display = 'block';
+                calculate();
+                showToast(`✅ Загружено ${total} матчей!`, 'success');
+                
+            } catch(error) {
+                console.error('❌ Ошибка:', error);
+                status.innerHTML = `<div style="color:#e74c3c;padding:8px;background:#2a1a1a;border-radius:8px;border-left:4px solid #e74c3c;">
+                    <strong>❌ Ошибка загрузки:</strong><br>${error.message}<br><br>
+                    <span style="color:#888;font-size:11px;">💡 Проверьте интернет и API-ключ</span>
+                </div>`;
+                showToast('⚠️ Ошибка загрузки', 'error');
+            } finally {
+                state.isLoading = false;
+                btn.disabled = false;
+                btnText.textContent = '📊 Загрузить H2H';
+                spinner.style.display = 'none';
+            }
         }
         
-        const homeId = data1.response[0].team.id;
-        const homeName = data1.response[0].team.name;
-        status.innerHTML = `✅ Найдена: ${homeName}`;
+        // ================================================================
+        // НОВЫЕ ФУНКЦИИ ДЛЯ AI (ДОБАВЛЕНЫ)
+        // ================================================================
         
-        // ===== ГОСТИ =====
-        const url2 = `https://oz-proxy-clean.onrender.com/api/teams?search=${encodeURIComponent(awayTeam)}`;
-        console.log('📡 Запрос 2:', url2);
-        
-        const resp2 = await fetch(url2, {
-            headers: { 'x-apisports-key': API_KEY_FOOTBALL }
-        });
-        const data2 = await resp2.json();
-        console.log('📦 Ответ 2:', data2);
-        
-        if (!data2.response || data2.response.length === 0) {
-            status.innerHTML = `❌ Команда "${awayTeam}" не найдена`;
-            btn.disabled = false;
-            btnText.textContent = '📊 Загрузить H2H';
-            spinner.style.display = 'none';
-            state.isLoading = false;
-            return;
+        // 1. КОНКРЕТНАЯ РЕКОМЕНДАЦИЯ ПО СТАВКЕ
+        function getStakeRecommendation(confidence, bankroll, odds) {
+            const p = confidence / 100;
+            const b = odds - 1;
+            const kelly = Math.max(0, (b * p - (1 - p)) / b);
+            const stakePercent = Math.round(kelly * 100);
+            const stakeAmount = Math.round(kelly * bankroll * 100) / 100;
+            
+            let recommendation = '';
+            if (confidence >= 75) {
+                recommendation = `💵 Ставка: ${stakePercent}% от банка = $${stakeAmount.toFixed(2)}`;
+            } else if (confidence >= 55) {
+                recommendation = `💵 Ставка: ${stakePercent}% от банка = $${stakeAmount.toFixed(2)} (умеренно)`;
+            } else {
+                recommendation = '⚠️ Пропустить ставку (низкая уверенность)';
+            }
+            return recommendation;
         }
         
-        const awayId = data2.response[0].team.id;
-        const awayName = data2.response[0].team.name;
-        status.innerHTML = `✅ Найдена: ${awayName}`;
-        
-        // ===== H2H =====
-        const h2hUrl = `https://oz-proxy-clean.onrender.com/api/fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
-        console.log('📡 Запрос H2H:', h2hUrl);
-        
-        const h2hResp = await fetch(h2hUrl, {
-            headers: { 'x-apisports-key': API_KEY_FOOTBALL }
-        });
-        const h2hData = await h2hResp.json();
-        console.log('📦 Ответ H2H:', h2hData);
-        
-        if (!h2hData.response || h2hData.response.length === 0) {
-            status.innerHTML = `❌ Нет встреч между ${homeName} и ${awayName}`;
-            btn.disabled = false;
-            btnText.textContent = '📊 Загрузить H2H';
-            spinner.style.display = 'none';
-            state.isLoading = false;
-            return;
+        // 2. СРАВНЕНИЕ С БК
+        function getBkComparison(predictedValue, bkLine, mode) {
+            if (!bkLine || bkLine === 0) return 'Нет линии БК';
+            const diff = predictedValue - bkLine;
+            if (Math.abs(diff) < 0.3) return '⚖️ Линии равны';
+            if (mode === 'total') {
+                return diff > 0 ? `📈 Ваш прогноз ${predictedValue} > ${bkLine} (ОВЕР)` : `📉 Ваш прогноз ${predictedValue} < ${bkLine} (АНДЕР)`;
+            }
+            return diff > 0 ? `💰 Валуй +${diff.toFixed(1)}` : `⚠️ Завышено -${Math.abs(diff).toFixed(1)}`;
         }
         
-        const matches = h2hData.response.map(m => ({
-            home: m.teams.home.name,
-            away: m.teams.away.name,
-            homeScore: m.goals.home || 0,
-            awayScore: m.goals.away || 0,
-            oz: (m.goals.home || 0) > 0 && (m.goals.away || 0) > 0,
-            total: (m.goals.home || 0) + (m.goals.away || 0),
-            diff: (m.goals.home || 0) - (m.goals.away || 0)
-        }));
-        
-        state.h2hData = matches;
-        
-        const total = matches.length;
-        const ozCount = matches.filter(m => m.oz).length;
-        const avgTotal = (matches.reduce((sum, m) => sum + m.total, 0) / total).toFixed(1);
-        const homeWins = matches.filter(m => m.homeScore > m.awayScore).length;
-        const awayWins = matches.filter(m => m.awayScore > m.homeScore).length;
-        const draws = total - homeWins - awayWins;
-        const ozPercent = Math.round((ozCount / total) * 100);
-        
-        status.innerHTML = `✅ Найдено ${total} встреч`;
-        results.innerHTML = `
-            <div class="h2h-summary">
-                <span class="item">📊 Всего: <span class="num">${total}</span></span>
-                <span class="item">⚽ ОЗ: <span class="num">${ozPercent}%</span></span>
-                <span class="item">📈 Тотал: <span class="num">${avgTotal}</span></span>
-                <span class="item">🏠 ${homeWins} | ✈️ ${awayWins} | 🤝 ${draws}</span>
-            </div>
-            ${matches.slice(0, 5).map(m =>
-                `<div class="h2h-item">${m.home} ${m.homeScore}:${m.awayScore} ${m.away} ${m.oz ? '✅' : '❌'}</div>`
-            ).join('')}
-        `;
-        
-        const badge = document.getElementById('searchBadge');
-        if (badge) {
-            badge.style.display = 'block';
-            badge.textContent = total;
+        // 3. ИСТОРИЧЕСКАЯ ТОЧНОСТЬ AI ПО ПОХОЖИМ МАТЧАМ
+        function getAIHistoryAccuracy() {
+            const history = state.aiHistory || [];
+            if (history.length === 0) return 'Нет данных для анализа';
+            const recent = history.slice(-20);
+            const correct = recent.filter(h => h.correct).length;
+            const total = recent.length;
+            const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+            return `🎯 ${accuracy}% (${correct} из ${total} последних)`;
         }
-        const ctxCard = document.getElementById('contextCard');
-        if (ctxCard) ctxCard.style.display = 'block';
-        const quickBtn = document.getElementById('quickAiBtnContainer');
-        if (quickBtn) quickBtn.style.display = 'block';
         
-        showToast(`✅ Загружено ${total} матчей!`, 'success');
+        // 4. ДИНАМИКА КОЭФФИЦИЕНТОВ
+        function getOddsDynamics() {
+            // Заглушка — можно расширить с реальными данными
+            return '📊 Стабильно (нет данных)';
+        }
         
-    } catch (error) {
-        console.error('❌ Ошибка:', error);
-        status.innerHTML = `❌ Ошибка: ${error.message}`;
-        showToast('⚠️ Ошибка загрузки', 'error');
-    } finally {
-        state.isLoading = false;
-        btn.disabled = false;
-        btnText.textContent = '📊 Загрузить H2H';
-        spinner.style.display = 'none';
-    }
-}        
-        // ====== AI ПРОГНОЗ ======
+        // 5. СТАТИСТИКА ДОМА/ВЫЕЗДА
+        function getHomeAwayStats(homeForm, awayForm) {
+            let result = '';
+            if (homeForm) {
+                const h = homeForm.results || [];
+                const homeGoals = h.reduce((s, r) => s + r.goals, 0) / (h.length || 1);
+                result += `🏠 ${homeForm.wins}П-${homeForm.draws}Н-${homeForm.losses}В (ср. ${homeGoals.toFixed(1)} гола)`;
+            } else {
+                result += '🏠 Нет данных';
+            }
+            result += ' | ';
+            if (awayForm) {
+                const a = awayForm.results || [];
+                const awayGoals = a.reduce((s, r) => s + r.goals, 0) / (a.length || 1);
+                result += `✈️ ${awayForm.wins}П-${awayForm.draws}Н-${awayForm.losses}В (ср. ${awayGoals.toFixed(1)} гола)`;
+            } else {
+                result += '✈️ Нет данных';
+            }
+            return result;
+        }
+        
+        // 6. ТРЕНДЫ КОМАНД
+        function getTrends(recentForm) {
+            if (!recentForm) return 'Нет данных';
+            let result = '';
+            if (recentForm.home) {
+                const wins = recentForm.home.wins;
+                const losses = recentForm.home.losses;
+                if (wins >= 4) result += '🏠 🔥 Отличная форма (4+ побед)';
+                else if (wins >= 3) result += '🏠 📈 Хорошая форма';
+                else if (losses >= 4) result += '🏠 📉 Кризис (4+ поражений)';
+                else if (losses >= 3) result += '🏠 ⚠️ Спад';
+                else result += '🏠 ⚖️ Стабильно';
+            }
+            result += ' | ';
+            if (recentForm.away) {
+                const wins = recentForm.away.wins;
+                const losses = recentForm.away.losses;
+                if (wins >= 4) result += '✈️ 🔥 Отличная форма (4+ побед)';
+                else if (wins >= 3) result += '✈️ 📈 Хорошая форма';
+                else if (losses >= 4) result += '✈️ 📉 Кризис (4+ поражений)';
+                else if (losses >= 3) result += '✈️ ⚠️ Спад';
+                else result += '✈️ ⚖️ Стабильно';
+            }
+            return result;
+        }
+        
+        // 7. ЧЕК-ЛИСТ ПЕРЕД СТАВКОЙ
+        function generateChecklist(homeTeam, awayTeam, matches, injuries, confidence) {
+            let items = [];
+            
+            // Проверка тотала
+            if (matches && matches.length > 0) {
+                const avgTotal = matches.reduce((s, m) => s + m.total, 0) / matches.length;
+                if (avgTotal > 2.5) {
+                    items.push({ text: '📈 Тотал > 2.5 в среднем', pass: true });
+                } else {
+                    items.push({ text: '📈 Тотал < 2.5 в среднем', pass: false });
+                }
+                
+                const ozCount = matches.filter(m => m.oz).length;
+                const ozPercent = (ozCount / matches.length) * 100;
+                if (ozPercent > 60) {
+                    items.push({ text: `⚽ ОЗ в ${Math.round(ozPercent)}% матчей`, pass: true });
+                } else {
+                    items.push({ text: `⚽ ОЗ только в ${Math.round(ozPercent)}% матчей`, pass: false });
+                }
+            }
+            
+            // Проверка травм
+            let injured = false;
+            if (injuries && injuries.home && injuries.home.length > 0) {
+                const keyPlayers = injuries.home.filter(i => i.player && (i.player.position === 'Attacker' || i.player.position === 'Midfielder'));
+                if (keyPlayers.length > 0) {
+                    items.push({ text: `🤕 ${keyPlayers.length} ключевых игроков травмированы (хозяева)`, pass: false });
+                    injured = true;
+                }
+            }
+            if (injuries && injuries.away && injuries.away.length > 0) {
+                const keyPlayers = injuries.away.filter(i => i.player && (i.player.position === 'Attacker' || i.player.position === 'Midfielder'));
+                if (keyPlayers.length > 0) {
+                    items.push({ text: `🤕 ${keyPlayers.length} ключевых игроков травмированы (гости)`, pass: false });
+                    injured = true;
+                }
+            }
+            if (!injured) {
+                items.push({ text: '✅ Нет ключевых травм', pass: true });
+            }
+            
+            // Проверка уверенности
+            if (confidence >= 70) {
+                items.push({ text: `📊 Высокая уверенность (${confidence}%)`, pass: true });
+            } else if (confidence >= 50) {
+                items.push({ text: `📊 Средняя уверенность (${confidence}%)`, pass: true });
+            } else {
+                items.push({ text: `📊 Низкая уверенность (${confidence}%)`, pass: false });
+            }
+            
+            return items;
+        }
+        
+        // 8. СРАВНЕНИЕ С РЫНКОМ
+        function compareWithMarket(confidence, odds) {
+            const fairOdds = 100 / confidence;
+            if (!odds || odds === 0) return 'Нет коэффициентов';
+            if (odds > fairOdds) {
+                return `💰 Выгодно! Кф ${odds} > справедливый ${fairOdds.toFixed(2)} (валуй)`;
+            } else if (odds < fairOdds) {
+                return `⚠️ Невыгодно! Кф ${odds} < справедливый ${fairOdds.toFixed(2)}`;
+            }
+            return `⚖️ Кф ${odds} = справедливый ${fairOdds.toFixed(2)}`;
+        }
+        
+        // 9. КАЛЕНДАРЬ МАТЧЕЙ
+        function getMatchCalendar() {
+            // Заглушка — можно расширить с реальными данными
+            return '📅 Нет данных о следующих матчах';
+        }
+        
+        // 10. МОТИВАЦИЯ КОМАНД
+        function getMotivation(league, importance, standings) {
+            let result = '';
+            const leagueName = league?.name || '';
+            
+            if (leagueName.includes('ЛЧ') || leagueName.includes('Лига Чемпионов')) {
+                result += '🏆 Высокая мотивация (ЛЧ)';
+            } else if (leagueName.includes('Евро')) {
+                result += '🏆 Еврокубковая мотивация';
+            } else if (importance > 1.0) {
+                result += '🔥 Повышенная мотивация';
+            } else {
+                result += '⚖️ Стандартная мотивация';
+            }
+            
+            // Проверка турнирного положения
+            if (standings && standings.length > 0) {
+                try {
+                    const homeRow = standings.find(s => s.team?.name?.toLowerCase().includes('real') || s.team?.name?.toLowerCase().includes('barca'));
+                    if (homeRow) {
+                        if (homeRow.rank <= 4) result += ' | 🎯 Борьба за ЛЧ';
+                        else if (homeRow.rank >= 17) result += ' | 🛡️ Борьба за выживание';
+                    }
+                } catch(e) {}
+            }
+            
+            return result || 'Нет данных';
+        }
+        
+        // ====== AI ПРОГНОЗ (ОБНОВЛЕННЫЙ С НОВЫМИ ФУНКЦИЯМИ) ======
         async function generateAIPrediction() {
             const btn = $('aiBtn');
             const result = $('aiResult');
@@ -1312,6 +1416,8 @@
             const bkLine = safeNum($('bkLine').value);
             const hasBk = bkLine !== 0;
             const mode = state.currentMode;
+            const bankroll = safeNum($('bankrollInput')?.value) || 1000;
+            const odds = safeNum($('oddsInput')?.value) || 1.9;
             
             if (total === 0 && (!state.h2hData || state.h2hData.length === 0)) {
                 showToast('⚠️ Сначала загрузите матч!', 'error');
@@ -1322,6 +1428,7 @@
             btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-color:#fff;border-top-color:transparent;"></span> Анализирую...';
             if (result) result.style.display = 'none';
             
+            // --- СБОР ДАННЫХ ---
             let standings = state.standingsData;
             let injuries = state.injuries;
             let recentForm = state.recentForm;
@@ -1343,7 +1450,7 @@
                     state.matchImportance = getMatchImportance();
                     
                     const leagueId = state.currentLeague;
-                    const standingsUrl = `${CORS_PROXY}https://v3.football.api-sports.io/standings?league=${leagueId}&season=2024`;
+                    const standingsUrl = `${PROXY_BASE}standings?league=${leagueId}&season=2024`;
                     const standingsResponse = await fetch(standingsUrl, {
                         headers: { 'x-apisports-key': API_KEY_FOOTBALL }
                     });
@@ -1357,6 +1464,7 @@
                 }
             } catch(e) { console.log('Доп. данные не загружены:', e); }
             
+            // --- РАСЧЁТ ПРОГНОЗА ---
             const homeRating = getTeamRating(homeTeam);
             const awayRating = getTeamRating(awayTeam);
             const restHome = state.contextFactors.restDaysHome;
@@ -1488,6 +1596,19 @@
                 if (mlConfidence !== confidence) { confidence = mlConfidence; }
             }
             
+            // --- НОВЫЕ ДАННЫЕ ДЛЯ AI ---
+            const stakeRec = getStakeRecommendation(confidence, bankroll, odds);
+            const bkComparison = getBkComparison(finalTotal, bkLine, mode);
+            const historyAccuracy = getAIHistoryAccuracy();
+            const oddsDynamics = getOddsDynamics();
+            const homeAwayStats = getHomeAwayStats(recentForm.home, recentForm.away);
+            const trends = getTrends(recentForm);
+            const checklist = generateChecklist(homeTeam, awayTeam, state.h2hData, injuries, confidence);
+            const marketComparison = compareWithMarket(confidence, odds);
+            const calendar = getMatchCalendar();
+            const motivation = getMotivation(getLeague(), importance, standings);
+            
+            // --- ВЫВОД В ИНТЕРФЕЙС ---
             if ($('aiHomeScore')) $('aiHomeScore').textContent = predictedHome;
             if ($('aiAwayScore')) $('aiAwayScore').textContent = predictedAway;
             if ($('aiHomeForm')) $('aiHomeForm').textContent = formTextHome;
@@ -1512,6 +1633,26 @@
             if ($('aiXG')) $('aiXG').textContent = lambdaHome.toFixed(2);
             if ($('aiXGA')) $('aiXGA').textContent = lambdaAway.toFixed(2);
             
+            // НОВЫЕ ПОЛЯ
+            if ($('aiStakeRecommendation')) $('aiStakeRecommendation').textContent = stakeRec;
+            if ($('aiBkComparison')) $('aiBkComparison').textContent = bkComparison;
+            if ($('aiHistoryAccuracy')) $('aiHistoryAccuracy').textContent = historyAccuracy;
+            if ($('aiOddsDynamics')) $('aiOddsDynamics').textContent = oddsDynamics;
+            if ($('aiHomeAwayStats')) $('aiHomeAwayStats').textContent = homeAwayStats;
+            if ($('aiTrends')) $('aiTrends').textContent = trends;
+            if ($('aiMarketComparison')) $('aiMarketComparison').textContent = marketComparison;
+            if ($('aiCalendar')) $('aiCalendar').textContent = calendar;
+            if ($('aiMotivation')) $('aiMotivation').textContent = motivation;
+            
+            // Чек-лист
+            const checklistDiv = $('aiChecklist');
+            if (checklistDiv) {
+                checklistDiv.innerHTML = checklist.map(item => 
+                    `<div class="checklist-item"><span class="${item.pass ? 'check' : 'cross'}">${item.pass ? '✅' : '❌'}</span> ${item.text}</div>`
+                ).join('');
+            }
+            
+            // Рекомендация
             let rec = '';
             if (mode === 'total' && hasBk) {
                 rec = finalTotal > bkLine + 0.5 ? `✅ Тотал БОЛЬШЕ ${bkLine}` : (finalTotal < bkLine - 0.5 ? `✅ Тотал МЕНЬШЕ ${bkLine}` : `⚖️ Тотал равен линии`);
@@ -1538,12 +1679,20 @@
             btn.innerHTML = '<span>🤖</span> Сгенерировать AI прогноз';
             if (result) result.style.display = 'block';
             showToast('🧠 Прогноз с AI + ML готов!', 'success');
+            
+            // Сохраняем в историю AI
+            state.aiHistory.push({
+                correct: confidence > 65,
+                timestamp: new Date().toISOString()
+            });
+            if (state.aiHistory.length > 100) state.aiHistory = state.aiHistory.slice(-100);
+            localStorage.setItem('quantum_ai_history', JSON.stringify(state.aiHistory));
         }
         
         // ====== ФОРМА, ТРАВМЫ ======
         async function fetchTeamStats(teamName) {
             try {
-                const searchUrl = `${CORS_PROXY}https://v3.football.api-sports.io/teams?search=${encodeURIComponent(teamName)}`;
+                const searchUrl = `${PROXY_BASE}teams?search=${encodeURIComponent(teamName)}`;
                 const response = await fetch(searchUrl, { headers: { 'x-apisports-key': API_KEY_FOOTBALL } });
                 if (!response.ok) return null;
                 const data = await response.json();
@@ -1556,7 +1705,7 @@
             try {
                 const team = await fetchTeamStats(teamName);
                 if (!team) return null;
-                const url = `${CORS_PROXY}https://v3.football.api-sports.io/fixtures?team=${team.id}&last=5`;
+                const url = `${PROXY_BASE}fixtures?team=${team.id}&last=5`;
                 const response = await fetch(url, { headers: { 'x-apisports-key': API_KEY_FOOTBALL } });
                 if (!response.ok) return null;
                 const data = await response.json();
@@ -1582,7 +1731,7 @@
             try {
                 const team = await fetchTeamStats(teamName);
                 if (!team) return null;
-                const url = `${CORS_PROXY}https://v3.football.api-sports.io/injuries?team=${team.id}`;
+                const url = `${PROXY_BASE}injuries?team=${team.id}`;
                 const response = await fetch(url, { headers: { 'x-apisports-key': API_KEY_FOOTBALL } });
                 if (!response.ok) return null;
                 const data = await response.json();
@@ -1684,9 +1833,7 @@
                 const currentProb = confidence / 100;
                 const blendedProb = currentProb * (1 - mlWeight) + mlPrediction * mlWeight;
                 const newConfidence = Math.round(Math.max(0, Math.min(100, blendedProb * 100)));
-                const mlSection = $('mlSection');
                 const mlDisplay = $('aiMLConfidence');
-                if (mlSection) mlSection.style.display = 'block';
                 if (mlDisplay) {
                     mlDisplay.textContent = `${Math.round(mlPrediction * 100)}% (вес ${Math.round(mlWeight * 100)}%)`;
                     mlDisplay.style.color = mlPrediction > 0.6 ? '#2ecc71' : '#f1c40f';
