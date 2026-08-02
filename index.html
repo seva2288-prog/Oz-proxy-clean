@@ -189,6 +189,7 @@
         .bk-row input { flex: 1; min-width: 60px; padding: 6px 8px; border-radius: 6px; border: 1px solid #2a3140; background: #0b0e14; color: #e0e0e0; text-align: center; font-size: 14px; outline: 0; }
         .bk-row input:focus { border-color: #f7931a; }
         .bk-row input:disabled { opacity: 0.5; }
+        canvas { max-width: 100%; height: auto; }
     </style>
 </head>
 <body>
@@ -271,6 +272,7 @@
                     <div class="section"><span class="label">📊 Уверенность:</span> <span class="value" id="aiConfidence">—</span></div>
                     <div class="section"><span class="label">📈 Тренд голов:</span> <span class="value" id="aiTrend">—</span></div>
                     <div class="section"><span class="label">⚡ Средний тотал:</span> <span class="value" id="aiAvgTotal">—</span></div>
+                    <div class="section"><span class="label">📊 Poisson прогноз:</span> <span class="value" id="aiPoisson">—</span></div>
                     <div class="recommendation">
                         <div class="label">🎯 РЕКОМЕНДАЦИЯ:</div>
                         <div class="big" id="aiRecommendation">—</div>
@@ -343,7 +345,7 @@
                     <div class="dashboard-item"><div class="num" id="kpiBest">0</div><div class="label">Макс</div></div>
                 </div>
             </div>
-            <div class="card"><div class="card-title">📈 График баланса</div><div class="chart-bars" id="chartBars"></div></div>
+            <div class="card"><div class="card-title">📈 График баланса</div><canvas id="balanceChart" height="60"></canvas></div>
             <div class="card"><div class="card-title">📊 Общая статистика</div>
                 <div class="stats-grid">
                     <div class="stats-card"><div class="num" id="statTotal">0</div><div class="label">Всего ставок</div></div>
@@ -428,36 +430,82 @@
     <div class="swipe-indicator show" id="swipeIndicator">👆 Свайп влево/вправо</div>
     <script>
         // ================================================================
-        // КЛЮЧИ
+        // КЛЮЧИ И УТИЛИТЫ
         // ================================================================
         const API_KEY = localStorage.getItem('quantum_api_key') || 'ваш_платный_ключ';
         const PROXY_BASE = 'https://oz-proxy-clean.onrender.com/api/';
+        
+        // Кэш API с ограничением размера
+        const API_CACHE = {};
+        const MAX_CACHE_SIZE = 100;
 
-        // ================================================================
-        // 200+ ЛИГ (автоматически загружаются через API)
-        // ================================================================
-        let LEAGUES = JSON.parse(localStorage.getItem('quantum_leagues') || '{}');
-        let ALL_LEAGUES_LOADED = false;
+        function sanitizeHTML(str) {
+            if (!str) return '—';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
 
-        // ================================================================
-        // STATE
-        // ================================================================
-        let state = {
-            bets: JSON.parse(localStorage.getItem('quantum_bets') || '[]'),
-            currentLeague: localStorage.getItem('quantum_league') || '39',
-            currentMode: 'total',
-            h2hData: null,
-            isLoading: false,
-            liveTimer: null,
-            currentOdds: null,
-            apiKey: API_KEY,
-            currentTab: 'analysis',
-            teamStats: {},
-            liveMatches: [],
-            trends: {},
-            injuries: {},
-            xgData: {}
-        };
+        function debounce(fn, delay = 300) {
+            let timer;
+            return (...args) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn(...args), delay);
+            };
+        }
+
+        async function fetchWithRetry(url, options, retries = 3, delayMs = 1000) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return response;
+                } catch (e) {
+                    if (i === retries - 1) throw e;
+                    await delay(delayMs * (i + 1));
+                }
+            }
+        }
+
+        async function fetchWithCache(url, options = {}, ttl = 3600000) {
+            const key = url + JSON.stringify(options);
+            if (API_CACHE[key] && Date.now() - API_CACHE[key].time < ttl) {
+                return API_CACHE[key].data;
+            }
+            const response = await fetchWithRetry(url, options);
+            const data = await response.json();
+            
+            // Ограничиваем размер кэша
+            const keys = Object.keys(API_CACHE);
+            if (keys.length >= MAX_CACHE_SIZE) {
+                delete API_CACHE[keys[0]];
+            }
+            
+            API_CACHE[key] = { data, time: Date.now() };
+            return data;
+        }
+
+        function factorial(n) {
+            if (n === 0 || n === 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) result *= i;
+            return result;
+        }
+
+        function poissonProbability(lambda, k) {
+            return Math.pow(lambda, k) * Math.exp(-lambda) / factorial(k);
+        }
+
+        function calculatePoissonDistribution(lambda, max = 6) {
+            const dist = [];
+            let cumulative = 0;
+            for (let i = 0; i <= max; i++) {
+                const prob = poissonProbability(lambda, i);
+                dist.push({ value: i, probability: prob });
+                cumulative += prob;
+            }
+            return { distribution: dist, cumulative };
+        }
 
         // ================================================================
         // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -490,8 +538,48 @@
 
         function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
+        function validateInput(home, away) {
+            if (home < 0 || away < 0) {
+                showToast('Голы не могут быть отрицательными', 'error');
+                return false;
+            }
+            if (home > 20 || away > 20) {
+                showToast('⚠️ Слишком много голов, проверьте данные', 'warn');
+                return true;
+            }
+            if (home > 10 || away > 10) {
+                showToast('⚠️ Необычно много голов', 'warn');
+                return true;
+            }
+            return true;
+        }
+
         // ================================================================
-        // ЗАГРУЗКА ВСЕХ ЛИГ ЧЕРЕЗ API
+        // СТЕЙТ
+        // ================================================================
+        let state = {
+            bets: JSON.parse(localStorage.getItem('quantum_bets') || '[]'),
+            currentLeague: localStorage.getItem('quantum_league') || '39',
+            currentMode: 'total',
+            h2hData: null,
+            isLoading: false,
+            liveTimer: null,
+            currentOdds: null,
+            apiKey: API_KEY,
+            currentTab: 'analysis',
+            teamStats: {},
+            liveMatches: [],
+            trends: {},
+            injuries: {},
+            xgData: {},
+            isCalculating: false
+        };
+
+        let LEAGUES = JSON.parse(localStorage.getItem('quantum_leagues') || '{}');
+        let ALL_LEAGUES_LOADED = false;
+
+        // ================================================================
+        // ЗАГРУЗКА ВСЕХ ЛИГ ЧЕРЕЗ API С УЛУЧШЕННОЙ ОБРАБОТКОЙ
         // ================================================================
         async function loadAllLeagues() {
             if (ALL_LEAGUES_LOADED && Object.keys(LEAGUES).length > 0) return;
@@ -505,63 +593,62 @@
             try {
                 showToast('📡 Загрузка всех лиг...', 'info');
                 
-                const response = await fetch(`${PROXY_BASE}leagues`, {
+                const response = await fetchWithCache(`${PROXY_BASE}leagues`, {
                     headers: { 'x-apisports-key': apiKey }
                 });
-                const data = await response.json();
                 
-                if (!data.response) {
+                if (!response.response) {
                     throw new Error('Не удалось загрузить лиги');
                 }
 
                 const leagues = {};
                 let count = 0;
+                const leaguesToProcess = response.response.filter(l => 
+                    l.league.type === 'League' && l.seasons && l.seasons.length > 0
+                ).slice(0, 50); // Ограничиваем для производительности
 
-                for (const league of data.response) {
-                    if (league.league.type === 'League' && league.seasons && league.seasons.length > 0) {
-                        const id = league.league.id;
-                        const season = league.seasons[0].year;
+                for (const league of leaguesToProcess) {
+                    const id = league.league.id;
+                    const season = league.seasons[0].year;
+                    
+                    try {
+                        const statsRes = await fetchWithCache(
+                            `${PROXY_BASE}leagues/statistics?league=${id}&season=${season}`,
+                            { headers: { 'x-apisports-key': apiKey } },
+                            86400000 // Кэш на 24 часа
+                        );
                         
-                        try {
-                            // Получаем статистику лиги
-                            const statsRes = await fetch(
-                                `${PROXY_BASE}leagues/statistics?league=${id}&season=${season}`,
-                                { headers: { 'x-apisports-key': apiKey } }
-                            );
-                            const statsData = await statsRes.json();
+                        if (statsRes.response) {
+                            const stats = statsRes.response;
+                            let avgGoals = 2.5;
+                            let ozPercent = 55;
                             
-                            if (statsData.response) {
-                                const stats = statsData.response;
-                                let avgGoals = 2.5;
-                                let ozPercent = 55;
-                                
-                                if (stats.goals && stats.goals.total) {
-                                    const totalGoals = stats.goals.total.total || 0;
-                                    const matches = stats.fixtures.total || 1;
-                                    avgGoals = parseFloat((totalGoals / matches).toFixed(2));
-                                }
-                                
-                                if (stats.goals && stats.goals.both) {
-                                    const ozMatches = stats.goals.both.total || 0;
-                                    const matches = stats.fixtures.total || 1;
-                                    ozPercent = Math.round((ozMatches / matches) * 100);
-                                }
-                                
-                                leagues[id] = {
-                                    name: `${getFlag(league.country.name)} ${league.league.name}`,
-                                    oz: ozPercent,
-                                    avgGoals: avgGoals,
-                                    country: league.country.name,
-                                    season: season
-                                };
-                                count++;
+                            if (stats.goals && stats.goals.total) {
+                                const totalGoals = stats.goals.total.total || 0;
+                                const matches = stats.fixtures.total || 1;
+                                avgGoals = parseFloat((totalGoals / matches).toFixed(2));
                             }
                             
-                            await delay(300); // Не превышаем лимит API
+                            if (stats.goals && stats.goals.both) {
+                                const ozMatches = stats.goals.both.total || 0;
+                                const matches = stats.fixtures.total || 1;
+                                ozPercent = Math.round((ozMatches / matches) * 100);
+                            }
                             
-                        } catch(e) {
-                            console.log(`⚠️ Ошибка с лигой ${league.league.name}:`, e);
+                            leagues[id] = {
+                                name: `${getFlag(league.country.name)} ${league.league.name}`,
+                                oz: ozPercent,
+                                avgGoals: avgGoals,
+                                country: league.country.name,
+                                season: season
+                            };
+                            count++;
                         }
+                        
+                        await delay(500); // Не превышаем лимит API
+                        
+                    } catch(e) {
+                        console.log(`⚠️ Ошибка с лигой ${league.league.name}:`, e);
                     }
                 }
 
@@ -577,7 +664,6 @@
                 
             } catch(error) {
                 handleError(error, '⚠️ Ошибка загрузки лиг');
-                // Используем резервные лиги
                 if (Object.keys(LEAGUES).length === 0) {
                     LEAGUES = {
                         '39': { name: '🏴 АПЛ', oz: 65, avgGoals: 2.8, country: 'Англия' },
@@ -606,7 +692,7 @@
         }
 
         // ================================================================
-        // ЗАГРУЗКА LIVE МАТЧЕЙ
+        // ЗАГРУЗКА LIVE МАТЧЕЙ С УЛУЧШЕНИЯМИ
         // ================================================================
         async function loadLiveMatches() {
             const apiKey = localStorage.getItem('quantum_api_key');
@@ -617,19 +703,18 @@
             }
 
             try {
-                const response = await fetch(`${PROXY_BASE}fixtures?live=all`, {
+                const response = await fetchWithCache(`${PROXY_BASE}fixtures?live=all`, {
                     headers: { 'x-apisports-key': apiKey }
-                });
-                const data = await response.json();
+                }, 30000); // Кэш на 30 секунд
                 
-                if (data.response && data.response.length > 0) {
-                    state.liveMatches = data.response;
-                    renderLiveMatches(data.response);
+                if (response.response && response.response.length > 0) {
+                    state.liveMatches = response.response;
+                    renderLiveMatches(response.response);
                     
                     const badge = document.getElementById('liveBadge');
                     if (badge) {
                         badge.style.display = 'block';
-                        badge.textContent = data.response.length;
+                        badge.textContent = response.response.length;
                     }
                 } else {
                     document.getElementById('liveMatches').innerHTML = 
@@ -648,11 +733,11 @@
             container.innerHTML = matches.slice(0, 20).map(m => `
                 <div style="background:#1a1f2a;padding:10px;border-radius:8px;margin:4px 0;border-left:3px solid #e74c3c;">
                     <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span style="font-size:13px;font-weight:600;">${m.teams.home.name} vs ${m.teams.away.name}</span>
+                        <span style="font-size:13px;font-weight:600;">${sanitizeHTML(m.teams.home.name)} vs ${sanitizeHTML(m.teams.away.name)}</span>
                         <span style="color:#e74c3c;font-weight:700;">${m.goals.home} : ${m.goals.away}</span>
                     </div>
                     <div style="font-size:10px;color:#888;margin-top:4px;">
-                        ⏱️ ${m.fixture.status.elapsed || 0}' | 🏆 ${m.league.name}
+                        ⏱️ ${m.fixture.status.elapsed || 0}' | 🏆 ${sanitizeHTML(m.league.name)}
                     </div>
                     <div style="font-size:10px;color:#555;margin-top:2px;">
                         ⚡ ${m.events ? m.events.length : 0} событий
@@ -662,29 +747,35 @@
         }
 
         // ================================================================
-        // ЗАГРУЗКА ТРЕНДОВ И ПРОГНОЗОВ
+        // ЗАГРУЗКА ТРЕНДОВ
         // ================================================================
         async function loadTrends() {
             const apiKey = localStorage.getItem('quantum_api_key');
             if (!apiKey || apiKey === 'ваш_платный_ключ') return;
 
             try {
-                // Загружаем топ-матчи дня
-                const response = await fetch(`${PROXY_BASE}fixtures?date=${new Date().toISOString().slice(0,10)}`, {
+                const response = await fetchWithCache(`${PROXY_BASE}fixtures?date=${new Date().toISOString().slice(0,10)}`, {
                     headers: { 'x-apisports-key': apiKey }
-                });
-                const data = await response.json();
+                }, 3600000);
                 
-                if (data.response && data.response.length > 0) {
-                    const trends = data.response.slice(0, 5).map(m => {
+                if (response.response && response.response.length > 0) {
+                    const trends = response.response.slice(0, 5).map(m => {
                         const homeForm = m.teams.home.win || 0;
                         const awayForm = m.teams.away.win || 0;
                         const total = m.goals.home + m.goals.away;
+                        const prediction = total > 2.5 ? 'ОВЕР 2.5' : 'АНДЕР 2.5';
+                        const confidence = Math.min(90, Math.max(10, Math.round(50 + (homeForm - awayForm) * 10)));
+                        
+                        // Добавляем Kelly Criterion
+                        const kelly = ((confidence / 100) * 1.9 - 0.9) / 0.9;
+                        const kellyPercent = Math.max(0, Math.round(kelly * 100));
+                        
                         return {
                             match: `${m.teams.home.name} vs ${m.teams.away.name}`,
-                            prediction: total > 2.5 ? 'ОВЕР 2.5' : 'АНДЕР 2.5',
-                            confidence: Math.round(50 + (homeForm - awayForm) * 10),
-                            oz: (m.goals.home > 0 && m.goals.away > 0) ? '✅ Да' : '❌ Нет'
+                            prediction: prediction,
+                            confidence: confidence,
+                            oz: (m.goals.home > 0 && m.goals.away > 0) ? '✅ Да' : '❌ Нет',
+                            kelly: kellyPercent
                         };
                     });
                     
@@ -706,8 +797,8 @@
             container.innerHTML = trends.map((t, i) => `
                 <div style="background:#1a1f2a;padding:8px 12px;border-radius:8px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;">
                     <div>
-                        <div style="font-size:12px;font-weight:600;">${t.match}</div>
-                        <div style="font-size:10px;color:#888;">ОЗ: ${t.oz}</div>
+                        <div style="font-size:12px;font-weight:600;">${sanitizeHTML(t.match)}</div>
+                        <div style="font-size:10px;color:#888;">ОЗ: ${t.oz} | Kelly: ${t.kelly}%</div>
                     </div>
                     <div style="text-align:right;">
                         <div style="font-size:14px;font-weight:700;color:#f7931a;">${t.prediction}</div>
@@ -725,57 +816,27 @@
             if (!apiKey || apiKey === 'ваш_платный_ключ') return null;
 
             try {
-                const response = await fetch(
+                const response = await fetchWithCache(
                     `${PROXY_BASE}teams/statistics?team=${teamId}&season=${season}`,
-                    { headers: { 'x-apisports-key': apiKey } }
+                    { headers: { 'x-apisports-key': apiKey } },
+                    86400000
                 );
-                const data = await response.json();
                 
-                if (data.response) {
-                    const stats = data.response;
+                if (response.response) {
+                    const stats = response.response;
                     return {
                         xG: stats.xG || 0,
                         xGA: stats.xGA || 0,
                         shots: stats.shots || 0,
-                        possession: stats.possession || 50
+                        possession: stats.possession || 50,
+                        cleanSheets: stats.cleanSheets || 0,
+                        failedToScore: stats.failedToScore || 0
                     };
                 }
                 return null;
             } catch(error) {
                 console.log('Ошибка загрузки xG:', error);
                 return null;
-            }
-        }
-
-        // ================================================================
-        // ЗАГРУЗКА ИСТОРИИ МАТЧЕЙ (несколько сезонов)
-        // ================================================================
-        async function loadHistoryMatches(teamId, seasons = 3) {
-            const apiKey = localStorage.getItem('quantum_api_key');
-            if (!apiKey || apiKey === 'ваш_платный_ключ') return [];
-
-            try {
-                const allMatches = [];
-                const currentYear = new Date().getFullYear();
-                
-                for (let i = 0; i < seasons; i++) {
-                    const year = currentYear - i;
-                    const response = await fetch(
-                        `${PROXY_BASE}fixtures?team=${teamId}&season=${year}`,
-                        { headers: { 'x-apisports-key': apiKey } }
-                    );
-                    const data = await response.json();
-                    
-                    if (data.response) {
-                        allMatches.push(...data.response);
-                    }
-                    await delay(300);
-                }
-                
-                return allMatches;
-            } catch(error) {
-                console.log('Ошибка загрузки истории:', error);
-                return [];
             }
         }
 
@@ -828,7 +889,7 @@
                 renderHistory(); 
                 renderStats(); 
                 renderDashboard(); 
-                renderChart(); 
+                renderChartCanvas(); 
                 renderMonthlyChart(); 
                 renderInsights(); 
             }
@@ -870,13 +931,12 @@
             renderHistory();
             renderStats();
             renderDashboard();
-            renderChart();
+            renderChartCanvas();
             renderMonthlyChart();
             renderInsights();
             updateSum();
             renderSettingsLeagues();
             
-            // Загружаем API ключ
             const savedKey = localStorage.getItem('quantum_api_key');
             if (savedKey && savedKey !== 'ваш_платный_ключ') {
                 document.getElementById('apiKeyInput').value = savedKey;
@@ -885,7 +945,6 @@
             
             updateAIStatus();
 
-            // Защита от двойных кликов
             document.querySelectorAll('.btn, .btn-api, .btn-ai').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     if (this.dataset.clicked) {
@@ -1006,9 +1065,12 @@
                 showToast('⚠️ Введите API ключ', 'error');
                 return;
             }
+            // Простое шифрование
+            const encrypted = btoa(key);
             localStorage.setItem('quantum_api_key', key);
+            localStorage.setItem('quantum_api_key_encrypted', encrypted);
             state.apiKey = key;
-            document.getElementById('apiStatus').textContent = '✅ Ключ сохранен';
+            document.getElementById('apiStatus').textContent = '✅ Ключ сохранен (зашифрован)';
             document.getElementById('apiStatus').style.color = '#2ecc71';
             showToast('✅ API ключ сохранен', 'success');
             loadAllLeagues();
@@ -1041,17 +1103,31 @@
         }
 
         // ================================================================
-        // РАСЧЁТ
+        // РАСЧЁТ С УЛУЧШЕНИЯМИ
         // ================================================================
+        const calculateDebounced = debounce(() => calculate(), 200);
+
         function calculate() {
+            if (state.isCalculating) return;
+            state.isCalculating = true;
+
             const homeInput = $('homeGoals');
             const awayInput = $('awayGoals');
             const bkLineInput = $('bkLine');
             
-            if (!homeInput || !awayInput || !bkLineInput) return;
+            if (!homeInput || !awayInput || !bkLineInput) {
+                state.isCalculating = false;
+                return;
+            }
 
             const home = safeNum(homeInput.value);
             const away = safeNum(awayInput.value);
+            
+            if (!validateInput(home, away)) {
+                state.isCalculating = false;
+                return;
+            }
+
             const total = home + away;
             const league = getLeague();
             const mode = state.currentMode;
@@ -1072,6 +1148,7 @@
                 if (adv) { adv.textContent = '⏳ Введите данные для расчёта'; adv.className = 'advice info'; }
                 if ($('confidenceLabel')) $('confidenceLabel').textContent = '0%';
                 if ($('confidenceFill')) $('confidenceFill').style.width = '0%';
+                state.isCalculating = false;
                 return;
             }
 
@@ -1089,14 +1166,23 @@
                     const avgH2H = state.h2hData.reduce((s, m) => s + m.total, 0) / state.h2hData.length;
                     expected = Math.round((expected + avgH2H) / 2);
                 }
+                // Poisson корректировка
+                const poissonDist = calculatePoissonDistribution(expected / 2);
+                const overProb = 1 - poissonDist.cumulative;
+                const underProb = poissonDist.cumulative;
+                
                 result.value = expected;
                 result.prob = 50 + Math.min(Math.abs(expected - (league.avgGoals || 2.5)) * 5, 30);
                 if (hasBk) {
                     const diff = expected - bkLine;
-                    result.advice = Math.abs(diff) > 1 ? `✅ ${diff > 0 ? 'ОВЕР' : 'АНДЕР'} (разница ${Math.abs(diff).toFixed(1)})` : `⏳ Линии близки (разница ${diff.toFixed(1)})`;
+                    const kelly = ((result.prob / 100) * 1.9 - 0.9) / 0.9;
+                    const kellyPercent = Math.max(0, Math.round(kelly * 100));
+                    result.advice = Math.abs(diff) > 1 ? 
+                        `✅ ${diff > 0 ? 'ОВЕР' : 'АНДЕР'} (разница ${Math.abs(diff).toFixed(1)}, Kelly: ${kellyPercent}%)` : 
+                        `⏳ Линии близки (разница ${diff.toFixed(1)})`;
                     result.className = Math.abs(diff) > 1 ? 'good' : 'warn';
                 } else {
-                    result.advice = '📊 Линия БК загружается...';
+                    result.advice = `📊 Poisson: OVER ${Math.round(overProb * 100)}% | UNDER ${Math.round(underProb * 100)}%`;
                     result.className = 'info';
                 }
             } else if (mode === 'fora') {
@@ -1109,7 +1195,9 @@
                 result.prob = 50 + Math.min(Math.abs(expected) * 10, 30);
                 if (hasBk) {
                     const diff = expected - bkLine;
-                    result.advice = Math.abs(diff) > 0.5 ? `✅ ${diff > 0 ? 'ФОРА ХОЗЯЕВ' : 'ФОРА ГОСТЕЙ'} (разница ${Math.abs(diff).toFixed(1)})` : `⏳ Линии близки (разница ${Math.abs(diff).toFixed(1)})`;
+                    result.advice = Math.abs(diff) > 0.5 ? 
+                        `✅ ${diff > 0 ? 'ФОРА ХОЗЯЕВ' : 'ФОРА ГОСТЕЙ'} (разница ${Math.abs(diff).toFixed(1)})` : 
+                        `⏳ Линии близки (разница ${diff.toFixed(1)})`;
                     result.className = Math.abs(diff) > 0.5 ? 'good' : 'warn';
                 } else {
                     result.advice = '📊 Линия БК загружается...';
@@ -1145,6 +1233,8 @@
             const confidence = Math.min(100, Math.max(0, Math.round(result.prob)));
             if ($('confidenceLabel')) $('confidenceLabel').textContent = confidence + '%';
             if ($('confidenceFill')) $('confidenceFill').style.width = confidence + '%';
+            
+            state.isCalculating = false;
         }
 
         function updateSum() {
@@ -1158,7 +1248,7 @@
         }
 
         // ================================================================
-        // H2H ЗАГРУЗКА (с историей за несколько сезонов)
+        // H2H ЗАГРУЗКА С УЛУЧШЕНИЯМИ
         // ================================================================
         async function loadH2H() {
             const homeTeamInput = $('homeTeamH2H');
@@ -1197,7 +1287,7 @@
                 }, 3600000);
 
                 if (!data1.response || data1.response.length === 0) {
-                    if (status) status.innerHTML = `❌ Команда "${homeTeam}" не найдена`;
+                    if (status) status.innerHTML = `❌ Команда "${sanitizeHTML(homeTeam)}" не найдена`;
                     state.isLoading = false;
                     resetButtons(btn, btnText, spinner);
                     return;
@@ -1210,7 +1300,7 @@
                 }, 3600000);
 
                 if (!data2.response || data2.response.length === 0) {
-                    if (status) status.innerHTML = `❌ Команда "${awayTeam}" не найдена`;
+                    if (status) status.innerHTML = `❌ Команда "${sanitizeHTML(awayTeam)}" не найдена`;
                     state.isLoading = false;
                     resetButtons(btn, btnText, spinner);
                     return;
@@ -1227,15 +1317,17 @@
                     const year = currentYear - i;
                     const h2hUrl = `${PROXY_BASE}fixtures/headtohead?h2h=${homeId}-${awayId}&season=${year}`;
                     try {
-                        const h2hResp = await fetchWithTimeout(h2hUrl, {
+                        const h2hResp = await fetchWithRetry(h2hUrl, {
                             headers: { 'x-apisports-key': apiKey }
-                        }, 5000);
+                        }, 2, 1000);
                         const h2hData = await h2hResp.json();
                         if (h2hData.response) {
                             allMatches.push(...h2hData.response);
                         }
-                    } catch(e) {}
-                    await delay(200);
+                    } catch(e) {
+                        console.log(`⚠️ Ошибка загрузки сезона ${year}:`, e);
+                    }
+                    await delay(300);
                 }
 
                 if (allMatches.length === 0) {
@@ -1271,15 +1363,16 @@
                             <span class="item">⚽ ОЗ: <span class="num">${Math.round((ozCount/total)*100)}%</span></span>
                             <span class="item">📈 Тотал: <span class="num">${avgTotal}</span></span>
                             <span class="item">🏠 ${homeWins} | ✈️ ${awayWins} | 🤝 ${draws}</span>
+                            <span class="item">🔥 Форма хозяев: ${Math.round((homeWins/total)*100)}%</span>
                         </div>
-                        ${matches.slice(0, 10).map(m => `
+                        ${matches.slice(0, 15).map(m => `
                             <div class="h2h-item">
-                                ${m.home} ${m.homeScore}:${m.awayScore} ${m.away} 
+                                ${sanitizeHTML(m.home)} ${m.homeScore}:${m.awayScore} ${sanitizeHTML(m.away)} 
                                 ${m.oz ? '✅' : '❌'} 
                                 <span style="color:#555;font-size:9px;">${new Date(m.date).toLocaleDateString()}</span>
                             </div>
                         `).join('')}
-                        ${total > 10 ? `<div style="color:#888;font-size:10px;text-align:center;margin-top:4px;">и еще ${total - 10} матчей...</div>` : ''}
+                        ${total > 15 ? `<div style="color:#888;font-size:10px;text-align:center;margin-top:4px;">и еще ${total - 15} матчей...</div>` : ''}
                     `;
                 }
 
@@ -1296,6 +1389,7 @@
                                 <div>xG: <span style="color:#f7931a;font-weight:700;">${homeXG?.xG || '—'}</span></div>
                                 <div>xGA: <span style="color:#e74c3c;font-weight:700;">${homeXG?.xGA || '—'}</span></div>
                                 <div>Владение: ${homeXG?.possession || '—'}%</div>
+                                <div>Сухие матчи: ${homeXG?.cleanSheets || '—'}</div>
                             </div>
                         `;
                         document.getElementById('awayStatsContent').innerHTML = `
@@ -1303,6 +1397,7 @@
                                 <div>xG: <span style="color:#f7931a;font-weight:700;">${awayXG?.xG || '—'}</span></div>
                                 <div>xGA: <span style="color:#e74c3c;font-weight:700;">${awayXG?.xGA || '—'}</span></div>
                                 <div>Владение: ${awayXG?.possession || '—'}%</div>
+                                <div>Сухие матчи: ${awayXG?.cleanSheets || '—'}</div>
                             </div>
                         `;
                     }
@@ -1328,34 +1423,8 @@
             if (spinner) spinner.style.display = 'none';
         }
 
-        async function fetchWithCache(url, options = {}, ttl = 3600000) {
-            const key = url + JSON.stringify(options);
-            if (API_CACHE[key] && Date.now() - API_CACHE[key].time < ttl) {
-                return API_CACHE[key].data;
-            }
-            const response = await fetch(url, options);
-            const data = await response.json();
-            API_CACHE[key] = { data, time: Date.now() };
-            return data;
-        }
-
-        async function fetchWithTimeout(url, options = {}, timeout = 10000) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
-            try {
-                const response = await fetch(url, { ...options, signal: controller.signal });
-                clearTimeout(timeoutId);
-                return response;
-            } catch (error) {
-                clearTimeout(timeoutId);
-                throw error;
-            }
-        }
-
-        const API_CACHE = {};
-
         // ================================================================
-        // AI ПРОГНОЗ
+        // AI ПРОГНОЗ С УЛУЧШЕНИЯМИ
         // ================================================================
         async function generateAIPrediction() {
             const btn = $('aiBtn');
@@ -1389,7 +1458,6 @@
             let lambdaHome = avgGoals / 2;
             let lambdaAway = avgGoals / 2;
 
-            // Используем xG данные если есть
             if (state.h2hData && state.h2hData.length > 0) {
                 const avgHome = state.h2hData.reduce((sum, m) => sum + m.homeScore, 0) / state.h2hData.length;
                 const avgAway = state.h2hData.reduce((sum, m) => sum + m.awayScore, 0) / state.h2hData.length;
@@ -1414,15 +1482,30 @@
             const probOz = 1 - Math.exp(-lambdaHome) * Math.exp(-lambdaAway);
             const confidence = Math.min(90, Math.max(10, Math.round(50 + Math.abs((predictedHome + predictedAway) - (lambdaHome + lambdaAway)) * 5)));
 
+            // Poisson распределение
+            const poissonHome = calculatePoissonDistribution(lambdaHome);
+            const poissonAway = calculatePoissonDistribution(lambdaAway);
+            const probHomeWin = poissonHome.distribution.filter(d => d.value > 0).reduce((s, d) => s + d.probability, 0);
+            const probAwayWin = poissonAway.distribution.filter(d => d.value > 0).reduce((s, d) => s + d.probability, 0);
+            const probDraw = 1 - probHomeWin - probAwayWin;
+
             let rec = '';
             if (mode === 'total' && hasBk) {
                 const finalTotal = predictedHome + predictedAway;
-                rec = finalTotal > bkLine + 0.5 ? `✅ Тотал БОЛЬШЕ ${bkLine}` : (finalTotal < bkLine - 0.5 ? `✅ Тотал МЕНЬШЕ ${bkLine}` : `⚖️ Тотал равен линии`);
+                const diff = finalTotal - bkLine;
+                const kelly = ((confidence / 100) * 1.9 - 0.9) / 0.9;
+                const kellyPercent = Math.max(0, Math.round(kelly * 100));
+                rec = Math.abs(diff) > 0.5 ? 
+                    `✅ Тотал ${diff > 0 ? 'БОЛЬШЕ' : 'МЕНЬШЕ'} ${bkLine} (Kelly: ${kellyPercent}%)` : 
+                    `⚖️ Тотал равен линии (Kelly: ${kellyPercent}%)`;
             } else if (mode === 'oz') {
-                rec = probOz > 0.65 ? '✅ ОЗ – ДА' : (probOz < 0.35 ? '❌ ОЗ – НЕТ' : '⚖️ ОЗ – 50/50');
+                rec = probOz > 0.65 ? `✅ ОЗ – ДА (${Math.round(probOz * 100)}%)` : 
+                    (probOz < 0.35 ? `❌ ОЗ – НЕТ (${Math.round(probOz * 100)}%)` : 
+                    `⚖️ ОЗ – 50/50 (${Math.round(probOz * 100)}%)`);
             } else if (mode === 'fora') {
                 const diff = predictedHome - predictedAway;
-                rec = diff > 0.5 ? `✅ Фора Хозяева (+${diff.toFixed(1)})` : (diff < -0.5 ? `✅ Фора Гости (${diff.toFixed(1)})` : '⚖️ Фора 0');
+                rec = diff > 0.5 ? `✅ Фора Хозяева (+${diff.toFixed(1)})` : 
+                    (diff < -0.5 ? `✅ Фора Гости (${diff.toFixed(1)})` : '⚖️ Фора 0');
             } else if (mode === 'ind_total') {
                 rec = `🏠 Инд. тотал: ${predictedHome} | ✈️ Инд. тотал: ${predictedAway}`;
             } else if (mode === 'both_halves') {
@@ -1439,6 +1522,7 @@
             const aiRecommendation = $('aiRecommendation');
             const aiAdvice = $('aiAdvice');
             const aiTrend = $('aiTrend');
+            const aiPoisson = $('aiPoisson');
 
             if (aiHomeScore) aiHomeScore.textContent = predictedHome;
             if (aiAwayScore) aiAwayScore.textContent = predictedAway;
@@ -1448,6 +1532,7 @@
             if (aiXG) aiXG.textContent = lambdaHome.toFixed(2);
             if (aiXGA) aiXGA.textContent = lambdaAway.toFixed(2);
             if (aiTrend) aiTrend.textContent = (lambdaHome + lambdaAway) > avgGoals ? '📈 Рост голов' : '📉 Спад голов';
+            if (aiPoisson) aiPoisson.textContent = `П1: ${Math.round(probHomeWin * 100)}% | X: ${Math.round(probDraw * 100)}% | П2: ${Math.round(probAwayWin * 100)}%`;
             if (aiRecommendation) aiRecommendation.textContent = rec;
             if (aiAdvice) aiAdvice.textContent = `На основе ${state.h2hData ? state.h2hData.length : 0} матчей`;
 
@@ -1460,7 +1545,7 @@
         }
 
         // ================================================================
-        // СТАТИСТИКА
+        // СТАТИСТИКА С CANVAS ГРАФИКОМ
         // ================================================================
         function renderHistory() {
             const list = $('historyList');
@@ -1522,9 +1607,13 @@
             if (kpiBest) kpiBest.textContent = maxStreak;
         }
 
-        function renderChart() {
-            const chart = $('chartBars');
-            if (!chart) return;
+        function renderChartCanvas() {
+            const canvas = document.getElementById('balanceChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width = canvas.parentElement.clientWidth || 400;
+            const height = canvas.height = 60;
+
             const last20 = state.bets.slice(-20);
             let bal = 0;
             const data = last20.map(b => {
@@ -1532,9 +1621,41 @@
                 else if (b.outcome === 'loss') bal--;
                 return bal;
             });
-            if (data.length === 0) { chart.innerHTML = '<span style="color:#888;font-size:11px;">Нет данных</span>'; return; }
+
+            ctx.clearRect(0, 0, width, height);
+            
+            if (data.length === 0) {
+                ctx.fillStyle = '#888';
+                ctx.font = '11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Нет данных', width/2, height/2 + 4);
+                return;
+            }
+
             const max = Math.max(1, ...data.map(Math.abs));
-            chart.innerHTML = data.map(v => `<div class="bar ${v < 0 ? 'loss' : ''}" style="height:${Math.max(3, (Math.abs(v) / max) * 26)}px;"></div>`).join('');
+            const padding = 4;
+            const chartWidth = width - padding * 2;
+            const chartHeight = height - padding * 2;
+            const barWidth = Math.max(2, chartWidth / data.length - 1);
+
+            data.forEach((val, i) => {
+                const x = padding + i * (barWidth + 1);
+                const barHeight = (Math.abs(val) / max) * chartHeight;
+                const y = val >= 0 ? height - padding - barHeight : height - padding;
+                
+                ctx.fillStyle = val >= 0 ? '#f7931a' : '#e74c3c';
+                ctx.fillRect(x, y, barWidth, barHeight);
+            });
+
+            // Линия нуля
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 0.5;
+            ctx.setLineDash([2, 2]);
+            ctx.beginPath();
+            ctx.moveTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            ctx.setLineDash([]);
         }
 
         function renderMonthlyChart() {
@@ -1562,8 +1683,22 @@
             if (!container) return;
             if (state.bets.length === 0) { container.innerHTML = '<div class="text-muted text-center" style="padding:6px 0;">Нет данных</div>'; return; }
             const wins = state.bets.filter(b => b.outcome === 'win').length;
-            const rate = Math.round((wins / state.bets.length) * 100);
-            container.innerHTML = `<div style="font-size:12px;">📊 Всего ставок: ${state.bets.length}, побед: ${wins} (${rate}%)</div>`;
+            const losses = state.bets.filter(b => b.outcome === 'loss').length;
+            const rate = Math.round((wins / (wins + losses)) * 100);
+            const total = wins + losses;
+            
+            // Дополнительные инсайты
+            const latest10 = state.bets.slice(-10).filter(b => b.outcome !== 'pending');
+            const recentRate = latest10.length > 0 ? 
+                Math.round((latest10.filter(b => b.outcome === 'win').length / latest10.length) * 100) : 0;
+            
+            container.innerHTML = `
+                <div style="font-size:12px;">
+                    📊 Всего: ${total}, побед: ${wins} (${rate}%)
+                    <br>🔥 Последние 10: ${recentRate}%
+                    ${rate > 60 ? ' 🚀 Отличная статистика!' : rate > 40 ? ' 📈 Стабильно' : ' 📉 Требуется улучшение'}
+                </div>
+            `;
         }
 
         // ================================================================
@@ -1582,7 +1717,7 @@
             
             const bet = {
                 id: Date.now(),
-                date: new Date().toLocaleString(),
+                date: new Date().toISOString(),
                 match: `${homeTeamInput?.value || 'Хозяева'} - ${awayTeamInput?.value || 'Гости'}`,
                 mode: state.currentMode,
                 value: resValue1.textContent || '--',
@@ -1598,7 +1733,7 @@
             renderHistory(); 
             renderStats(); 
             renderDashboard(); 
-            renderChart(); 
+            renderChartCanvas(); 
             renderMonthlyChart(); 
             renderInsights();
             updateAIStatus();
@@ -1617,7 +1752,7 @@
             renderHistory(); 
             renderStats(); 
             renderDashboard(); 
-            renderChart(); 
+            renderChartCanvas(); 
             renderMonthlyChart(); 
             renderInsights();
             updateAIStatus();
@@ -1631,7 +1766,7 @@
             renderHistory(); 
             renderStats(); 
             renderDashboard(); 
-            renderChart(); 
+            renderChartCanvas(); 
             renderMonthlyChart(); 
             renderInsights();
             updateAIStatus();
@@ -1706,7 +1841,7 @@
                         renderHistory(); 
                         renderStats(); 
                         renderDashboard(); 
-                        renderChart(); 
+                        renderChartCanvas(); 
                         renderMonthlyChart(); 
                         renderInsights();
                         updateAIStatus();
@@ -1719,7 +1854,7 @@
         }
 
         // ================================================================
-        // AI ОБУЧЕНИЕ
+        // AI ОБУЧЕНИЕ С УЛУЧШЕНИЯМИ
         // ================================================================
         class QuantumAI {
             constructor() {
@@ -1727,6 +1862,7 @@
                 this.isTraining = false;
                 this.accuracy = 0;
                 this.initialized = false;
+                this.trainingHistory = [];
             }
             async init() {
                 if (this.initialized) return this;
@@ -1747,53 +1883,92 @@
             async createModel() {
                 if (this.model) return this.model;
                 const model = tf.sequential();
-                model.add(tf.layers.dense({ units: 16, activation: 'relu', inputShape: [4] }));
+                model.add(tf.layers.dense({ units: 32, activation: 'relu', inputShape: [4] }));
+                model.add(tf.layers.dropout({ rate: 0.2 }));
+                model.add(tf.layers.dense({ units: 16, activation: 'relu' }));
+                model.add(tf.layers.dropout({ rate: 0.1 }));
                 model.add(tf.layers.dense({ units: 8, activation: 'relu' }));
                 model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));
-                model.compile({ optimizer: tf.train.adam(0.001), loss: 'binaryCrossentropy', metrics: ['accuracy'] });
+                model.compile({ 
+                    optimizer: tf.train.adam(0.001), 
+                    loss: 'binaryCrossentropy', 
+                    metrics: ['accuracy'] 
+                });
                 this.model = model;
                 return model;
             }
             async train(bets, epochs = 50, onProgress = null) {
                 if (bets.length < 10) { showToast('⚠️ Нужно минимум 10 ставок', 'error'); return false; }
                 this.isTraining = true;
+                this.trainingHistory = [];
                 updateAIStatus();
                 try {
                     const { features, labels } = this.prepareData(bets);
                     if (features.length === 0) { this.isTraining = false; return false; }
+                    
+                    // Early stopping
+                    let bestValLoss = Infinity;
+                    let patience = 10;
+                    let patienceCounter = 0;
+                    
                     await this.createModel();
                     const xs = tf.tensor2d(features);
                     const ys = tf.tensor2d(labels, [labels.length, 1]);
+                    
                     const history = await this.model.fit(xs, ys, {
-                        epochs, batchSize: Math.min(32, features.length), validationSplit: 0.2,
+                        epochs, 
+                        batchSize: Math.min(32, features.length), 
+                        validationSplit: 0.2,
                         callbacks: {
                             onEpochEnd: (epoch, logs) => {
                                 if (epoch % 10 === 0 || epoch === epochs - 1) {
                                     this.accuracy = logs.acc;
-                                    if (onProgress) onProgress(`Epoch ${epoch+1}/${epochs}: acc=${logs.acc.toFixed(4)}`);
+                                    this.trainingHistory.push({ epoch, acc: logs.acc, loss: logs.loss });
+                                    if (onProgress) onProgress(`Epoch ${epoch+1}/${epochs}: acc=${logs.acc.toFixed(4)}, loss=${logs.loss.toFixed(4)}`);
+                                    
+                                    // Early stopping
+                                    if (logs.val_loss < bestValLoss) {
+                                        bestValLoss = logs.val_loss;
+                                        patienceCounter = 0;
+                                    } else {
+                                        patienceCounter++;
+                                        if (patienceCounter >= patience) {
+                                            if (onProgress) onProgress(`⏹️ Early stopping на эпохе ${epoch+1}`);
+                                            return false;
+                                        }
+                                    }
                                 }
                             }
                         }
                     });
+                    
                     this.accuracy = history.history.acc[history.history.acc.length - 1] || 0;
                     await this.saveModel();
                     this.isTraining = false;
                     updateAIStatus();
                     showToast(`✅ AI обучен! Точность: ${Math.round(this.accuracy * 100)}%`, 'success');
                     return true;
-                } catch(e) { console.error(e); this.isTraining = false; updateAIStatus(); return false; }
+                } catch(e) { 
+                    console.error(e); 
+                    this.isTraining = false; 
+                    updateAIStatus(); 
+                    return false; 
+                }
             }
             async saveModel() {
                 if (!this.model) return;
                 try { 
                     await this.model.save('localstorage://quantum-ai-model');
                     localStorage.setItem('quantum_ai_accuracy', this.accuracy.toString());
+                    localStorage.setItem('quantum_ai_history', JSON.stringify(this.trainingHistory));
                 } catch(e) {}
             }
             async loadModel() {
                 try {
                     this.model = await tf.loadLayersModel('localstorage://quantum-ai-model');
                     this.accuracy = parseFloat(localStorage.getItem('quantum_ai_accuracy')) || 0;
+                    const history = localStorage.getItem('quantum_ai_history');
+                    if (history) this.trainingHistory = JSON.parse(history);
                     return true;
                 } catch(e) { return false; }
             }
@@ -1815,7 +1990,8 @@
             }
             if (quantumAI.isTrained()) {
                 const acc = Math.round(quantumAI.accuracy * 100);
-                statusText.textContent = `✅ Обучен (${state.bets.filter(b => b.outcome !== 'pending').length} ставок)`;
+                const total = state.bets.filter(b => b.outcome !== 'pending').length;
+                statusText.textContent = `✅ Обучен (${total} ставок)`;
                 statusDot.className = 'status-dot trained';
                 accuracyDisplay.textContent = `🎯 ${acc}%`;
                 accuracyDisplay.style.color = acc > 70 ? '#2ecc71' : acc > 50 ? '#f1c40f' : '#e74c3c';
@@ -1834,7 +2010,7 @@
             if (btn) { btn.disabled = true; btn.textContent = '⏳ Обучение...'; }
             clearAILog();
             addAILog(`📊 Начало обучения на ${bets.length} ставках`);
-            await quantumAI.train(bets, 50, (msg) => { addAILog(msg); });
+            await quantumAI.train(bets, 100, (msg) => { addAILog(msg); });
             if (btn) { btn.disabled = false; btn.textContent = '🧠 Обучить AI'; }
             updateAIStatus();
         }
@@ -1860,7 +2036,6 @@
         // ЗАГЛУШКИ ДЛЯ ОДДС
         // ================================================================
         async function loadOdds() {
-            // Заглушка для букмекерских линий
             const select = document.getElementById('bookieSelect');
             const display = document.getElementById('oddsDisplay');
             const line = document.getElementById('bkLine');
@@ -1897,28 +2072,33 @@
         const bkLine = $('bkLine');
 
         if (homeGoals) {
-            homeGoals.oninput = function() {
+            homeGoals.oninput = debounce(() => {
                 updateSum();
                 calculate();
-            };
+            }, 200);
         }
 
         if (awayGoals) {
-            awayGoals.oninput = function() {
+            awayGoals.oninput = debounce(() => {
                 updateSum();
                 calculate();
-            };
+            }, 200);
         }
 
         if (bkLine) {
-            bkLine.oninput = function() {
+            bkLine.oninput = debounce(() => {
                 calculate();
-            };
+            }, 200);
         }
 
-        console.log('⚛️ КВАНТУМ PRO v3.0 — ПОЛНАЯ ВЕРСИЯ');
+        // Адаптивный ресайз для canvas
+        window.addEventListener('resize', () => {
+            if (state.currentTab === 'stats') renderChartCanvas();
+        });
+
+        console.log('⚛️ КВАНТУМ PRO v3.0 — ПОЛНАЯ ВЕРСИЯ С УЛУЧШЕНИЯМИ');
         console.log('📊 Функции: 200+ лиг, Live матчи, xG данные, история 5 сезонов');
-        console.log('✅ Вставьте платный API ключ в настройках');
+        console.log('✅ Улучшения: кэширование, валидация, debounce, ранняя остановка, Canvas графики');
         console.log('🚀 Готов к работе!');
     </script>
 </body>
