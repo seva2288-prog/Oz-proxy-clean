@@ -1231,11 +1231,14 @@ function autoDetectLeague(leagueData) {
     
     try {
         // ===== ПОИСК ХОЗЯЕВ (прямой запрос к API) =====
-        const url1 = `${API_BASE}/teams?search=${encodeURIComponent(homeTeam)}`;
+        const url1 = `${PROXY_BASE}/teams?search=${encodeURIComponent(homeTeam)}`;
         console.log('📡 Запрос 1:', url1);
         
         const resp1 = await fetch(url1, { 
-            headers: { 'x-apisports-key': API_KEY_FOOTBALL } 
+            headers: { 'x-apisports-key': API_KEY_FOOTBALL, } 
+                        Content-Type': 'application/
+            json'
+                }
         });
         const data1 = await resp1.json();
         console.log('📦 Ответ 1:', data1);
@@ -1249,7 +1252,7 @@ function autoDetectLeague(leagueData) {
         const homeName = data1.response[0].team.name;
         
         // ===== ПОИСК ГОСТЕЙ =====
-        const url2 = `${API_BASE}/teams?search=${encodeURIComponent(awayTeam)}`;
+        const url2 = `${PROXY_BASE}/teams?search=${encodeURIComponent(awayTeam)}`;
         console.log('📡 Запрос 2:', url2);
         
         const resp2 = await fetch(url2, { 
@@ -1271,7 +1274,7 @@ function autoDetectLeague(leagueData) {
         // ============================================================
         try {
             // Получаем информацию о команде (включая лигу)
-            const teamInfoUrl = `${API_BASE}/teams?id=${homeId}`;
+            const teamInfoUrl = `${PROXY_BASE}/teams?id=${homeId}`;
             const teamResp = await fetch(teamInfoUrl, {
                 headers: { 'x-apisports-key': API_KEY_FOOTBALL }
             });
@@ -1349,7 +1352,7 @@ function autoDetectLeague(leagueData) {
             console.warn('⚠️ Не удалось определить лигу:', e);
             // Пробуем определить по H2H матчам
             try {
-                const h2hTestUrl = `${API_BASE}/fixtures/headtohead?h2h=${homeId}-${awayId}&last=1`;
+                const h2hTestUrl = `${PROXY_BASE}/fixtures/headtohead?h2h=${homeId}-${awayId}&last=1`;
                 const h2hTestResp = await fetch(h2hTestUrl, {
                     headers: { 'x-apisports-key': API_KEY_FOOTBALL }
                 });
@@ -1383,7 +1386,7 @@ function autoDetectLeague(leagueData) {
         // ============================================================
         
         // ===== ЗАГРУЗКА H2H =====
-        const h2hUrl = `${API_BASE}/fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
+        const h2hUrl = `${PROXY_BASE}/fixtures/headtohead?h2h=${homeId}-${awayId}&last=10`;
         console.log('📡 Запрос H2H:', h2hUrl);
         
         const h2hResp = await fetch(h2hUrl, { 
