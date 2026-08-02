@@ -12,7 +12,7 @@
     <meta name="theme-color" content="#0b0e14">
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <style>
-        /* ====== ВЕСЬ CSS ====== */
+        /* ====== ВЕСЬ CSS (оптимизирован) ====== */
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
         body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: #0b0e14; color: #e0e0e0; max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: background 0.3s, color 0.3s; }
         body.light { background: #f0f2f5; color: #1a1a1a; }
@@ -92,7 +92,7 @@
         .input-row .field input:focus { border-color: #f7931a; }
         select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #2a3140; background: #0b0e14; color: #e0e0e0; font-size: 13px; outline: 0; }
         select:focus { border-color: #f7931a; }
-        .mode-wrap { display: flex; gap: 4px; margin: 6px 0; }
+        .mode-wrap { display: flex; gap: 4px; margin: 6px 0; flex-wrap: wrap; }
         .mode-btn { flex: 1; padding: 8px 4px; border-radius: 8px; border: 1px solid #2a3140; background: #1a1f2a; color: #888; font-weight: 600; font-size: 12px; cursor: pointer; text-align: center; }
         .mode-btn.active { background: #f7931a; color: #000; border-color: #f7931a; }
         .result-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; text-align: center; }
@@ -723,7 +723,7 @@
         }
 
         // ================================================================
-        // СВАЙПЫ
+        // СВАЙПЫ (исправлено)
         // ================================================================
         let touchStartX = 0, touchEndX = 0, currentTabIndex = 0;
         const tabs = ['analysis', 'search', 'stats', 'settings'];
@@ -758,33 +758,36 @@
                 });
             });
 
+            // Service Worker (если есть)
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(() => {});
             }
         });
 
-        document.addEventListener('touchstart', function(e) {
-            const main = document.getElementById('mainContent');
-            if (!main) return;
-            const rect = main.getBoundingClientRect();
-            const touch = e.touches[0];
-            if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
-                touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
-                touchStartX = touch.clientX;
-            }
-        }, { passive: true });
+        // Обработка touch-событий для свайпов (исправлено)
+        const mainContent = document.getElementById('mainContent');
+        if (mainContent) {
+            mainContent.addEventListener('touchstart', function(e) {
+                const touch = e.touches[0];
+                if (touch) {
+                    touchStartX = touch.clientX;
+                }
+            }, { passive: true });
 
-        document.addEventListener('touchend', function(e) {
-            if (touchStartX === 0) return;
-            const touch = e.changedTouches[0];
-            touchEndX = touch.clientX;
-            const diff = touchStartX - touchEndX;
-            if (Math.abs(diff) > MIN_SWIPE) {
-                if (diff > 0 && currentTabIndex < tabs.length - 1) { currentTabIndex++; switchTab(tabs[currentTabIndex]); }
-                else if (diff < 0 && currentTabIndex > 0) { currentTabIndex--; switchTab(tabs[currentTabIndex]); }
-            }
-            touchStartX = 0; touchEndX = 0;
-        }, { passive: true });
+            mainContent.addEventListener('touchend', function(e) {
+                if (touchStartX === 0) return;
+                const touch = e.changedTouches[0];
+                if (!touch) return;
+                touchEndX = touch.clientX;
+                const diff = touchStartX - touchEndX;
+                if (Math.abs(diff) > MIN_SWIPE) {
+                    if (diff > 0 && currentTabIndex < tabs.length - 1) { currentTabIndex++; switchTab(tabs[currentTabIndex]); }
+                    else if (diff < 0 && currentTabIndex > 0) { currentTabIndex--; switchTab(tabs[currentTabIndex]); }
+                }
+                touchStartX = 0;
+                touchEndX = 0;
+            }, { passive: true });
+        }
 
         // ================================================================
         // ЛИГИ
@@ -860,23 +863,33 @@
         }
 
         // ================================================================
-        // РАСЧЁТ
+        // РАСЧЁТ (исправлен)
         // ================================================================
         function calculate() {
-            const home = safeNum($('homeGoals')?.value);
-            const away = safeNum($('awayGoals')?.value);
+            const homeInput = $('homeGoals');
+            const awayInput = $('awayGoals');
+            const bkLineInput = $('bkLine');
+            
+            if (!homeInput || !awayInput || !bkLineInput) return;
+
+            const home = safeNum(homeInput.value);
+            const away = safeNum(awayInput.value);
             const total = home + away;
             const league = getLeague();
             const mode = state.currentMode;
-            const bkLine = safeNum($('bkLine')?.value);
+            const bkLine = safeNum(bkLineInput.value);
             const hasBk = bkLine !== 0;
 
-            if ($('sumDisplay')) $('sumDisplay').textContent = total;
+            const sumDisplay = $('sumDisplay');
+            if (sumDisplay) sumDisplay.textContent = total;
 
             if (total === 0 && (!state.h2hData || state.h2hData.length === 0)) {
-                if ($('resValue1')) $('resValue1').textContent = '--';
-                if ($('resValue2')) $('resValue2').textContent = '--';
-                if ($('resValue3')) $('resValue3').textContent = '--';
+                const res1 = $('resValue1');
+                const res2 = $('resValue2');
+                const res3 = $('resValue3');
+                if (res1) res1.textContent = '--';
+                if (res2) res2.textContent = '--';
+                if (res3) res3.textContent = '--';
                 const adv = $('resAdvice');
                 if (adv) { adv.textContent = '⏳ Введите данные для расчёта'; adv.className = 'advice info'; }
                 if ($('confidenceLabel')) $('confidenceLabel').textContent = '0%';
@@ -939,11 +952,14 @@
                 result.className = prob > 60 ? 'good' : 'bad';
             }
 
-            if ($('resValue1')) $('resValue1').textContent = result.value;
-            if ($('resValue2')) $('resValue2').textContent = hasBk ? bkLine : '--';
-            if ($('resValue3')) {
+            const res1 = $('resValue1');
+            const res2 = $('resValue2');
+            const res3 = $('resValue3');
+            if (res1) res1.textContent = result.value;
+            if (res2) res2.textContent = hasBk ? bkLine : '--';
+            if (res3) {
                 const val = safeNum(result.value);
-                $('resValue3').textContent = hasBk ? ((val - bkLine) >= 0 ? '+' : '') + (val - bkLine).toFixed(1) : '--';
+                res3.textContent = hasBk ? ((val - bkLine) >= 0 ? '+' : '') + (val - bkLine).toFixed(1) : '--';
             }
             const adv = $('resAdvice');
             if (adv) { adv.textContent = result.advice; adv.className = 'advice ' + result.className; }
@@ -954,26 +970,41 @@
         }
 
         function updateSum() {
-            const total = safeNum($('homeGoals')?.value) + safeNum($('awayGoals')?.value);
-            if ($('sumDisplay')) $('sumDisplay').textContent = total;
+            const homeInput = $('homeGoals');
+            const awayInput = $('awayGoals');
+            if (homeInput && awayInput) {
+                const total = safeNum(homeInput.value) + safeNum(awayInput.value);
+                const sumDisplay = $('sumDisplay');
+                if (sumDisplay) sumDisplay.textContent = total;
+            }
         }
 
         // ================================================================
         // H2H ЗАГРУЗКА (ОПТИМИЗИРОВАННАЯ)
         // ================================================================
         async function loadH2H() {
-            const homeTeam = $('homeTeamH2H')?.value?.trim() || '';
-            const awayTeam = $('awayTeamH2H')?.value?.trim() || '';
+            const homeTeamInput = $('homeTeamH2H');
+            const awayTeamInput = $('awayTeamH2H');
+            
+            if (!homeTeamInput || !awayTeamInput) return;
+            
+            const homeTeam = homeTeamInput.value?.trim() || '';
+            const awayTeam = awayTeamInput.value?.trim() || '';
             if (!homeTeam || !awayTeam) { showToast('⚠️ Введите обе команды!', 'error'); return; }
             if (state.isLoading) return;
             state.isLoading = true;
 
-            const btn = $('loadH2HBtn'), btnText = $('loadBtnText'), spinner = $('loadSpinner');
-            const status = $('h2hStatus'), results = $('h2hResults');
-            btn.disabled = true; btnText.textContent = '⏳ Загрузка...';
-            spinner.style.display = 'inline-block';
-            status.innerHTML = '⏳ Поиск...';
-            results.innerHTML = '';
+            const btn = $('loadH2HBtn');
+            const btnText = $('loadBtnText');
+            const spinner = $('loadSpinner');
+            const status = $('h2hStatus');
+            const results = $('h2hResults');
+            
+            if (btn) btn.disabled = true;
+            if (btnText) btnText.textContent = '⏳ Загрузка...';
+            if (spinner) spinner.style.display = 'inline-block';
+            if (status) status.innerHTML = '⏳ Поиск...';
+            if (results) results.innerHTML = '';
 
             try {
                 const url1 = `${PROXY_BASE}teams?search=${encodeURIComponent(homeTeam)}`;
@@ -982,9 +1013,12 @@
                 }, 3600000);
 
                 if (!data1.response || data1.response.length === 0) {
-                    status.innerHTML = `❌ Команда "${homeTeam}" не найдена`;
-                    btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
-                    state.isLoading = false; return;
+                    if (status) status.innerHTML = `❌ Команда "${homeTeam}" не найдена`;
+                    if (btn) btn.disabled = false;
+                    if (btnText) btnText.textContent = '📊 Загрузить H2H';
+                    if (spinner) spinner.style.display = 'none';
+                    state.isLoading = false;
+                    return;
                 }
                 const homeId = data1.response[0].team.id;
 
@@ -994,9 +1028,12 @@
                 }, 3600000);
 
                 if (!data2.response || data2.response.length === 0) {
-                    status.innerHTML = `❌ Команда "${awayTeam}" не найдена`;
-                    btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
-                    state.isLoading = false; return;
+                    if (status) status.innerHTML = `❌ Команда "${awayTeam}" не найдена`;
+                    if (btn) btn.disabled = false;
+                    if (btnText) btnText.textContent = '📊 Загрузить H2H';
+                    if (spinner) spinner.style.display = 'none';
+                    state.isLoading = false;
+                    return;
                 }
                 const awayId = data2.response[0].team.id;
 
@@ -1007,9 +1044,12 @@
                 const h2hData = await h2hResp.json();
 
                 if (!h2hData.response || h2hData.response.length === 0) {
-                    status.innerHTML = `❌ Нет встреч между командами`;
-                    btn.disabled = false; btnText.textContent = '📊 Загрузить H2H'; spinner.style.display = 'none';
-                    state.isLoading = false; return;
+                    if (status) status.innerHTML = `❌ Нет встреч между командами`;
+                    if (btn) btn.disabled = false;
+                    if (btnText) btnText.textContent = '📊 Загрузить H2H';
+                    if (spinner) spinner.style.display = 'none';
+                    state.isLoading = false;
+                    return;
                 }
 
                 const matches = h2hData.response.map(m => ({
@@ -1027,31 +1067,32 @@
                 const awayWins = matches.filter(m => m.awayScore > m.homeScore).length;
                 const draws = total - homeWins - awayWins;
 
-                status.innerHTML = `✅ Найдено ${total} встреч!`;
-                results.innerHTML = `
-                    <div class="h2h-summary">
-                        <span class="item">📊 Всего: <span class="num">${total}</span></span>
-                        <span class="item">⚽ ОЗ: <span class="num">${Math.round((ozCount/total)*100)}%</span></span>
-                        <span class="item">📈 Тотал: <span class="num">${avgTotal}</span></span>
-                        <span class="item">🏠 ${homeWins} | ✈️ ${awayWins} | 🤝 ${draws}</span>
-                    </div>
-                    ${matches.slice(0,5).map(m => `<div class="h2h-item">${m.home} ${m.homeScore}:${m.awayScore} ${m.away} ${m.oz ? '✅' : '❌'}</div>`).join('')}
-                `;
+                if (status) status.innerHTML = `✅ Найдено ${total} встреч!`;
+                if (results) {
+                    results.innerHTML = `
+                        <div class="h2h-summary">
+                            <span class="item">📊 Всего: <span class="num">${total}</span></span>
+                            <span class="item">⚽ ОЗ: <span class="num">${Math.round((ozCount/total)*100)}%</span></span>
+                            <span class="item">📈 Тотал: <span class="num">${avgTotal}</span></span>
+                            <span class="item">🏠 ${homeWins} | ✈️ ${awayWins} | 🤝 ${draws}</span>
+                        </div>
+                        ${matches.slice(0,5).map(m => `<div class="h2h-item">${m.home} ${m.homeScore}:${m.awayScore} ${m.away} ${m.oz ? '✅' : '❌'}</div>`).join('')}
+                    `;
+                }
 
                 const badge = $('searchBadge');
                 if (badge) { badge.style.display = 'block'; badge.textContent = total; }
-                if ($('contextCard')) $('contextCard').style.display = 'block';
                 calculate();
                 showToast(`✅ Загружено ${total} матчей!`, 'success');
 
             } catch(error) {
                 handleError(error, '⚠️ Ошибка загрузки. Проверьте интернет.');
-                status.innerHTML = `❌ ${error.message}`;
+                if (status) status.innerHTML = `❌ ${error.message}`;
             } finally {
                 state.isLoading = false;
-                btn.disabled = false;
-                btnText.textContent = '📊 Загрузить H2H';
-                spinner.style.display = 'none';
+                if (btn) btn.disabled = false;
+                if (btnText) btnText.textContent = '📊 Загрузить H2H';
+                if (spinner) spinner.style.display = 'none';
             }
         }
 
@@ -1061,10 +1102,16 @@
         async function generateAIPrediction() {
             const btn = $('aiBtn');
             const result = $('aiResult');
-            const home = safeNum($('homeGoals').value);
-            const away = safeNum($('awayGoals').value);
+            const homeInput = $('homeGoals');
+            const awayInput = $('awayGoals');
+            const bkLineInput = $('bkLine');
+            
+            if (!homeInput || !awayInput || !bkLineInput) return;
+            
+            const home = safeNum(homeInput.value);
+            const away = safeNum(awayInput.value);
             const total = home + away;
-            const bkLine = safeNum($('bkLine').value);
+            const bkLine = safeNum(bkLineInput.value);
             const hasBk = bkLine !== 0;
             const mode = state.currentMode;
 
@@ -1073,8 +1120,10 @@
                 return;
             }
 
-            btn.disabled = true;
-            btn.innerHTML = '⏳ Анализ...';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Анализ...';
+            }
             if (result) result.style.display = 'none';
 
             const league = getLeague();
@@ -1098,8 +1147,8 @@
             let predictedAway = Math.max(0, Math.round(lambdaAway));
             if (predictedHome === 0 && predictedAway === 0) { predictedHome = 1; predictedAway = 1; }
 
-            if ($('homeGoals')) $('homeGoals').value = predictedHome;
-            if ($('awayGoals')) $('awayGoals').value = predictedAway;
+            homeInput.value = predictedHome;
+            awayInput.value = predictedAway;
             updateSum();
             calculate();
 
@@ -1121,18 +1170,30 @@
                 rec = probOz > 0.5 ? '✅ Гол в обоих таймах' : '❌ Гол не в обоих таймах';
             }
 
-            if ($('aiHomeScore')) $('aiHomeScore').textContent = predictedHome;
-            if ($('aiAwayScore')) $('aiAwayScore').textContent = predictedAway;
-            if ($('aiAvgTotal')) $('aiAvgTotal').textContent = (lambdaHome + lambdaAway).toFixed(1);
-            if ($('aiOzProb')) $('aiOzProb').textContent = Math.round(probOz * 100) + '%';
-            if ($('aiConfidence')) $('aiConfidence').textContent = confidence + '%';
-            if ($('aiXG')) $('aiXG').textContent = lambdaHome.toFixed(2);
-            if ($('aiXGA')) $('aiXGA').textContent = lambdaAway.toFixed(2);
-            if ($('aiRecommendation')) $('aiRecommendation').textContent = rec;
-            if ($('aiAdvice')) $('aiAdvice').textContent = `На основе ${state.h2hData ? state.h2hData.length : 0} матчей`;
+            const aiHomeScore = $('aiHomeScore');
+            const aiAwayScore = $('aiAwayScore');
+            const aiAvgTotal = $('aiAvgTotal');
+            const aiOzProb = $('aiOzProb');
+            const aiConfidence = $('aiConfidence');
+            const aiXG = $('aiXG');
+            const aiXGA = $('aiXGA');
+            const aiRecommendation = $('aiRecommendation');
+            const aiAdvice = $('aiAdvice');
 
-            btn.disabled = false;
-            btn.innerHTML = '<span>🤖</span> Сгенерировать AI прогноз';
+            if (aiHomeScore) aiHomeScore.textContent = predictedHome;
+            if (aiAwayScore) aiAwayScore.textContent = predictedAway;
+            if (aiAvgTotal) aiAvgTotal.textContent = (lambdaHome + lambdaAway).toFixed(1);
+            if (aiOzProb) aiOzProb.textContent = Math.round(probOz * 100) + '%';
+            if (aiConfidence) aiConfidence.textContent = confidence + '%';
+            if (aiXG) aiXG.textContent = lambdaHome.toFixed(2);
+            if (aiXGA) aiXGA.textContent = lambdaAway.toFixed(2);
+            if (aiRecommendation) aiRecommendation.textContent = rec;
+            if (aiAdvice) aiAdvice.textContent = `На основе ${state.h2hData ? state.h2hData.length : 0} матчей`;
+
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<span>🤖</span> Сгенерировать AI прогноз';
+            }
             if (result) result.style.display = 'block';
             showToast('🧠 Прогноз готов!', 'success');
         }
@@ -1163,10 +1224,15 @@
             const total = state.bets.length;
             const wins = state.bets.filter(b => b.outcome === 'win').length;
             const losses = state.bets.filter(b => b.outcome === 'loss').length;
-            if ($('statTotal')) $('statTotal').textContent = total;
-            if ($('statWinRate')) $('statWinRate').textContent = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) + '%' : '0%';
-            if ($('statBalance')) $('statBalance').textContent = wins - losses;
-            if ($('statROI')) $('statROI').textContent = total > 0 ? Math.round(((wins - losses) / total) * 100) + '%' : '0%';
+            const statTotal = $('statTotal');
+            const statWinRate = $('statWinRate');
+            const statBalance = $('statBalance');
+            const statROI = $('statROI');
+            
+            if (statTotal) statTotal.textContent = total;
+            if (statWinRate) statWinRate.textContent = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) + '%' : '0%';
+            if (statBalance) statBalance.textContent = wins - losses;
+            if (statROI) statROI.textContent = total > 0 ? Math.round(((wins - losses) / total) * 100) + '%' : '0%';
         }
 
         function renderDashboard() {
@@ -1179,12 +1245,20 @@
                 else if (state.bets[i].outcome === 'loss') streak = 0;
                 else break;
             }
-            if ($('kpiTotal')) $('kpiTotal').textContent = total;
-            if ($('kpiWinRate')) $('kpiWinRate').textContent = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) + '%' : '0%';
-            if ($('kpiProfit')) $('kpiProfit').textContent = wins - losses;
-            if ($('kpiROI')) $('kpiROI').textContent = total > 0 ? Math.round(((wins - losses) / total) * 100) + '%' : '0%';
-            if ($('kpiStreak')) $('kpiStreak').textContent = streak;
-            if ($('kpiBest')) $('kpiBest').textContent = maxStreak;
+            
+            const kpiTotal = $('kpiTotal');
+            const kpiWinRate = $('kpiWinRate');
+            const kpiProfit = $('kpiProfit');
+            const kpiROI = $('kpiROI');
+            const kpiStreak = $('kpiStreak');
+            const kpiBest = $('kpiBest');
+            
+            if (kpiTotal) kpiTotal.textContent = total;
+            if (kpiWinRate) kpiWinRate.textContent = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) + '%' : '0%';
+            if (kpiProfit) kpiProfit.textContent = wins - losses;
+            if (kpiROI) kpiROI.textContent = total > 0 ? Math.round(((wins - losses) / total) * 100) + '%' : '0%';
+            if (kpiStreak) kpiStreak.textContent = streak;
+            if (kpiBest) kpiBest.textContent = maxStreak;
         }
 
         function renderChart() {
@@ -1235,16 +1309,26 @@
         // СТАВКИ
         // ================================================================
         function saveBet() {
+            const homeTeamInput = $('homeTeamH2H');
+            const awayTeamInput = $('awayTeamH2H');
+            const homeGoalsInput = $('homeGoals');
+            const awayGoalsInput = $('awayGoals');
+            const bkLineInput = $('bkLine');
+            const confidenceLabel = $('confidenceLabel');
+            const resValue1 = $('resValue1');
+            
+            if (!homeGoalsInput || !awayGoalsInput || !bkLineInput || !resValue1) return;
+            
             const bet = {
                 id: Date.now(),
                 date: new Date().toLocaleString(),
-                match: `${$('homeTeamH2H')?.value || 'Хозяева'} - ${$('awayTeamH2H')?.value || 'Гости'}`,
+                match: `${homeTeamInput?.value || 'Хозяева'} - ${awayTeamInput?.value || 'Гости'}`,
                 mode: state.currentMode,
-                value: $('resValue1')?.textContent || '--',
-                home: safeNum($('homeGoals')?.value),
-                away: safeNum($('awayGoals')?.value),
-                bkLine: safeNum($('bkLine')?.value),
-                confidence: parseInt($('confidenceLabel')?.textContent) || 50,
+                value: resValue1.textContent || '--',
+                home: safeNum(homeGoalsInput.value),
+                away: safeNum(awayGoalsInput.value),
+                bkLine: safeNum(bkLineInput.value),
+                confidence: parseInt(confidenceLabel?.textContent) || 50,
                 outcome: 'pending',
                 resultText: '⏳ Ожидание'
             };
@@ -1285,25 +1369,35 @@
         }
 
         function clearAll() {
-            if ($('homeGoals')) $('homeGoals').value = '0';
-            if ($('awayGoals')) $('awayGoals').value = '0';
-            if ($('bkLine')) { $('bkLine').value = '0'; $('bkLine').disabled = true; }
-            if ($('sumDisplay')) $('sumDisplay').textContent = '0';
-            if ($('resValue1')) $('resValue1').textContent = '--';
-            if ($('resValue2')) $('resValue2').textContent = '--';
-            if ($('resValue3')) $('resValue3').textContent = '--';
-            const adv = $('resAdvice');
-            if (adv) { adv.textContent = '⏳ Введите данные для расчёта'; adv.className = 'advice info'; }
-            if ($('confidenceLabel')) $('confidenceLabel').textContent = '0%';
-            if ($('confidenceFill')) $('confidenceFill').style.width = '0%';
+            const homeGoals = $('homeGoals');
+            const awayGoals = $('awayGoals');
+            const bkLine = $('bkLine');
+            const sumDisplay = $('sumDisplay');
+            const resValue1 = $('resValue1');
+            const resValue2 = $('resValue2');
+            const resValue3 = $('resValue3');
+            const resAdvice = $('resAdvice');
+            const confidenceLabel = $('confidenceLabel');
+            const confidenceFill = $('confidenceFill');
+            
+            if (homeGoals) homeGoals.value = '0';
+            if (awayGoals) awayGoals.value = '0';
+            if (bkLine) { bkLine.value = '0'; bkLine.disabled = true; }
+            if (sumDisplay) sumDisplay.textContent = '0';
+            if (resValue1) resValue1.textContent = '--';
+            if (resValue2) resValue2.textContent = '--';
+            if (resValue3) resValue3.textContent = '--';
+            if (resAdvice) { resAdvice.textContent = '⏳ Введите данные для расчёта'; resAdvice.className = 'advice info'; }
+            if (confidenceLabel) confidenceLabel.textContent = '0%';
+            if (confidenceFill) confidenceFill.style.width = '0%';
             state.h2hData = null;
             state.aiPredictedScore = null;
-            if ($('xgCard')) $('xgCard').style.display = 'none';
-            if ($('aiCard')) $('aiCard').style.display = 'none';
-            if ($('liveCard')) $('liveCard').style.display = 'none';
-            if ($('aiResult')) $('aiResult').style.display = 'none';
-            if ($('bkComment')) { $('bkComment').textContent = '—'; $('bkComment').style.background = 'transparent'; }
-            if ($('searchBadge')) $('searchBadge').style.display = 'none';
+            const aiResult = $('aiResult');
+            if (aiResult) aiResult.style.display = 'none';
+            const bkComment = $('bkComment');
+            if (bkComment) { bkComment.textContent = '—'; bkComment.style.background = 'transparent'; }
+            const searchBadge = $('searchBadge');
+            if (searchBadge) searchBadge.style.display = 'none';
             showToast('🗑️ Очищено', 'info');
         }
 
@@ -1370,11 +1464,11 @@
             if (quantumAI.isTraining) { showToast('⏳ Обучение уже идёт...', 'info'); return; }
             const bets = state.bets.filter(b => b.outcome !== 'pending');
             if (bets.length < 10) { showToast(`⚠️ Нужно минимум 10 ставок (сейчас ${bets.length})`, 'error'); return; }
-            btn.disabled = true; btn.textContent = '⏳ Обучение...';
+            if (btn) { btn.disabled = true; btn.textContent = '⏳ Обучение...'; }
             clearAILog();
             addAILog(`📊 Начало обучения на ${bets.length} ставках`);
             await quantumAI.train(bets, 50, (msg) => { addAILog(msg); });
-            btn.disabled = false; btn.textContent = '🧠 Обучить AI';
+            if (btn) { btn.disabled = false; btn.textContent = '🧠 Обучить AI'; }
             updateAIStatus();
         }
 
@@ -1388,8 +1482,9 @@
         // ================================================================
         // ИНИЦИАЛИЗАЦИЯ
         // ================================================================
-        if ($('leagueSelect')) {
-            $('leagueSelect').onchange = function() {
+        const leagueSelect = $('leagueSelect');
+        if (leagueSelect) {
+            leagueSelect.onchange = function() {
                 state.currentLeague = this.value;
                 localStorage.setItem('quantum_league', this.value);
                 updateLeagueInfo();
@@ -1397,22 +1492,26 @@
             };
         }
 
-        if ($('homeGoals')) {
-            $('homeGoals').oninput = function() {
+        const homeGoals = $('homeGoals');
+        const awayGoals = $('awayGoals');
+        const bkLine = $('bkLine');
+
+        if (homeGoals) {
+            homeGoals.oninput = function() {
                 updateSum();
                 calculate();
             };
         }
 
-        if ($('awayGoals')) {
-            $('awayGoals').oninput = function() {
+        if (awayGoals) {
+            awayGoals.oninput = function() {
                 updateSum();
                 calculate();
             };
         }
 
-        if ($('bkLine')) {
-            $('bkLine').oninput = function() {
+        if (bkLine) {
+            bkLine.oninput = function() {
                 calculate();
             };
         }
