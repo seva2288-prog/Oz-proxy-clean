@@ -25,104 +25,30 @@
             background: #F2F2F7;
             color: #1C1C1E;
         }
-        body.light .header,
-        body.light .nav-bar {
-            background: #FFFFFF;
-            border-bottom-color: #E5E5EA;
-            border-top-color: #E5E5EA;
+        .status-indicator {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: #141A26;
+            border-radius: 12px;
+            font-size: 12px;
         }
-        body.light .card,
-        body.light .history-item,
-        body.light .summary,
-        body.light .training-status,
-        body.light .quick-input,
-        body.light .setting-group {
-            background: #FFFFFF;
-            border-color: #E5E5EA;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        .status-indicator .dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
         }
-        body.light .header h1 span {
-            background: #007AFF;
-            color: #FFFFFF;
-        }
-        body.light .nav-item.active {
-            color: #007AFF;
-        }
-        body.light .btn-primary {
-            background: #007AFF;
-            color: #FFFFFF;
-        }
-        body.light .btn-primary:active {
-            background: #0055CC;
-        }
-        body.light .btn-secondary {
-            background: #E5E5EA;
-            color: #1C1C1E;
-        }
-        body.light .btn-secondary:active {
-            background: #D1D1D6;
-        }
-        body.light .indicator .label .value {
-            color: #007AFF;
-        }
-        body.light .indicator .bar {
-            background: #E5E5EA;
-        }
-        body.light .indicator .bar .fill {
-            background: linear-gradient(90deg, #007AFF, #0055CC);
-        }
-        body.light .toggle {
-            background: #E5E5EA;
-        }
-        body.light .toggle.active {
-            background: #007AFF;
-        }
-        body.light .toggle::after {
-            background: #FFFFFF;
-        }
-        body.light .toggle.active::after {
-            background: #FFFFFF;
-        }
-        body.light .filter-bar .tag {
-            background: #E5E5EA;
-            color: #1C1C1E;
-        }
-        body.light .filter-bar .tag.active {
-            border-color: #007AFF;
-            color: #007AFF;
-            background: #F2F2F7;
-        }
-        body.light .history-item.win {
-            border-left-color: #007AFF;
-        }
-        body.light .summary .stat .num {
-            color: #007AFF;
-        }
-        body.light .training-status .badge {
-            background: #007AFF;
-            color: #FFFFFF;
-        }
-        body.light .ai-advice {
-            background: #F2F2F7;
-            border-left-color: #007AFF;
-        }
-        body.light .import-area {
-            border-color: #E5E5EA;
-        }
-        body.light .import-area.dragover {
-            border-color: #007AFF;
-            background: rgba(0, 122, 255, 0.05);
-        }
-        body.light .setting-row input[type="range"] {
-            accent-color: #007AFF;
-            background: #E5E5EA;
-        }
-        body.light .setting-row input[type="text"],
-        body.light .quick-input .row input,
-        body.light .quick-input .full-width {
-            background: #F2F2F7;
-            border-color: #E5E5EA;
-            color: #1C1C1E;
+        .status-indicator .dot.green { background: #00E676; }
+        .status-indicator .dot.red { background: #FF5253; }
+        .status-indicator .dot.yellow { background: #FFD740; }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         .header {
             background: #0B0E17;
@@ -668,6 +594,18 @@
 
         <!-- ===== ГЛАВНАЯ ===== -->
         <div class="screen active" id="screen-home">
+            <!-- ИНДИКАТОРЫ ПОДКЛЮЧЕНИЯ -->
+            <div class="status-indicator" id="statusIndicator">
+                <span class="status-item" id="apiStatusIndicator">
+                    <span class="dot red" id="apiDot"></span>
+                    <span id="apiStatusText">API: не подключён</span>
+                </span>
+                <span class="status-item" id="weatherStatusIndicator">
+                    <span class="dot red" id="weatherDot"></span>
+                    <span id="weatherStatusText">Погода: выкл</span>
+                </span>
+            </div>
+
             <div class="card" id="matchCard">
                 <div class="vs">
                     ⚔️ <span id="teamHome">—</span> — <span id="teamAway">—</span>
@@ -792,6 +730,19 @@
             </div>
 
             <div class="setting-group">
+                <div class="title">🌤️ OPENWEATHERMAP (Погода)</div>
+                <div class="setting-row">
+                    <span class="label">🔑 Погода Ключ</span>
+                    <input type="password" id="weatherKeyInput" placeholder="Вставьте ваш ключ">
+                </div>
+                <div class="setting-row">
+                    <span class="label"></span>
+                    <button class="btn btn-sm btn-primary" id="saveWeatherKeyBtn" style="min-width:100px;">💾 Сохранить</button>
+                </div>
+                <div id="weatherStatus" style="font-size:12px; color:#9E9E9E; margin-top:4px; text-align:center;"></div>
+            </div>
+
+            <div class="setting-group">
                 <div class="title">💾 Управление данными</div>
                 <div class="import-area" id="importArea">
                     <span class="icon">📂</span>
@@ -878,7 +829,7 @@
         (function() {
             'use strict';
 
-            console.log('✅ v5.0 — Слой 2 (исправленный, автоподгрузка работает)');
+            console.log('✅ v5.0 — Слой 2 (индикация + поле погоды)');
 
             // ============================================================
             // ДАННЫЕ
@@ -886,6 +837,7 @@
             let appData = loadData();
             let currentFilter = 'all';
             let apiKey = '';
+            let weatherKey = '';
 
             function loadData() {
                 try {
@@ -896,12 +848,13 @@
                         if (!parsed.settings) parsed.settings = {};
                         if (!parsed.trainingHistory) parsed.trainingHistory = [];
                         if (!parsed.apiKey) parsed.apiKey = '';
+                        if (!parsed.weatherKey) parsed.weatherKey = '';
                         return parsed;
                     }
                 } catch (e) {
                     console.warn('Ошибка загрузки данных');
                 }
-                return { matches: [], settings: {}, trainingHistory: [], apiKey: '' };
+                return { matches: [], settings: {}, trainingHistory: [], apiKey: '', weatherKey: '' };
             }
 
             function saveData() {
@@ -989,11 +942,26 @@
                 setToggle('toggleVibration', s.vibration);
                 setToggle('toggleReminder', s.reminder);
                 setToggle('toggleTheme', s.theme === 'light');
-                if (appData.apiKey) {
+
+                // API ключ
+                if (appData.apiKey && appData.apiKey.length > 0) {
                     apiKey = appData.apiKey;
                     document.getElementById('apiKeyInput').value = apiKey;
                     document.getElementById('apiStatus').textContent = '✅ Ключ загружен';
+                } else {
+                    document.getElementById('apiStatus').textContent = '';
                 }
+
+                // Погода ключ
+                if (appData.weatherKey && appData.weatherKey.length > 0) {
+                    weatherKey = appData.weatherKey;
+                    document.getElementById('weatherKeyInput').value = weatherKey;
+                    document.getElementById('weatherStatus').textContent = '✅ Ключ загружен';
+                } else {
+                    document.getElementById('weatherStatus').textContent = '';
+                }
+
+                updateStatusIndicators();
             }
 
             function setToggle(id, state) {
@@ -1009,6 +977,36 @@
             }
 
             // ============================================================
+            // ИНДИКАТОРЫ СТАТУСА
+            // ============================================================
+            function updateStatusIndicators() {
+                const apiKeyExists = appData.apiKey && appData.apiKey.length > 0;
+                const weatherKeyExists = appData.weatherKey && appData.weatherKey.length > 0;
+
+                // API Football
+                const apiDot = document.getElementById('apiDot');
+                const apiText = document.getElementById('apiStatusText');
+                if (apiKeyExists) {
+                    apiDot.className = 'dot green';
+                    apiText.textContent = 'API: подключён';
+                } else {
+                    apiDot.className = 'dot red';
+                    apiText.textContent = 'API: не подключён';
+                }
+
+                // Погода
+                const weatherDot = document.getElementById('weatherDot');
+                const weatherText = document.getElementById('weatherStatusText');
+                if (weatherKeyExists) {
+                    weatherDot.className = 'dot green';
+                    weatherText.textContent = 'Погода: вкл';
+                } else {
+                    weatherDot.className = 'dot red';
+                    weatherText.textContent = 'Погода: выкл';
+                }
+            }
+
+            // ============================================================
             // API-FOOTBALL
             // ============================================================
             const API_BASE = 'https://api-football-v1.p.rapidapi.com/v3';
@@ -1021,6 +1019,7 @@
                         appData.apiKey = apiKey;
                         saveData();
                         document.getElementById('apiStatus').textContent = '✅ Ключ сохранён';
+                        updateStatusIndicators();
                     }
                 }
                 return apiKey;
@@ -1062,7 +1061,6 @@
                 const key = getApiKey();
                 if (!key) return null;
                 try {
-                    // Ищем команду
                     const teamResponse = await fetch(API_BASE + '/teams?search=' + encodeURIComponent(teamName), {
                         headers: {
                             'x-rapidapi-key': key,
@@ -1077,7 +1075,6 @@
                     const country = teamData.response[0].team.country || 'Неизвестно';
                     const league = teamData.response[0].team.league || 'Неизвестно';
 
-                    // Ищем последний матч команды для xG
                     const fixtureResponse = await fetch(API_BASE + '/fixtures?team=' + teamId + '&last=1', {
                         headers: {
                             'x-rapidapi-key': key,
@@ -1094,7 +1091,6 @@
                     const fixture = fixtureData.response[0];
                     const fixtureId = fixture.fixture.id;
 
-                    // Получаем статистику матча (xG)
                     let xgHome = 0,
                         xgAway = 0;
                     try {
@@ -1129,7 +1125,6 @@
                         console.warn('Ошибка получения xG:', e);
                     }
 
-                    // Получаем коэффициенты (Odds)
                     let odds = 0;
                     try {
                         const oddsResponse = await fetch(API_BASE + '/odds?fixture=' + fixtureId, {
@@ -1243,7 +1238,6 @@
                                 });
                             });
                         } else {
-                            // Если ключа нет — локальный поиск
                             var results = searchTeamsLocal(query);
                             if (results.length === 0) {
                                 container.style.display = 'none';
@@ -1644,7 +1638,8 @@
                     matches: appData.matches || [],
                     settings: appData.settings || defaultSettings,
                     trainingHistory: appData.trainingHistory || [],
-                    apiKey: appData.apiKey ? '****' : ''
+                    apiKey: appData.apiKey ? '****' : '',
+                    weatherKey: appData.weatherKey ? '****' : ''
                 };
                 var json = JSON.stringify(data, null, 2);
                 var blob = new Blob([json], { type: 'application/json' });
@@ -1696,15 +1691,19 @@
             function resetAll() {
                 if (confirm('Удалить все данные?')) {
                     appData = { matches: [], settings: JSON.parse(JSON.stringify(defaultSettings)), trainingHistory: [],
-                        apiKey: '' };
+                        apiKey: '', weatherKey: '' };
                     apiKey = '';
+                    weatherKey = '';
                     document.getElementById('apiKeyInput').value = '';
+                    document.getElementById('weatherKeyInput').value = '';
                     document.getElementById('apiStatus').textContent = '';
+                    document.getElementById('weatherStatus').textContent = '';
                     saveData();
                     renderHistory();
                     loadSettingsToUI();
                     applyTheme();
                     updateMainCard();
+                    updateStatusIndicators();
                     alert('✅ Все данные сброшены');
                 }
             }
@@ -1822,17 +1821,30 @@
                 setupToggle('toggleReminder', 'reminder');
                 setupToggle('toggleTheme', 'theme');
 
-                // API — только сохранение
+                // API ключи
                 document.getElementById('saveApiKeyBtn').addEventListener('click', function() {
                     var key = document.getElementById('apiKeyInput').value.trim();
-                    if (key) {
+                    if (key && key.length > 0) {
                         apiKey = key;
                         appData.apiKey = key;
                         saveData();
                         document.getElementById('apiStatus').textContent = '✅ Ключ сохранён';
+                        updateStatusIndicators();
                         setupTeamSearch();
                     } else {
                         document.getElementById('apiStatus').textContent = '❌ Введите ключ';
+                    }
+                });
+                document.getElementById('saveWeatherKeyBtn').addEventListener('click', function() {
+                    var key = document.getElementById('weatherKeyInput').value.trim();
+                    if (key && key.length > 0) {
+                        weatherKey = key;
+                        appData.weatherKey = key;
+                        saveData();
+                        document.getElementById('weatherStatus').textContent = '✅ Ключ сохранён';
+                        updateStatusIndicators();
+                    } else {
+                        document.getElementById('weatherStatus').textContent = '❌ Введите ключ';
                     }
                 });
 
@@ -1898,6 +1910,7 @@
                 }
                 renderHistory();
                 updateMainCard();
+                updateStatusIndicators();
                 console.log('✅ v5.0 Слой 2 загружен, матчей:', appData.matches.length);
             });
         })();
