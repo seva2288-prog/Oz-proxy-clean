@@ -6,7 +6,6 @@
     <title>Квантум PRO v4.2</title>
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogItCa0LLQsNC90YLRg9C8IFBSTyB2NC4yIiwKICAic2hvcnRfbmFtZSI6ICLQmtCy0LDQvdGC0YPQvSBQUk8iLAogICJkZXNjcmlwdGlvbiI6ICLQkNC90LDQu9C40YLQuNGH0LXRgdC60LjQuSDRhtC10L3RgtGAINC00LDRgdGC0L7QstC10YDQvdGL0YUg0LTQu9GPINGB0YLQsNCy0L7QuiIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMEIwRTE3IiwKICAidGhlbWVfY29sb3IiOiAiIzAwRTY3NiIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxjaXJjbGUgY3g9JzUwJyBjeT0nNTAnIHI9JzUwJyBmaWxsPSclMjMwMEU2NzYnLz48dGV4dCB4PSc1MCcgeT0nNjUnIGZvbnQtc2l6ZT0nNDAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9JyUyMzBCMEUxNycgZm9udC1mYW1pbHk9J3NhbnMtc2VyaWYnPuKArTwvdGV4dD48L3N2Zz4iLAogICAgICAic2l6ZXMiOiAiNTEyeDUxMiIsCiAgICAgICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiLAogICAgICAicHVycG9zZSI6ICJhbnkgbWFzayBhbnlsYW5nIgogICAgfQogIF0KfQ==">
     <style>
-        /* ===== RESET & GLOBAL ===== */
         * {
             margin: 0;
             padding: 0;
@@ -98,9 +97,6 @@
             color: #007AFF;
         }
         body.light .recommendation {
-            color: #FFFFFF;
-        }
-        body.light .recommendation {
             background: #007AFF;
             color: #FFFFFF;
         }
@@ -146,16 +142,6 @@
         body.light .spoiler .data-grid strong {
             color: #1C1C1E;
         }
-        body.light .team-suggestions {
-            background: #FFFFFF;
-            border: 1px solid #E5E5EA;
-        }
-        body.light .team-suggestions .item {
-            border-bottom-color: #E5E5EA;
-        }
-        body.light .team-suggestions .item:hover {
-            background: #F2F2F7;
-        }
         .header {
             background: #0B0E17;
             padding: 16px 20px 10px 20px;
@@ -164,7 +150,6 @@
             align-items: center;
             border-bottom: 1px solid #1F2633;
             flex-shrink: 0;
-            transition: background 0.3s, border-color 0.3s;
         }
         .header h1 {
             font-size: 20px;
@@ -182,7 +167,6 @@
             border-radius: 12px;
             font-weight: 700;
             letter-spacing: 0.3px;
-            transition: background 0.3s, color 0.3s;
         }
         .header .live {
             color: #00E676;
@@ -205,7 +189,6 @@
             flex: 1;
             overflow-y: auto;
             padding: 16px 16px 20px 16px;
-            scroll-behavior: smooth;
         }
         .screen {
             display: none;
@@ -225,7 +208,6 @@
             margin-bottom: 20px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
             border: 1px solid #1F2633;
-            transition: transform 0.2s, background 0.3s, border-color 0.3s, box-shadow 0.3s;
         }
         .match-card .vs {
             font-size: 22px;
@@ -255,7 +237,6 @@
             background: #1F2633;
             padding: 2px 12px;
             border-radius: 20px;
-            transition: background 0.3s, color 0.3s;
         }
         .indicator {
             margin-bottom: 16px;
@@ -270,7 +251,6 @@
         .indicator .label .value {
             color: #00E676;
             font-weight: 700;
-            transition: color 0.3s;
         }
         .indicator .bar {
             width: 100%;
@@ -278,7 +258,6 @@
             background: #1F2633;
             border-radius: 12px;
             overflow: hidden;
-            transition: background 0.3s;
         }
         .indicator .bar .fill {
             height: 100%;
@@ -297,7 +276,6 @@
             display: inline-block;
             margin: 6px 0 12px 0;
             letter-spacing: 0.3px;
-            transition: background 0.3s, color 0.3s;
         }
         .btn-group {
             display: flex;
@@ -318,7 +296,6 @@
             background: #1F2633;
             color: #E0E0E0;
             text-align: center;
-            text-decoration: none;
         }
         .btn-primary {
             background: #00E676;
@@ -349,26 +326,10 @@
         .btn-danger:active {
             background: #D32F2F;
         }
-        .btn-success {
-            background: #00E676;
-            color: #0B0E17;
-        }
-        .btn-success:active {
-            background: #00C853;
-        }
-        .btn-success-light {
-            background: #00E676;
-            color: #0B0E17;
-        }
-        body.light .btn-success-light {
-            background: #007AFF;
-            color: #FFFFFF;
-        }
         .spoiler {
             margin-top: 12px;
             border-top: 1px solid #1F2633;
             padding-top: 12px;
-            transition: border-color 0.3s;
         }
         .spoiler summary {
             font-size: 14px;
@@ -403,7 +364,6 @@
             color: #B0B0B0;
             border: 1px solid transparent;
             cursor: pointer;
-            transition: background 0.3s, color 0.3s, border-color 0.3s;
         }
         .filter-bar .tag.active {
             border-color: #00E676;
@@ -420,7 +380,6 @@
             align-items: center;
             gap: 8px;
             border-left: 4px solid #FFD740;
-            transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
         }
         .history-item.win {
             border-left-color: #00E676;
@@ -465,13 +424,11 @@
             grid-template-columns: 1fr 1fr 1fr;
             gap: 8px;
             text-align: center;
-            transition: background 0.3s, box-shadow 0.3s;
         }
         .summary .stat .num {
             font-size: 22px;
             font-weight: 700;
             color: #00E676;
-            transition: color 0.3s;
         }
         .summary .stat .lbl {
             font-size: 12px;
@@ -482,7 +439,6 @@
             border-radius: 16px;
             padding: 16px;
             margin-bottom: 16px;
-            transition: background 0.3s, box-shadow 0.3s;
         }
         .setting-group .title {
             font-weight: 600;
@@ -496,7 +452,6 @@
             align-items: center;
             padding: 8px 0;
             border-bottom: 1px solid #1F2633;
-            transition: border-color 0.3s;
         }
         .setting-row .label {
             font-size: 14px;
@@ -507,9 +462,7 @@
             background: #1F2633;
             height: 4px;
             border-radius: 8px;
-            transition: accent-color 0.3s, background 0.3s;
         }
-        .setting-row input[type="text"],
         .setting-row input[type="password"] {
             width: 200px;
             padding: 6px 10px;
@@ -518,8 +471,6 @@
             background: #0B0E17;
             color: #E0E0E0;
             font-size: 13px;
-            text-align: left;
-            transition: background 0.3s, border-color 0.3s, color 0.3s;
             font-family: monospace;
         }
         .setting-row input[type="number"] {
@@ -531,7 +482,6 @@
             color: #E0E0E0;
             font-size: 14px;
             text-align: center;
-            transition: background 0.3s, border-color 0.3s, color 0.3s;
         }
         .toggle {
             width: 48px;
@@ -565,7 +515,6 @@
             border-radius: 16px;
             padding: 16px;
             margin-bottom: 16px;
-            transition: background 0.3s, box-shadow 0.3s;
         }
         .training-status .row {
             display: flex;
@@ -589,7 +538,6 @@
             font-size: 14px;
             line-height: 1.5;
             border-left: 4px solid #00E676;
-            transition: background 0.3s, border-color 0.3s;
         }
         .nav-bar {
             position: fixed;
@@ -602,7 +550,6 @@
             justify-content: space-around;
             padding: 8px 0 12px 0;
             z-index: 100;
-            transition: background 0.3s, border-color 0.3s;
         }
         .nav-item {
             display: flex;
@@ -639,7 +586,6 @@
             border-radius: 16px;
             padding: 16px;
             margin-top: 12px;
-            transition: background 0.3s, box-shadow 0.3s;
         }
         .quick-input .row {
             display: grid;
@@ -647,8 +593,7 @@
             gap: 10px;
             margin-bottom: 10px;
         }
-        .quick-input .row input,
-        .quick-input .row select {
+        .quick-input .row input {
             background: #0B0E17;
             border: 1px solid #1F2633;
             border-radius: 12px;
@@ -656,7 +601,6 @@
             color: #E0E0E0;
             font-size: 14px;
             width: 100%;
-            transition: background 0.3s, border-color 0.3s, color 0.3s;
         }
         .quick-input .row input::placeholder {
             color: #5A667A;
@@ -670,42 +614,9 @@
             color: #E0E0E0;
             font-size: 14px;
             margin-bottom: 10px;
-            transition: background 0.3s, border-color 0.3s, color 0.3s;
         }
         .quick-input .full-width::placeholder {
             color: #5A667A;
-        }
-        .team-suggestions {
-            background: #1F2633;
-            border-radius: 12px;
-            margin-top: 4px;
-            max-height: 150px;
-            overflow-y: auto;
-            display: none;
-            transition: background 0.3s, border-color 0.3s;
-        }
-        .team-suggestions .item {
-            padding: 10px 14px;
-            border-bottom: 1px solid #2A3342;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            transition: background 0.15s;
-        }
-        .team-suggestions .item:last-child {
-            border-bottom: none;
-        }
-        .team-suggestions .item:hover {
-            background: #2A3342;
-        }
-        .team-suggestions .item .flag {
-            font-size: 18px;
-        }
-        .team-suggestions .item .league-name {
-            color: #9E9E9E;
-            font-size: 12px;
         }
         .import-area {
             border: 2px dashed #1F2633;
@@ -714,19 +625,12 @@
             text-align: center;
             color: #9E9E9E;
             margin: 12px 0;
-            transition: border-color 0.3s, background 0.3s;
             cursor: pointer;
-        }
-        body.light .import-area {
-            border-color: #E5E5EA;
+            transition: border-color 0.3s, background 0.3s;
         }
         .import-area.dragover {
             border-color: #00E676;
             background: rgba(0, 230, 118, 0.05);
-        }
-        body.light .import-area.dragover {
-            border-color: #007AFF;
-            background: rgba(0, 122, 255, 0.05);
         }
         .import-area .icon {
             font-size: 32px;
@@ -737,93 +641,28 @@
             font-size: 12px;
             color: #5A667A;
         }
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
-            padding: 20px;
-        }
-        .modal-overlay.active {
-            display: flex;
-        }
-        .modal {
-            background: #141A26;
-            border-radius: 24px;
-            padding: 24px;
-            max-width: 400px;
-            width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-            transition: background 0.3s, box-shadow 0.3s;
-        }
-        body.light .modal {
-            background: #FFFFFF;
-        }
-        .modal .title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-        .modal .close-btn {
-            float: right;
-            background: none;
-            border: none;
-            color: #9E9E9E;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        body.light .modal .close-btn {
-            color: #1C1C1E;
-        }
-        .modal .odds-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin: 12px 0;
-        }
-        .modal .odds-card {
-            background: #1F2633;
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            transition: background 0.3s;
-        }
-        body.light .modal .odds-card {
-            background: #F2F2F7;
-        }
-        .modal .odds-card .bookmaker {
-            font-size: 12px;
-            color: #9E9E9E;
-        }
-        .modal .odds-card .value {
-            font-size: 20px;
-            font-weight: 700;
-            color: #00E676;
-        }
-        body.light .modal .odds-card .value {
-            color: #007AFF;
-        }
-        .modal .odds-card .value.highlight {
-            color: #FFD740;
-        }
-        .modal .btn-group-vertical {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .day-stats {
             margin-top: 12px;
+            background: #141A26;
+            border-radius: 16px;
+            padding: 12px;
+        }
+        .day-stats .title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+        .day-stats .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+            gap: 4px;
+            font-size: 11px;
+            text-align: center;
         }
         @media (max-width: 380px) {
             .header h1 { font-size: 17px; }
             .match-card .vs { font-size: 18px; }
             .btn { font-size: 13px; padding: 12px 8px; }
-            .setting-row input[type="text"] { width: 140px; font-size: 12px; }
         }
     </style>
 </head>
@@ -835,35 +674,17 @@
 </div>
 
 <div class="screen-container" id="appContainer">
-
-    <!-- ===== ГЛАВНЫЙ ЭКРАН ===== -->
+    <!-- ГЛАВНЫЙ ЭКРАН -->
     <div class="screen active" id="screen-home">
         <div class="match-card" id="matchCard">
-            <div class="vs">
-                ⚔️ <span id="teamHome">Велес</span> — <span id="teamAway">Ротор</span>
+            <div class="vs">⚔️ <span id="teamHome">Велес</span> — <span id="teamAway">Ротор</span>
                 <small id="tournament">ФНЛ · 03.08</small>
             </div>
-            <div class="meta">
-                <span>🏆 ФНЛ</span>
-                <span>📅 03.08</span>
-                <span>⏰ 21:00</span>
-            </div>
-            <div class="indicator">
-                <div class="label">
-                    <span>📊 Индекс доверия</span>
-                    <span class="value" id="trustValue">38%</span>
-                </div>
-                <div class="bar"><div class="fill" id="trustFill" style="width:38%"></div></div>
-            </div>
-            <div class="indicator">
-                <div class="label">
-                    <span>🎯 Вероятность ОЗ</span>
-                    <span class="value" id="ozValue">91%</span>
-                </div>
-                <div class="bar"><div class="fill" id="ozFill" style="width:91%"></div></div>
-            </div>
+            <div class="meta"><span>🏆 ФНЛ</span><span>📅 03.08</span><span>⏰ 21:00</span></div>
+            <div class="indicator"><div class="label"><span>📊 Индекс доверия</span><span class="value" id="trustValue">38%</span></div><div class="bar"><div class="fill" id="trustFill" style="width:38%"></div></div></div>
+            <div class="indicator"><div class="label"><span>🎯 Вероятность ОЗ</span><span class="value" id="ozValue">91%</span></div><div class="bar"><div class="fill" id="ozFill" style="width:91%"></div></div></div>
             <div class="recommendation" id="recommendationBadge">🟢 ОЗ – ДА</div>
-            <div style="margin: 10px 0 6px 0; font-size:15px; display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between;">
+            <div style="margin:10px 0 6px 0; font-size:15px; display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between;">
                 <span>💰 КЭФ В БК: <strong id="oddsDisplay">2.10</strong></span>
                 <span>📈 Валуй: <strong id="valueDisplay" style="color:#00E676;">ДА (+0.91)</strong></span>
                 <span>💡 Ставка: <strong id="betSizeDisplay">20% (2000 ₽)</strong></span>
@@ -872,8 +693,7 @@
                 <button class="btn btn-primary" id="saveBtn">🟢 СОХРАНИТЬ ПРОГНОЗ</button>
                 <button class="btn btn-secondary" id="bookmakerBtn">🔗 ПЕРЕЙТИ В БК</button>
             </div>
-            <details class="spoiler">
-                <summary>▼ РАСШИРЕННЫЕ ДАННЫЕ</summary>
+            <details class="spoiler"><summary>▼ РАСШИРЕННЫЕ ДАННЫЕ</summary>
                 <div class="data-grid">
                     <span><strong>xG:</strong> <span id="xgHome">1.27</span> / <span id="xgAway">1.18</span></span>
                     <span><strong>Poisson:</strong> П1 <span id="poissonP1">69%</span> П2 <span id="poissonP2">66%</span></span>
@@ -882,34 +702,18 @@
                 </div>
             </details>
         </div>
-
-        <!-- Быстрый ввод -->
         <div class="quick-input">
             <div style="font-size:14px; font-weight:600; margin-bottom:8px;">⚡ Быстрый ввод матча</div>
-            <div class="row">
-                <input type="text" id="inputHome" placeholder="Хозяева" autocomplete="off">
-                <input type="text" id="inputAway" placeholder="Гости" autocomplete="off">
-            </div>
-            <div id="homeSuggestions" class="team-suggestions"></div>
-            <div id="awaySuggestions" class="team-suggestions"></div>
-            <div class="row">
-                <input type="text" id="inputLeague" placeholder="Лига (авто)">
-                <input type="text" id="inputCountry" placeholder="Страна (авто)">
-            </div>
-            <div class="row">
-                <input type="number" id="inputXg" placeholder="xG хозяев" step="0.01">
-                <input type="number" id="inputXga" placeholder="xG гостей" step="0.01">
-            </div>
-            <div class="row">
-                <input type="number" id="inputOz" placeholder="ОЗ % (91)" step="0.1">
-                <input type="number" id="inputOdds" placeholder="Кэф (2.10)" step="0.01">
-            </div>
+            <div class="row"><input type="text" id="inputHome" placeholder="Хозяева"><input type="text" id="inputAway" placeholder="Гости"></div>
+            <div class="row"><input type="text" id="inputLeague" placeholder="Лига (авто)"><input type="text" id="inputCountry" placeholder="Страна (авто)"></div>
+            <div class="row"><input type="number" id="inputXg" placeholder="xG хозяев" step="0.01"><input type="number" id="inputXga" placeholder="xG гостей" step="0.01"></div>
+            <div class="row"><input type="number" id="inputOz" placeholder="ОЗ % (91)" step="0.1"><input type="number" id="inputOdds" placeholder="Кэф (2.10)" step="0.01"></div>
             <input type="text" class="full-width" id="inputComment" placeholder="📝 Комментарий (например, дерби, эксперимент)">
             <button class="btn btn-primary" style="width:100%;" id="quickAddBtn">➕ Добавить матч</button>
         </div>
     </div>
 
-    <!-- ===== ИСТОРИЯ ===== -->
+    <!-- ИСТОРИЯ -->
     <div class="screen" id="screen-history">
         <div class="filter-bar">
             <span class="tag active" data-filter="all">Все</span>
@@ -928,94 +732,41 @@
             <div class="stat"><div class="num" id="streakDisplay">0</div><div class="lbl">Серия</div></div>
             <div class="stat"><div class="num" id="avgOddsDisplay">0.00</div><div class="lbl">Ср. кэф зашедших</div></div>
         </div>
-        <div id="dayStats" style="margin-top:12px; background:#141A26; border-radius:16px; padding:12px; transition: background 0.3s;">
-            <div style="font-weight:600; font-size:14px; margin-bottom:6px;">📅 По дням недели</div>
-            <div id="dayStatsGrid" style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr 1fr; gap:4px; font-size:11px; text-align:center;"></div>
-        </div>
+        <div class="day-stats"><div class="title">📅 По дням недели</div><div class="grid" id="dayStatsGrid"></div></div>
     </div>
 
-    <!-- ===== НАСТРОЙКИ ===== -->
+    <!-- НАСТРОЙКИ -->
     <div class="screen" id="screen-settings">
         <div class="setting-group">
             <div class="title">🔍 Основные параметры</div>
-            <div class="setting-row">
-                <span class="label">🎯 Индекс доверия</span>
-                <input type="range" min="0" max="100" value="38" id="settingTrust">
-                <span id="settingTrustVal">38%</span>
-            </div>
-            <div class="setting-row">
-                <span class="label">🎯 Минимальная ОЗ</span>
-                <input type="range" min="50" max="95" value="86" id="settingOz">
-                <span id="settingOzVal">86%</span>
-            </div>
-            <div class="setting-row">
-                <span class="label">📈 % ставки (Келли)</span>
-                <input type="range" min="5" max="40" value="20" id="settingKelly">
-                <span id="settingKellyVal">20%</span>
-            </div>
-            <div class="setting-row">
-                <span class="label">Только ОЗ – ДА</span>
-                <div class="toggle active" id="toggleOnlyOz"></div>
-            </div>
-            <div class="setting-row">
-                <span class="label">Режим «Только валуй»</span>
-                <div class="toggle" id="toggleOnlyValue"></div>
-            </div>
-            <div class="setting-row">
-                <span class="label">🌓 Светлая тема</span>
-                <div class="toggle" id="toggleTheme"></div>
-            </div>
+            <div class="setting-row"><span class="label">🎯 Индекс доверия</span><input type="range" min="0" max="100" value="38" id="settingTrust"><span id="settingTrustVal">38%</span></div>
+            <div class="setting-row"><span class="label">🎯 Минимальная ОЗ</span><input type="range" min="50" max="95" value="86" id="settingOz"><span id="settingOzVal">86%</span></div>
+            <div class="setting-row"><span class="label">📈 % ставки (Келли)</span><input type="range" min="5" max="40" value="20" id="settingKelly"><span id="settingKellyVal">20%</span></div>
+            <div class="setting-row"><span class="label">Только ОЗ – ДА</span><div class="toggle active" id="toggleOnlyOz"></div></div>
+            <div class="setting-row"><span class="label">Режим «Только валуй»</span><div class="toggle" id="toggleOnlyValue"></div></div>
+            <div class="setting-row"><span class="label">🌓 Светлая тема</span><div class="toggle" id="toggleTheme"></div></div>
         </div>
-
-        <!-- API-ключ -->
         <div class="setting-group">
             <div class="title">🌐 API-FOOTBALL</div>
-            <div class="setting-row">
-                <span class="label">🔑 API Ключ</span>
-                <input type="password" id="apiKeyInput" placeholder="Вставьте ваш ключ" style="width:200px; padding:6px 10px; border-radius:12px; border:1px solid #1F2633; background:#0B0E17; color:#E0E0E0; font-size:13px; font-family:monospace;">
-            </div>
-            <div class="setting-row">
-                <span class="label"></span>
-                <button class="btn btn-sm btn-primary" id="saveApiKeyBtn" style="min-width:100px;">💾 Сохранить</button>
-                <button class="btn btn-sm btn-secondary" id="testApiKeyBtn" style="min-width:100px;">🔍 Тест</button>
-            </div>
+            <div class="setting-row"><span class="label">🔑 API Ключ</span><input type="password" id="apiKeyInput" placeholder="Вставьте ваш ключ"></div>
+            <div class="setting-row"><span class="label"></span><button class="btn btn-sm btn-primary" id="saveApiKeyBtn" style="min-width:100px;">💾 Сохранить</button><button class="btn btn-sm btn-secondary" id="testApiKeyBtn" style="min-width:100px;">🔍 Тест</button></div>
             <div id="apiStatus" style="font-size:12px; color:#9E9E9E; margin-top:4px; text-align:center;"></div>
         </div>
-
-        <!-- Управление данными -->
         <div class="setting-group">
             <div class="title">💾 Управление данными</div>
-            <div class="import-area" id="importArea">
-                <span class="icon">📂</span>
-                <div>Нажмите или перетащите JSON-файл</div>
-                <div class="sub">Поддерживается формат экспорта Квантум PRO</div>
-                <input type="file" id="fileInput" accept=".json" style="display:none;">
-            </div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-                <button class="btn btn-sm btn-primary" id="exportDataBtn" style="flex:1;">💾 Сохранить данные</button>
-                <button class="btn btn-sm btn-danger" id="resetAllBtn" style="flex:1;">🗑️ Сбросить всё</button>
-            </div>
+            <div class="import-area" id="importArea"><span class="icon">📂</span><div>Нажмите или перетащите JSON-файл</div><div class="sub">Поддерживается формат экспорта Квантум PRO</div><input type="file" id="fileInput" accept=".json" style="display:none;"></div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;"><button class="btn btn-sm btn-primary" id="exportDataBtn" style="flex:1;">💾 Сохранить данные</button><button class="btn btn-sm btn-danger" id="resetAllBtn" style="flex:1;">🗑️ Сбросить всё</button></div>
         </div>
-
         <div class="setting-group">
             <div class="title">🔔 Уведомления</div>
-            <div class="setting-row">
-                <span class="label">Звук при находке валуя</span>
-                <div class="toggle active" id="toggleSound"></div>
-            </div>
-            <div class="setting-row">
-                <span class="label">Виброотклик при заходе</span>
-                <div class="toggle active" id="toggleVibration"></div>
-            </div>
-            <div class="setting-row">
-                <span class="label">Напоминание о результате</span>
-                <div class="toggle active" id="toggleReminder"></div>
-            </div>
+            <div class="setting-row"><span class="label">Звук при находке валуя</span><div class="toggle active" id="toggleSound"></div></div>
+            <div class="setting-row"><span class="label">Виброотклик при заходе</span><div class="toggle active" id="toggleVibration"></div></div>
+            <div class="setting-row"><span class="label">Напоминание о результате</span><div class="toggle active" id="toggleReminder"></div></div>
         </div>
         <button class="btn btn-primary" style="width:100%; margin-top:12px;" id="resetSettingsBtn">🔄 Сбросить к начальным</button>
     </div>
 
-    <!-- ===== ОБУЧЕНИЕ ===== -->
+    <!-- ОБУЧЕНИЕ -->
     <div class="screen" id="screen-training">
         <div class="training-status">
             <div class="row"><span>🟢 Статус</span><span class="badge" id="modelStatus">Обучена</span></div>
@@ -1023,35 +774,23 @@
             <div class="row"><span>🎯 Точность (acc)</span><span id="modelAcc">0%</span></div>
             <div class="row"><span>📉 Ошибка (loss)</span><span id="modelLoss">0.00</span></div>
         </div>
-        <div style="background:#141A26; border-radius:16px; padding:16px; margin-bottom:16px; transition: background 0.3s;">
-            <div style="font-weight:600; margin-bottom:8px;">📈 История обучения</div>
-            <div id="trainingHistory" style="font-size:14px; color:#9E9E9E;">Пока нет данных</div>
-        </div>
-        <div style="background:#141A26; border-radius:16px; padding:16px; margin-bottom:16px; transition: background 0.3s;">
-            <div style="font-weight:600; margin-bottom:8px;">🔍 Твой паттерн</div>
+        <div style="background:#141A26; border-radius:16px; padding:16px; margin-bottom:16px;"><div style="font-weight:600; margin-bottom:8px;">📈 История обучения</div><div id="trainingHistory" style="font-size:14px; color:#9E9E9E;">Пока нет данных</div></div>
+        <div style="background:#141A26; border-radius:16px; padding:16px; margin-bottom:16px;"><div style="font-weight:600; margin-bottom:8px;">🔍 Твой паттерн</div>
             <div style="font-size:14px; display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-                <span>🎯 Индекс 38% + ОЗ ≥ 86%</span>
-                <span style="text-align:right;">📊 <span id="patternPercent">0%</span></span>
-                <span>📈 ROI</span>
-                <span style="text-align:right; color:#00E676;" id="patternRoi">0%</span>
-                <span>✅ Статус</span>
-                <span style="text-align:right; color:#FFD740;" id="patternStatus">⏳ Сбор данных...</span>
+                <span>🎯 Индекс 38% + ОЗ ≥ 86%</span><span style="text-align:right;">📊 <span id="patternPercent">0%</span></span>
+                <span>📈 ROI</span><span style="text-align:right; color:#00E676;" id="patternRoi">0%</span>
+                <span>✅ Статус</span><span style="text-align:right; color:#FFD740;" id="patternStatus">⏳ Сбор данных...</span>
             </div>
         </div>
-        <div class="ai-advice" id="aiAdviceBlock">
-            <strong>🧠 Персональный совет AI</strong><br>
-            <span id="aiAdviceText">Соберите 10+ матчей для первых рекомендаций.</span>
-        </div>
+        <div class="ai-advice" id="aiAdviceBlock"><strong>🧠 Персональный совет AI</strong><br><span id="aiAdviceText">Соберите 10+ матчей для первых рекомендаций.</span></div>
         <div style="display:flex; flex-direction:column; gap:10px;">
             <button class="btn btn-primary" id="trainBtn">🧠 ЗАПУСТИТЬ ОБУЧЕНИЕ</button>
             <button class="btn btn-secondary" id="copyStatsBtn">📋 СКОПИРОВАТЬ СТАТИСТИКУ</button>
-            <button class="btn btn-secondary" id="exportBtn">📤 ЭКСПОРТ ДАННЫХ</button>
             <button class="btn btn-secondary" id="resetBtn" style="color:#FF5253;">🗑️ СБРОСИТЬ ВСЁ</button>
         </div>
     </div>
 </div>
 
-<!-- ===== НАВИГАЦИЯ ===== -->
 <div class="nav-bar" id="navBar">
     <button class="nav-item active" data-tab="screen-home"><span class="icon">🏠</span>Главная</button>
     <button class="nav-item" data-tab="screen-history"><span class="icon">📋</span>История</button>
@@ -1059,41 +798,12 @@
     <button class="nav-item" data-tab="screen-training"><span class="icon">🧠</span>Обучение</button>
 </div>
 
-<!-- ===== МОДАЛЬНОЕ ОКНО ДЛЯ КЭФОВ ===== -->
-<div class="modal-overlay" id="oddsModal">
-    <div class="modal">
-        <button class="close-btn" id="oddsModalClose">✕</button>
-        <div class="title" id="oddsModalTitle">🔗 Коэффициенты</div>
-        <div id="oddsModalBody">
-            <div style="color:#9E9E9E; text-align:center; padding:20px 0;">Загрузка...</div>
-        </div>
-        <div class="btn-group-vertical">
-            <button class="btn btn-primary" id="oddsModalOpenBk">🔗 Открыть в 1xBet</button>
-            <button class="btn btn-secondary" id="oddsModalCloseBtn">Закрыть</button>
-        </div>
-    </div>
-</div>
-
 <script>
-// ============================================================
-// КВАНТУМ PRO v4.2 — ПОЛНАЯ ЛОГИКА + API-FOOTBALL
-// ============================================================
-
 (function() {
     'use strict';
 
-    // =============================================
-    // ===== API-FOOTBALL (RapidAPI) =====
-    // =============================================
-    const API_BASE = 'https://api-football-v1.p.rapidapi.com/v3';
-
-    // =============================================
-    // ===== ДАННЫЕ =====
-    // =============================================
     let appData = loadData();
     let currentFilter = 'all';
-    let editingId = null;
-    let apiKey = '';
 
     function loadData() {
         try {
@@ -1108,16 +818,8 @@
     }
 
     const defaultSettings = {
-        trust: 38,
-        minOz: 86,
-        kellyPercent: 20,
-        bank: 10000,
-        onlyOz: true,
-        onlyValue: false,
-        sound: true,
-        vibration: true,
-        reminder: true,
-        theme: 'dark'
+        trust: 38, minOz: 86, kellyPercent: 20, bank: 10000,
+        onlyOz: true, onlyValue: false, sound: true, vibration: true, reminder: true, theme: 'dark'
     };
 
     function init() {
@@ -1130,8 +832,7 @@
         if (!appData.trainingHistory) appData.trainingHistory = [];
         if (!appData.matches) appData.matches = [];
         if (appData.apiKey) {
-            apiKey = appData.apiKey;
-            document.getElementById('apiKeyInput').value = apiKey;
+            document.getElementById('apiKeyInput').value = appData.apiKey;
             document.getElementById('apiStatus').textContent = '✅ Ключ загружен';
         }
         applySettingsToUI();
@@ -1141,12 +842,8 @@
         updateMainMatchCard();
         saveData(appData);
         checkReminders();
-        setupTeamSearch();
     }
 
-    // =============================================
-    // ===== ТЕМА =====
-    // =============================================
     function applyTheme() {
         const isLight = appData.settings.theme === 'light';
         document.body.classList.toggle('light', isLight);
@@ -1154,9 +851,6 @@
         if (toggle) toggle.classList.toggle('active', isLight);
     }
 
-    // =============================================
-    // ===== НАСТРОЙКИ UI =====
-    // =============================================
     function applySettingsToUI() {
         const s = appData.settings;
         document.getElementById('settingTrust').value = s.trust;
@@ -1181,281 +875,6 @@
         else el.classList.remove('active');
     }
 
-    function getToggleState(id) {
-        const el = document.getElementById(id);
-        return el ? el.classList.contains('active') : false;
-    }
-
-    // =============================================
-    // ===== API-FOOTBALL ФУНКЦИИ =====
-    // =============================================
-    function getApiKey() {
-        if (!apiKey) {
-            const input = document.getElementById('apiKeyInput').value.trim();
-            if (input) {
-                apiKey = input;
-                appData.apiKey = apiKey;
-                saveData(appData);
-                document.getElementById('apiStatus').textContent = '✅ Ключ сохранён';
-            }
-        }
-        return apiKey;
-    }
-
-    async function testApiKey() {
-        const key = document.getElementById('apiKeyInput').value.trim();
-        if (!key) {
-            document.getElementById('apiStatus').textContent = '❌ Введите ключ';
-            return;
-        }
-        document.getElementById('apiStatus').textContent = '⏳ Проверка...';
-        try {
-            const response = await fetch(`${API_BASE}/status`, {
-                headers: {
-                    'x-rapidapi-key': key,
-                    'x-rapidapi-host': 'api-football-v1.p.rapidapi.com'
-                }
-            });
-            if (response.ok) {
-                document.getElementById('apiStatus').textContent = '✅ Ключ работает!';
-                apiKey = key;
-                appData.apiKey = key;
-                saveData(appData);
-                // Обновляем поиск
-                setupTeamSearch();
-            } else {
-                document.getElementById('apiStatus').textContent = '❌ Ключ не работает (ошибка ' + response.status + ')';
-            }
-        } catch(e) {
-            document.getElementById('apiStatus').textContent = '❌ Ошибка соединения';
-        }
-    }
-
-    async function searchTeamsApi(query) {
-        const key = getApiKey();
-        if (!key) return [];
-        try {
-            const response = await fetch(`${API_BASE}/teams?search=${encodeURIComponent(query)}`, {
-                headers: {
-                    'x-rapidapi-key': key,
-                    'x-rapidapi-host': 'api-football-v1.p.rapidapi.com'
-                }
-            });
-            if (!response.ok) return [];
-            const data = await response.json();
-            if (data.response && data.response.length > 0) {
-                return data.response.map(item => ({
-                    id: item.team.id,
-                    name: item.team.name,
-                    country: item.team.country || 'Неизвестно',
-                    league: item.team.league || 'Неизвестно',
-                    logo: item.team.logo || ''
-                }));
-            }
-            return [];
-        } catch(e) {
-            return [];
-        }
-    }
-
-    async function getMatchOdds(team1, team2, league) {
-        const key = getApiKey();
-        if (!key) return null;
-        try {
-            // Сначала ищем fixture
-            const searchResponse = await fetch(`${API_BASE}/fixtures?search=${encodeURIComponent(team1)}`, {
-                headers: {
-                    'x-rapidapi-key': key,
-                    'x-rapidapi-host': 'api-football-v1.p.rapidapi.com'
-                }
-            });
-            if (!searchResponse.ok) return null;
-            const searchData = await searchResponse.json();
-            if (!searchData.response || searchData.response.length === 0) return null;
-            
-            // Берём первый матч
-            const fixture = searchData.response[0];
-            const fixtureId = fixture.fixture.id;
-            
-            // Теперь получаем коэффициенты
-            const oddsResponse = await fetch(`${API_BASE}/odds?fixture=${fixtureId}`, {
-                headers: {
-                    'x-rapidapi-key': key,
-                    'x-rapidapi-host': 'api-football-v1.p.rapidapi.com'
-                }
-            });
-            if (!oddsResponse.ok) return null;
-            const oddsData = await oddsResponse.json();
-            if (!oddsData.response || oddsData.response.length === 0) return null;
-            
-            // Ищем нужные рынки (ОЗ и Тотал)
-            const result = {
-                oz: [],
-                total: []
-            };
-            
-            for (let bookmaker of oddsData.response) {
-                const bookmakerName = bookmaker.bookmaker.name;
-                for (let bet of bookmaker.bets) {
-                    if (bet.name === 'Both Teams Score') {
-                        const yes = bet.values.find(v => v.value === 'Yes');
-                        const no = bet.values.find(v => v.value === 'No');
-                        result.oz.push({
-                            bookmaker: bookmakerName,
-                            yes: yes ? parseFloat(yes.odd) : null,
-                            no: no ? parseFloat(no.odd) : null
-                        });
-                    }
-                    if (bet.name === 'Total Goals Over/Under') {
-                        // Ищем ТБ 2.5
-                        const over = bet.values.find(v => v.value === 'Over 2.5');
-                        const under = bet.values.find(v => v.value === 'Under 2.5');
-                        if (over && under) {
-                            result.total.push({
-                                bookmaker: bookmakerName,
-                                over: parseFloat(over.odd),
-                                under: parseFloat(under.odd)
-                            });
-                        }
-                    }
-                }
-            }
-            return result;
-        } catch(e) {
-            return null;
-        }
-    }
-
-    // =============================================
-    // ===== УМНЫЙ ПОИСК КОМАНД =====
-    // =============================================
-    let searchTimeout = null;
-
-    function setupTeamSearch() {
-        const homeInput = document.getElementById('inputHome');
-        const awayInput = document.getElementById('inputAway');
-        const homeContainer = document.getElementById('homeSuggestions');
-        const awayContainer = document.getElementById('awaySuggestions');
-
-        function setupField(input, container, targetField) {
-            let currentQuery = '';
-            input.addEventListener('input', function() {
-                const query = this.value.trim();
-                currentQuery = query;
-                if (query.length < 2) {
-                    container.style.display = 'none';
-                    return;
-                }
-                // Ищем через API или локально
-                searchTeams(query, function(results) {
-                    if (currentQuery !== query) return;
-                    if (results.length === 0) {
-                        container.style.display = 'none';
-                        return;
-                    }
-                    container.innerHTML = results.map(r => 
-                        `<div class="item" data-name="${r.name}" data-country="${r.country}" data-league="${r.league}">
-                            <span>${r.name}</span>
-                            <span style="color:#9E9E9E; font-size:12px;">${r.country} · ${r.league}</span>
-                        </div>`
-                    ).join('');
-                    container.style.display = 'block';
-                    container.querySelectorAll('.item').forEach(el => {
-                        el.addEventListener('click', function() {
-                            const name = this.dataset.name;
-                            const country = this.dataset.country;
-                            const league = this.dataset.league;
-                            document.getElementById(input.id).value = name;
-                            if (targetField) document.getElementById(targetField).value = name;
-                            document.getElementById('inputLeague').value = league;
-                            document.getElementById('inputCountry').value = country;
-                            container.style.display = 'none';
-                            updateMainMatchCard();
-                        });
-                    });
-                });
-            });
-            document.addEventListener('click', function(e) {
-                if (!container.contains(e.target) && e.target !== input) {
-                    container.style.display = 'none';
-                }
-            });
-        }
-
-        function searchTeams(query, callback) {
-            // Проверяем API ключ
-            const key = getApiKey();
-            if (key) {
-                // Используем API
-                searchTeamsApi(query).then(results => {
-                    if (results.length > 0) {
-                        callback(results);
-                        return;
-                    }
-                    // Если API ничего не нашёл — используем локальный список
-                    callback(searchTeamsLocal(query));
-                });
-            } else {
-                // Если ключа нет — используем локальный список
-                callback(searchTeamsLocal(query));
-            }
-        }
-
-        function searchTeamsLocal(query) {
-            const mockTeams = [
-                { name: 'Реал Мадрид', country: 'Испания', league: 'Ла Лига' },
-                { name: 'Барселона', country: 'Испания', league: 'Ла Лига' },
-                { name: 'Атлетико Мадрид', country: 'Испания', league: 'Ла Лига' },
-                { name: 'Реал Сосьедад', country: 'Испания', league: 'Ла Лига' },
-                { name: 'Реал Бетис', country: 'Испания', league: 'Ла Лига' },
-                { name: 'Манчестер Сити', country: 'Англия', league: 'АПЛ' },
-                { name: 'Манчестер Юнайтед', country: 'Англия', league: 'АПЛ' },
-                { name: 'Ливерпуль', country: 'Англия', league: 'АПЛ' },
-                { name: 'Арсенал', country: 'Англия', league: 'АПЛ' },
-                { name: 'Челси', country: 'Англия', league: 'АПЛ' },
-                { name: 'Тоттенхэм', country: 'Англия', league: 'АПЛ' },
-                { name: 'Бавария', country: 'Германия', league: 'Бундеслига' },
-                { name: 'Боруссия Дортмунд', country: 'Германия', league: 'Бундеслига' },
-                { name: 'РБ Лейпциг', country: 'Германия', league: 'Бундеслига' },
-                { name: 'Ювентус', country: 'Италия', league: 'Серия А' },
-                { name: 'Милан', country: 'Италия', league: 'Серия А' },
-                { name: 'Интер', country: 'Италия', league: 'Серия А' },
-                { name: 'Наполи', country: 'Италия', league: 'Серия А' },
-                { name: 'ПСЖ', country: 'Франция', league: 'Лига 1' },
-                { name: 'Марсель', country: 'Франция', league: 'Лига 1' },
-                { name: 'Лион', country: 'Франция', league: 'Лига 1' },
-                { name: 'Зенит', country: 'Россия', league: 'РПЛ' },
-                { name: 'ЦСКА', country: 'Россия', league: 'РПЛ' },
-                { name: 'Локомотив', country: 'Россия', league: 'РПЛ' },
-                { name: 'Спартак', country: 'Россия', league: 'РПЛ' },
-                { name: 'Динамо Москва', country: 'Россия', league: 'РПЛ' },
-                { name: 'Краснодар', country: 'Россия', league: 'РПЛ' },
-                { name: 'Ростов', country: 'Россия', league: 'РПЛ' },
-                { name: 'Уфа', country: 'Россия', league: 'РПЛ' },
-                { name: 'Камаз', country: 'Россия', league: 'РПЛ' },
-                { name: 'Велес', country: 'Россия', league: 'РПЛ' },
-                { name: 'Ротор', country: 'Россия', league: 'РПЛ' },
-                { name: 'Спартак Варна', country: 'Болгария', league: 'Първа лига' },
-                { name: 'Локомотив Пловдив', country: 'Болгария', league: 'Първа лига' },
-                { name: 'Краковия', country: 'Польша', league: 'Экстракласа' },
-                { name: 'Погонь', country: 'Польша', league: 'Экстракласа' },
-                { name: 'Алашкерт', country: 'Армения', league: 'Премьер Лига' },
-                { name: 'Арарат', country: 'Армения', league: 'Премьер Лига' },
-                { name: 'Индонезия', country: 'Индонезия', league: 'Лига 1' },
-                { name: 'Вьетнам', country: 'Вьетнам', league: 'Лига 1' }
-            ];
-            return mockTeams.filter(t => 
-                t.name.toLowerCase().includes(query.toLowerCase())
-            );
-        }
-
-        setupField(homeInput, homeContainer, 'inputHome');
-        setupField(awayInput, awayContainer, 'inputAway');
-    }
-
-    // =============================================
-    // ===== ГЛАВНАЯ КАРТОЧКА =====
-    // =============================================
     function updateMainMatchCard() {
         const home = document.getElementById('inputHome').value || 'Велес';
         const away = document.getElementById('inputAway').value || 'Ротор';
@@ -1469,27 +888,15 @@
         const trust = appData.settings.trust || 38;
         document.getElementById('trustValue').textContent = trust + '%';
         document.getElementById('trustFill').style.width = Math.min(trust, 100) + '%';
-        if (oz >= 86) {
-            document.getElementById('recommendationBadge').textContent = '🟢 ОЗ – ДА';
-        } else {
-            document.getElementById('recommendationBadge').textContent = '🔴 ОЗ – НЕТ';
-        }
+        document.getElementById('recommendationBadge').textContent = oz >= 86 ? '🟢 ОЗ – ДА' : '🔴 ОЗ – НЕТ';
         const value = (oz / 100) * odds - 1;
         const valueEl = document.getElementById('valueDisplay');
-        if (value > 0.05) {
-            valueEl.textContent = 'ДА (+' + value.toFixed(2) + ')';
-            valueEl.style.color = '#00E676';
-        } else if (value > -0.05) {
-            valueEl.textContent = 'Нейтрально (' + value.toFixed(2) + ')';
-            valueEl.style.color = '#FFD740';
-        } else {
-            valueEl.textContent = 'НЕТ (' + value.toFixed(2) + ')';
-            valueEl.style.color = '#FF5253';
-        }
+        if (value > 0.05) { valueEl.textContent = 'ДА (+' + value.toFixed(2) + ')'; valueEl.style.color = '#00E676'; }
+        else if (value > -0.05) { valueEl.textContent = 'Нейтрально (' + value.toFixed(2) + ')'; valueEl.style.color = '#FFD740'; }
+        else { valueEl.textContent = 'НЕТ (' + value.toFixed(2) + ')'; valueEl.style.color = '#FF5253'; }
         const bank = appData.settings.bank || 10000;
         const kellyPct = appData.settings.kellyPercent || 20;
-        const betSize = Math.round(bank * kellyPct / 100);
-        document.getElementById('betSizeDisplay').textContent = kellyPct + '% (' + betSize + ' ₽)';
+        document.getElementById('betSizeDisplay').textContent = kellyPct + '% (' + Math.round(bank * kellyPct / 100) + ' ₽)';
         document.getElementById('xgHome').textContent = document.getElementById('inputXg').value || '1.27';
         document.getElementById('xgAway').textContent = document.getElementById('inputXga').value || '1.18';
         document.getElementById('xgaHome').textContent = (0.7 + Math.random() * 0.3).toFixed(2);
@@ -1499,9 +906,6 @@
         document.getElementById('trendDisplay').textContent = 'Спад голов';
     }
 
-    // =============================================
-    // ===== СОХРАНЕНИЕ ПРОГНОЗА =====
-    // =============================================
     function saveMatch() {
         const home = document.getElementById('inputHome').value.trim() || 'Велес';
         const away = document.getElementById('inputAway').value.trim() || 'Ротор';
@@ -1513,44 +917,16 @@
         const xga = parseFloat(document.getElementById('inputXga').value) || 0;
         const comment = document.getElementById('inputComment').value.trim() || '';
         const trust = appData.settings.trust || 38;
-
-        const match = {
-            id: Date.now(),
-            home,
-            away,
-            league,
-            country,
-            oz,
-            odds,
-            xg,
-            xga,
-            comment,
-            trust,
-            status: 'waiting',
-            score: '',
-            date: new Date().toLocaleDateString(),
-            time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-        };
-
+        const match = { id: Date.now(), home, away, league, country, oz, odds, xg, xga, comment, trust, status: 'waiting', score: '', date: new Date().toLocaleDateString(), time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) };
         appData.matches.unshift(match);
         saveData(appData);
-
         const card = document.getElementById('matchCard');
         card.classList.add('fly-away');
-        setTimeout(() => {
-            card.classList.remove('fly-away');
-            renderHistory();
-            updateTrainingTab();
-            updateMainMatchCard();
-        }, 400);
-
+        setTimeout(() => { card.classList.remove('fly-away'); renderHistory(); updateTrainingTab(); updateMainMatchCard(); }, 400);
         if (appData.settings.sound) playSound();
         if (appData.settings.reminder) scheduleReminder(match);
     }
 
-    // =============================================
-    // ===== ЗВУК, ВИБРАЦИЯ, НАПОМИНАНИЯ =====
-    // =============================================
     function playSound() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1567,9 +943,7 @@
     }
 
     function vibrate() {
-        if (appData.settings.vibration && navigator.vibrate) {
-            navigator.vibrate(30);
-        }
+        if (appData.settings.vibration && navigator.vibrate) navigator.vibrate(30);
     }
 
     function scheduleReminder(match) {
@@ -1589,7 +963,7 @@
             setTimeout(() => {
                 if ('Notification' in window && Notification.permission === 'granted') {
                     new Notification('⏳ Квантум PRO v4.2', {
-                        body: `У вас ${waiting.length} матчей в ожидании. Не забудьте записать результаты!`,
+                        body: `У вас ${waiting.length} матчей в ожидании.`,
                         icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="50" fill="%2300E676"/%3E%3Ctext x="50" y="65" font-size="40" text-anchor="middle" fill="%230B0E17" font-family="sans-serif"%3E🔥%3C/text%3E%3C/svg%3E'
                     });
                 }
@@ -1597,33 +971,18 @@
         }
     }
 
-    // =============================================
-    // ===== ИСТОРИЯ =====
-    // =============================================
     function renderHistory(filter) {
         currentFilter = filter || currentFilter;
         const list = document.getElementById('historyList');
         let matches = appData.matches || [];
-
-        if (currentFilter === 'value') {
-            matches = matches.filter(m => {
-                const val = (m.oz / 100) * m.odds - 1;
-                return val > 0.05;
-            });
-        } else if (currentFilter === 'waiting') {
-            matches = matches.filter(m => m.status === 'waiting');
-        } else if (currentFilter === 'win') {
-            matches = matches.filter(m => m.status === 'win');
-        } else if (currentFilter === 'loss') {
-            matches = matches.filter(m => m.status === 'loss');
-        }
-
-        if (matches.length === 0) {
-            list.innerHTML = '<div style="text-align:center; color:#9E9E9E; padding:30px 0;">Нет матчей</div>';
-        } else {
+        if (currentFilter === 'value') { matches = matches.filter(m => { const val = (m.oz / 100) * m.odds - 1; return val > 0.05; }); }
+        else if (currentFilter === 'waiting') { matches = matches.filter(m => m.status === 'waiting'); }
+        else if (currentFilter === 'win') { matches = matches.filter(m => m.status === 'win'); }
+        else if (currentFilter === 'loss') { matches = matches.filter(m => m.status === 'loss'); }
+        if (matches.length === 0) { list.innerHTML = '<div style="text-align:center; color:#9E9E9E; padding:30px 0;">Нет матчей</div>'; }
+        else {
             list.innerHTML = matches.map(m => {
-                let statusIcon = '⏳';
-                let cls = '';
+                let statusIcon = '⏳', cls = '';
                 if (m.status === 'win') { statusIcon = '✅'; cls = 'win'; }
                 else if (m.status === 'loss') { statusIcon = '❌'; cls = 'loss'; }
                 const isWaiting = m.status === 'waiting';
@@ -1647,41 +1006,10 @@
                 </div>`;
             }).join('');
         }
-
-        document.querySelectorAll('[data-id]').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const id = parseInt(this.dataset.id);
-                enterScore(id);
-            });
-        });
-        document.querySelectorAll('[data-edit]').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const id = parseInt(this.dataset.edit);
-                editMatch(id);
-            });
-        });
-        document.querySelectorAll('[data-del]').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const id = parseInt(this.dataset.del);
-                if (confirm('Удалить матч?')) {
-                    appData.matches = appData.matches.filter(m => m.id !== id);
-                    saveData(appData);
-                    renderHistory();
-                    updateTrainingTab();
-                }
-            });
-        });
-        document.querySelectorAll('[data-duplicate]').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const id = parseInt(this.dataset.duplicate);
-                duplicateMatch(id);
-            });
-        });
-
+        document.querySelectorAll('[data-id]').forEach(btn => { btn.addEventListener('click', function(e) { e.stopPropagation(); const id = parseInt(this.dataset.id); enterScore(id); }); });
+        document.querySelectorAll('[data-edit]').forEach(btn => { btn.addEventListener('click', function(e) { e.stopPropagation(); const id = parseInt(this.dataset.edit); editMatch(id); }); });
+        document.querySelectorAll('[data-del]').forEach(btn => { btn.addEventListener('click', function(e) { e.stopPropagation(); const id = parseInt(this.dataset.del); if (confirm('Удалить матч?')) { appData.matches = appData.matches.filter(m => m.id !== id); saveData(appData); renderHistory(); updateTrainingTab(); } }); });
+        document.querySelectorAll('[data-duplicate]').forEach(btn => { btn.addEventListener('click', function(e) { e.stopPropagation(); const id = parseInt(this.dataset.duplicate); duplicateMatch(id); }); });
         const total = appData.matches.length;
         const wins = appData.matches.filter(m => m.status === 'win').length;
         const losses = appData.matches.filter(m => m.status === 'loss').length;
@@ -1692,18 +1020,12 @@
         document.getElementById('lossCount').textContent = losses;
         document.getElementById('percentDisplay').textContent = pct + '%';
         document.getElementById('roiDisplay').textContent = roi.toFixed(0) + '%';
-
         let streak = 0, current = 0;
-        for (let m of appData.matches) {
-            if (m.status === 'win') { current++; streak = Math.max(streak, current); }
-            else if (m.status === 'loss') { current = 0; }
-        }
+        for (let m of appData.matches) { if (m.status === 'win') { current++; streak = Math.max(streak, current); } else if (m.status === 'loss') { current = 0; } }
         document.getElementById('streakDisplay').textContent = streak;
-
         const wonMatches = appData.matches.filter(m => m.status === 'win');
         const avgOdds = wonMatches.length > 0 ? wonMatches.reduce((s, m) => s + m.odds, 0) / wonMatches.length : 0;
         document.getElementById('avgOddsDisplay').textContent = avgOdds > 0 ? avgOdds.toFixed(2) : '0.00';
-
         renderDayStats();
         updateTrainingTab();
     }
@@ -1728,29 +1050,14 @@
     function editMatch(id) {
         const match = appData.matches.find(m => m.id === id);
         if (!match) return;
-        const newHome = prompt('Хозяева:', match.home);
-        if (newHome !== null && newHome.trim() !== '') match.home = newHome.trim();
-        const newAway = prompt('Гости:', match.away);
-        if (newAway !== null && newAway.trim() !== '') match.away = newAway.trim();
-        const newOz = prompt('ОЗ %:', match.oz);
-        if (newOz !== null && !isNaN(parseFloat(newOz))) match.oz = parseFloat(newOz);
-        const newOdds = prompt('Кэф:', match.odds);
-        if (newOdds !== null && !isNaN(parseFloat(newOdds))) match.odds = parseFloat(newOdds);
-        const newLeague = prompt('Лига:', match.league || '');
-        if (newLeague !== null) match.league = newLeague.trim();
-        const newCountry = prompt('Страна:', match.country || '');
-        if (newCountry !== null) match.country = newCountry.trim();
-        const newComment = prompt('Комментарий:', match.comment || '');
-        if (newComment !== null) match.comment = newComment.trim();
-        const newScore = prompt('Счёт (например: 2:1):', match.score || '');
-        if (newScore !== null) {
-            match.score = newScore.trim();
-            if (match.score) {
-                const [h, a] = match.score.split(':').map(Number);
-                const ozHit = (h > 0 && a > 0);
-                match.status = ozHit ? 'win' : 'loss';
-            }
-        }
+        const newHome = prompt('Хозяева:', match.home); if (newHome !== null && newHome.trim() !== '') match.home = newHome.trim();
+        const newAway = prompt('Гости:', match.away); if (newAway !== null && newAway.trim() !== '') match.away = newAway.trim();
+        const newOz = prompt('ОЗ %:', match.oz); if (newOz !== null && !isNaN(parseFloat(newOz))) match.oz = parseFloat(newOz);
+        const newOdds = prompt('Кэф:', match.odds); if (newOdds !== null && !isNaN(parseFloat(newOdds))) match.odds = parseFloat(newOdds);
+        const newLeague = prompt('Лига:', match.league || ''); if (newLeague !== null) match.league = newLeague.trim();
+        const newCountry = prompt('Страна:', match.country || ''); if (newCountry !== null) match.country = newCountry.trim();
+        const newComment = prompt('Комментарий:', match.comment || ''); if (newComment !== null) match.comment = newComment.trim();
+        const newScore = prompt('Счёт (например: 2:1):', match.score || ''); if (newScore !== null) { match.score = newScore.trim(); if (match.score) { const [h, a] = match.score.split(':').map(Number); match.status = (h > 0 && a > 0) ? 'win' : 'loss'; } }
         saveData(appData);
         renderHistory();
         updateTrainingTab();
@@ -1760,11 +1067,7 @@
         const original = appData.matches.find(m => m.id === id);
         if (!original) return;
         const copy = JSON.parse(JSON.stringify(original));
-        copy.id = Date.now();
-        copy.status = 'waiting';
-        copy.score = '';
-        copy.date = new Date().toLocaleDateString();
-        copy.time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        copy.id = Date.now(); copy.status = 'waiting'; copy.score = ''; copy.date = new Date().toLocaleDateString(); copy.time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
         appData.matches.unshift(copy);
         saveData(appData);
         renderHistory();
@@ -1773,34 +1076,20 @@
 
     function renderDayStats() {
         const days = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-        const stats = {};
-        days.forEach(d => stats[d] = { total: 0, wins: 0 });
-
+        const stats = {}; days.forEach(d => stats[d] = { total: 0, wins: 0 });
         appData.matches.forEach(m => {
             if (m.status === 'waiting') return;
             const date = new Date(m.date);
             const dayName = days[date.getDay() === 0 ? 6 : date.getDay() - 1];
-            if (stats[dayName]) {
-                stats[dayName].total++;
-                if (m.status === 'win') stats[dayName].wins++;
-            }
+            if (stats[dayName]) { stats[dayName].total++; if (m.status === 'win') stats[dayName].wins++; }
         });
-
         const grid = document.getElementById('dayStatsGrid');
         grid.innerHTML = days.map(d => {
-            const s = stats[d];
-            const pct = s.total > 0 ? Math.round((s.wins / s.total) * 100) : 0;
-            return `<div>
-                <div style="font-weight:600;">${d}</div>
-                <div style="font-size:16px; color:${pct >= 70 ? '#00E676' : pct >= 50 ? '#FFD740' : '#FF5253'};">${pct}%</div>
-                <div style="font-size:10px; color:#9E9E9E;">${s.total} матчей</div>
-            </div>`;
+            const s = stats[d]; const pct = s.total > 0 ? Math.round((s.wins / s.total) * 100) : 0;
+            return `<div><div style="font-weight:600;">${d}</div><div style="font-size:16px; color:${pct >= 70 ? '#00E676' : pct >= 50 ? '#FFD740' : '#FF5253'};">${pct}%</div><div style="font-size:10px; color:#9E9E9E;">${s.total} матчей</div></div>`;
         }).join('');
     }
 
-    // =============================================
-    // ===== ОБУЧЕНИЕ =====
-    // =============================================
     function updateTrainingTab() {
         const matches = appData.matches || [];
         const total = matches.length;
@@ -1813,28 +1102,16 @@
         document.getElementById('patternPercent').textContent = pct + '%';
         const roi = total > 0 ? ((wins - losses) / total * 100).toFixed(0) : '0';
         document.getElementById('patternRoi').textContent = roi + '%';
-        if (total >= 10 && pct >= 70) {
-            document.getElementById('patternStatus').textContent = '🟢 РАБОТАЕТ';
-            document.getElementById('patternStatus').style.color = '#00E676';
-        } else if (total >= 5) {
-            document.getElementById('patternStatus').textContent = '🟡 НАБИРАЕТ';
-            document.getElementById('patternStatus').style.color = '#FFD740';
-        } else {
-            document.getElementById('patternStatus').textContent = '⏳ Сбор данных...';
-            document.getElementById('patternStatus').style.color = '#9E9E9E';
-        }
+        if (total >= 10 && pct >= 70) { document.getElementById('patternStatus').textContent = '🟢 РАБОТАЕТ'; document.getElementById('patternStatus').style.color = '#00E676'; }
+        else if (total >= 5) { document.getElementById('patternStatus').textContent = '🟡 НАБИРАЕТ'; document.getElementById('patternStatus').style.color = '#FFD740'; }
+        else { document.getElementById('patternStatus').textContent = '⏳ Сбор данных...'; document.getElementById('patternStatus').style.color = '#9E9E9E'; }
         const advice = document.getElementById('aiAdviceText');
         const wonMatches = matches.filter(m => m.status === 'win');
         const avgOdds = wonMatches.length > 0 ? wonMatches.reduce((s, m) => s + m.odds, 0) / wonMatches.length : 0;
-        if (total < 5) {
-            advice.textContent = 'Соберите 10+ матчей для первых рекомендаций.';
-        } else if (pct >= 75) {
-            advice.textContent = `🔥 Отлично! Проходимость ${pct}%, средний кэф ${avgOdds.toFixed(2)}. Продолжайте!`;
-        } else if (pct >= 60) {
-            advice.textContent = `📊 Проходимость ${pct}%, средний кэф ${avgOdds.toFixed(2)}. Попробуйте ОЗ ≥ 90%.`;
-        } else {
-            advice.textContent = `⚠️ Проходимость ${pct}% — проверьте данные.`;
-        }
+        if (total < 5) advice.textContent = 'Соберите 10+ матчей для первых рекомендаций.';
+        else if (pct >= 75) advice.textContent = `🔥 Отлично! Проходимость ${pct}%, средний кэф ${avgOdds.toFixed(2)}. Продолжайте!`;
+        else if (pct >= 60) advice.textContent = `📊 Проходимость ${pct}%, средний кэф ${avgOdds.toFixed(2)}. Попробуйте ОЗ ≥ 90%.`;
+        else advice.textContent = `⚠️ Проходимость ${pct}% — проверьте данные.`;
     }
 
     function runTraining() {
@@ -1845,29 +1122,15 @@
         const pct = total > 0 ? Math.round((wins / total) * 100) : 0;
         if (total < 3) { alert('Нужно минимум 3 завершённых матча.'); return; }
         const history = appData.trainingHistory || [];
-        history.push({
-            date: new Date().toLocaleDateString(),
-            matches: total,
-            acc: pct,
-            loss: (1 - pct/100).toFixed(2)
-        });
+        history.push({ date: new Date().toLocaleDateString(), matches: total, acc: pct, loss: (1 - pct/100).toFixed(2) });
         appData.trainingHistory = history;
         saveData(appData);
         const histDiv = document.getElementById('trainingHistory');
-        histDiv.innerHTML = history.map((h, i) => 
-            `<div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #1F2633;">
-                <span>#${i+1} (${h.matches} матчей)</span>
-                <span style="color:#00E676;">${h.acc}%</span>
-                <span style="color:#9E9E9E;">loss ${h.loss}</span>
-            </div>`
-        ).join('');
+        histDiv.innerHTML = history.map((h, i) => `<div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #1F2633;"><span>#${i+1} (${h.matches} матчей)</span><span style="color:#00E676;">${h.acc}%</span><span style="color:#9E9E9E;">loss ${h.loss}</span></div>`).join('');
         updateTrainingTab();
         alert('✅ Обучение завершено! Точность: ' + pct + '%');
     }
 
-    // =============================================
-    // ===== КОПИРОВАТЬ СТАТИСТИКУ =====
-    // =============================================
     function copyStats() {
         const matches = appData.matches || [];
         const total = matches.length;
@@ -1878,249 +1141,80 @@
         const wonMatches = matches.filter(m => m.status === 'win');
         const avgOdds = wonMatches.length > 0 ? wonMatches.reduce((s, m) => s + m.odds, 0) / wonMatches.length : 0;
         let streak = 0, current = 0;
-        for (let m of matches) {
-            if (m.status === 'win') { current++; streak = Math.max(streak, current); }
-            else if (m.status === 'loss') { current = 0; }
-        }
-        const days = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-        const dayStats = {};
-        days.forEach(d => dayStats[d] = { total: 0, wins: 0 });
-        matches.forEach(m => {
-            if (m.status === 'waiting') return;
-            const date = new Date(m.date);
-            const dayName = days[date.getDay() === 0 ? 6 : date.getDay() - 1];
-            if (dayStats[dayName]) {
-                dayStats[dayName].total++;
-                if (m.status === 'win') dayStats[dayName].wins++;
-            }
-        });
-        const dayStr = days.map(d => {
-            const s = dayStats[d];
-            const p = s.total > 0 ? Math.round((s.wins / s.total) * 100) : 0;
-            return `${d}: ${s.total} матчей, ${p}%`;
-        }).join('\n');
-
-        const last10 = matches.slice(0, 10).map((m, i) => {
-            const status = m.status === 'win' ? '✅ Зашло' : m.status === 'loss' ? '❌ Не зашло' : '⏳ Ожидает';
-            return `${i+1}. ${m.home} — ${m.away} (ОЗ ${m.oz}%, кэф ${m.odds}) → ${status}`;
-        }).join('\n');
-
-        const report = `🔥 КВАНТУМ PRO v4.2 — ОТЧЁТ
-
-📊 ОБЩАЯ СТАТИСТИКА:
-Всего матчей: ${total}
-Зашло: ${wins}
-Не зашло: ${losses}
-Процент побед: ${pct}%
-ROI: ${roi}%
-Средний кэф зашедших: ${avgOdds > 0 ? avgOdds.toFixed(2) : '0.00'}
-Текущая серия: ${streak} ${streak > 0 ? 'побед' : 'поражений'}
-
-📅 ПО ДНЯМ НЕДЕЛИ:
-${dayStr}
-
-📋 ПОСЛЕДНИЕ 10 МАТЧЕЙ:
-${last10 || 'Нет данных'}
-
-🧠 ТВОЙ ПАТТЕРН:
-Индекс 38% + ОЗ ≥ 86%
-Проходимость: ${pct}%
-Статус: ${pct >= 70 ? '🟢 РАБОТАЕТ' : pct >= 50 ? '🟡 НАБИРАЕТ' : '🔴 ТРЕБУЕТ ВНИМАНИЯ'}
-
-💡 СОВЕТ AI:
-${pct >= 75 ? '🔥 Отлично! Продолжай в том же духе.' :
-  pct >= 60 ? '📊 Хороший результат. Попробуй ОЗ ≥ 90%.' :
-  '⚠️ Результат ниже ожидаемого. Проверь данные.'}`;
-
-        navigator.clipboard.writeText(report).then(() => {
-            alert('✅ Статистика скопирована в буфер обмена!');
-        }).catch(() => {
-            alert('❌ Не удалось скопировать. Скопируйте текст вручную:\n\n' + report);
-        });
+        for (let m of matches) { if (m.status === 'win') { current++; streak = Math.max(streak, current); } else if (m.status === 'loss') { current = 0; } }
+        const days = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']; const dayStats = {}; days.forEach(d => dayStats[d] = { total: 0, wins: 0 });
+        matches.forEach(m => { if (m.status === 'waiting') return; const date = new Date(m.date); const dayName = days[date.getDay() === 0 ? 6 : date.getDay() - 1]; if (dayStats[dayName]) { dayStats[dayName].total++; if (m.status === 'win') dayStats[dayName].wins++; } });
+        const dayStr = days.map(d => { const s = dayStats[d]; const p = s.total > 0 ? Math.round((s.wins / s.total) * 100) : 0; return `${d}: ${s.total} матчей, ${p}%`; }).join('\n');
+        const last10 = matches.slice(0, 10).map((m, i) => { const status = m.status === 'win' ? '✅ Зашло' : m.status === 'loss' ? '❌ Не зашло' : '⏳ Ожидает'; return `${i+1}. ${m.home} — ${m.away} (ОЗ ${m.oz}%, кэф ${m.odds}) → ${status}`; }).join('\n');
+        const report = `🔥 КВАНТУМ PRO v4.2 — ОТЧЁТ\n\n📊 ОБЩАЯ СТАТИСТИКА:\nВсего матчей: ${total}\nЗашло: ${wins}\nНе зашло: ${losses}\nПроцент побед: ${pct}%\nROI: ${roi}%\nСредний кэф зашедших: ${avgOdds > 0 ? avgOdds.toFixed(2) : '0.00'}\nТекущая серия: ${streak} ${streak > 0 ? 'побед' : 'поражений'}\n\n📅 ПО ДНЯМ НЕДЕЛИ:\n${dayStr}\n\n📋 ПОСЛЕДНИЕ 10 МАТЧЕЙ:\n${last10 || 'Нет данных'}\n\n🧠 ТВОЙ ПАТТЕРН:\nИндекс 38% + ОЗ ≥ 86%\nПроходимость: ${pct}%\nСтатус: ${pct >= 70 ? '🟢 РАБОТАЕТ' : pct >= 50 ? '🟡 НАБИРАЕТ' : '🔴 ТРЕБУЕТ ВНИМАНИЯ'}\n\n💡 СОВЕТ AI:\n${pct >= 75 ? '🔥 Отлично! Продолжай в том же духе.' : pct >= 60 ? '📊 Хороший результат. Попробуй ОЗ ≥ 90%.' : '⚠️ Результат ниже ожидаемого. Проверь данные.'}`;
+        navigator.clipboard.writeText(report).then(() => { alert('✅ Статистика скопирована!'); }).catch(() => { alert('❌ Не удалось скопировать. Скопируйте текст вручную:\n\n' + report); });
     }
 
-// =============================================
-// ===== ЭКСПОРТ / ИМПОРТ / СБРОС =====
-// =============================================
-function exportData() {
-    const data = {
-        version: '4.2 PRO',
-        exportDate: new Date().toISOString(),
-        matches: appData.matches || [],
-        settings: appData.settings || defaultSettings,
-        trainingHistory: appData.trainingHistory || [],
-        apiKey: appData.apiKey ? '****' : ''
-    };
-    const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `quantum_backup_${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-}
+    function exportData() {
+        const data = { version: '4.2 PRO', exportDate: new Date().toISOString(), matches: appData.matches || [], settings: appData.settings || defaultSettings, trainingHistory: appData.trainingHistory || [], apiKey: appData.apiKey ? '****' : '' };
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `quantum_backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
 
-function importData(file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = JSON.parse(e.target.result);
-            if (data.matches && Array.isArray(data.matches)) {
-                const validMatches = data.matches.filter(m => m.home && m.away);
-                if (validMatches.length > 0) {
-                    const existingIds = new Set(appData.matches.map(m => m.id));
-                    let added = 0;
-                    validMatches.forEach(m => {
-                        if (!existingIds.has(m.id)) {
-                            appData.matches.push(m);
-                            existingIds.add(m.id);
-                            added++;
+    function importData(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.matches && Array.isArray(data.matches)) {
+                    const validMatches = data.matches.filter(m => m.home && m.away);
+                    if (validMatches.length > 0) {
+                        const existingIds = new Set(appData.matches.map(m => m.id));
+                        let added = 0;
+                        validMatches.forEach(m => {
+                            if (!existingIds.has(m.id)) {
+                                appData.matches.push(m);
+                                existingIds.add(m.id);
+                                added++;
+                            }
+                        });
+                        if (added > 0) {
+                            saveData(appData);
+                            renderHistory();
+                            updateTrainingTab();
+                            updateMainMatchCard();
+                            alert(`✅ Импортировано ${added} матчей`);
+                        } else {
+                            alert('ℹ️ Новых матчей не найдено (все уже есть)');
                         }
-                    });
-                    if (added > 0) {
-                        // Обновляем localStorage
-                        saveData(appData);
-                        // Перерисовываем историю и обучение
-                        renderHistory();
-                        updateTrainingTab();
-                        updateMainMatchCard();
-                        alert(`✅ Импортировано ${added} матчей`);
                     } else {
-                        alert('ℹ️ Новых матчей не найдено (все уже есть)');
+                        alert('❌ Не найдено валидных матчей в файле');
                     }
                 } else {
-                    alert('❌ Не найдено валидных матчей в файле');
+                    alert('❌ Неверный формат файла');
                 }
-            } else {
-                alert('❌ Неверный формат файла');
+            } catch(err) {
+                alert('❌ Ошибка при чтении файла: ' + err.message);
             }
-        } catch(err) {
-            alert('❌ Ошибка при чтении файла: ' + err.message);
-        }
-    };
-    reader.readAsText(file);
-}
-
-function resetAll() {
-    if (confirm('Удалить все данные?')) {
-        appData = { matches: [], settings: JSON.parse(JSON.stringify(defaultSettings)), trainingHistory: [], apiKey: '' };
-        apiKey = '';
-        document.getElementById('apiKeyInput').value = '';
-        document.getElementById('apiStatus').textContent = '';
-        saveData(appData);
-        renderHistory();
-        updateTrainingTab();
-        applySettingsToUI();
-        applyTheme();
-        updateMainMatchCard();
+        };
+        reader.readAsText(file);
     }
-}
 
-    // =============================================
-    // ===== МОДАЛЬНОЕ ОКНО ДЛЯ КЭФОВ =====
-    // =============================================
-    function showOddsModal() {
-        const modal = document.getElementById('oddsModal');
-        const body = document.getElementById('oddsModalBody');
-        const title = document.getElementById('oddsModalTitle');
-        const home = document.getElementById('inputHome').value.trim() || 'Велес';
-        const away = document.getElementById('inputAway').value.trim() || 'Ротор';
-        const league = document.getElementById('inputLeague').value.trim() || 'Не указана';
-        
-        title.textContent = `🔗 ${home} — ${away}`;
-        body.innerHTML = '<div style="color:#9E9E9E; text-align:center; padding:20px 0;">⏳ Загрузка коэффициентов...</div>';
-        modal.classList.add('active');
-
-        // Пробуем получить кэфы через API
-        const key = getApiKey();
-        if (key) {
-            getMatchOdds(home, away, league).then(odds => {
-                if (odds && (odds.oz.length > 0 || odds.total.length > 0)) {
-                    let html = '';
-                    if (odds.oz.length > 0) {
-                        html += `<div style="font-weight:600; margin-top:8px;">📊 Обе забьют (ОЗ)</div><div class="odds-grid">`;
-                        odds.oz.forEach(o => {
-                            const isValue = o.yes !== null && o.yes > 2.0;
-                            html += `<div class="odds-card">
-                                <div class="bookmaker">${o.bookmaker}</div>
-                                <div class="value ${isValue ? 'highlight' : ''}">${o.yes !== null ? o.yes.toFixed(2) : '—'}</div>
-                                <div style="font-size:11px; color:#9E9E9E;">${o.no !== null ? 'Нет: '+o.no.toFixed(2) : ''}</div>
-                            </div>`;
-                        });
-                        html += `</div>`;
-                    }
-                    if (odds.total.length > 0) {
-                        html += `<div style="font-weight:600; margin-top:8px;">📊 Тотал (ТБ 2.5 / ТМ 2.5)</div><div class="odds-grid">`;
-                        odds.total.forEach(o => {
-                            html += `<div class="odds-card">
-                                <div class="bookmaker">${o.bookmaker}</div>
-                                <div class="value">Б: ${o.over.toFixed(2)}</div>
-                                <div style="font-size:11px; color:#9E9E9E;">М: ${o.under.toFixed(2)}</div>
-                            </div>`;
-                        });
-                        html += `</div>`;
-                    }
-                    if (!html) {
-                        html = '<div style="color:#9E9E9E; text-align:center; padding:20px 0;">Коэффициенты не найдены для этого матча</div>';
-                    }
-                    body.innerHTML = html;
-                } else {
-                    // Если нет кэфов через API — показываем введённые
-                    const oz = parseFloat(document.getElementById('inputOz').value) || 91;
-                    const odds = parseFloat(document.getElementById('inputOdds').value) || 2.10;
-                    body.innerHTML = `
-                        <div style="color:#9E9E9E; text-align:center; padding:10px 0;">API не вернул коэффициенты</div>
-                        <div class="odds-grid">
-                            <div class="odds-card">
-                                <div class="bookmaker">Введённый кэф</div>
-                                <div class="value">${odds.toFixed(2)}</div>
-                                <div style="font-size:11px; color:#9E9E9E;">ОЗ: ${oz}%</div>
-                            </div>
-                        </div>
-                        <div style="color:#9E9E9E; font-size:12px; text-align:center; margin-top:8px;">💡 Введите API-ключ в настройках для реальных кэфов</div>
-                    `;
-                }
-            }).catch(() => {
-                // Если ошибка — показываем введённые
-                const oz = parseFloat(document.getElementById('inputOz').value) || 91;
-                const odds = parseFloat(document.getElementById('inputOdds').value) || 2.10;
-                body.innerHTML = `
-                    <div style="color:#9E9E9E; text-align:center; padding:10px 0;">Ошибка загрузки коэффициентов</div>
-                    <div class="odds-grid">
-                        <div class="odds-card">
-                            <div class="bookmaker">Введённый кэф</div>
-                            <div class="value">${odds.toFixed(2)}</div>
-                            <div style="font-size:11px; color:#9E9E9E;">ОЗ: ${oz}%</div>
-                        </div>
-                    </div>
-                `;
-            });
-        } else {
-            // Если ключа нет — показываем введённые
-            const oz = parseFloat(document.getElementById('inputOz').value) || 91;
-            const odds = parseFloat(document.getElementById('inputOdds').value) || 2.10;
-            body.innerHTML = `
-                <div style="color:#9E9E9E; text-align:center; padding:10px 0;">Введите API-ключ в настройках</div>
-                <div class="odds-grid">
-                    <div class="odds-card">
-                        <div class="bookmaker">Введённый кэф</div>
-                        <div class="value">${odds.toFixed(2)}</div>
-                        <div style="font-size:11px; color:#9E9E9E;">ОЗ: ${oz}%</div>
-                    </div>
-                </div>
-                <div style="color:#9E9E9E; font-size:12px; text-align:center; margin-top:8px;">💡 Вставьте ключ в настройках → API-FOOTBALL</div>
-            `;
+    function resetAll() {
+        if (confirm('Удалить все данные?')) {
+            appData = { matches: [], settings: JSON.parse(JSON.stringify(defaultSettings)), trainingHistory: [], apiKey: '' };
+            document.getElementById('apiKeyInput').value = '';
+            document.getElementById('apiStatus').textContent = '';
+            saveData(appData);
+            renderHistory();
+            updateTrainingTab();
+            applySettingsToUI();
+            applyTheme();
+            updateMainMatchCard();
         }
     }
 
-    function closeOddsModal() {
-        document.getElementById('oddsModal').classList.remove('active');
-    }
-
-    // =============================================
-    // ===== НАВИГАЦИЯ =====
-    // =============================================
     function setupNavigation() {
         const items = document.querySelectorAll('.nav-item');
         const screens = {
@@ -2144,124 +1238,47 @@ function resetAll() {
         });
     }
 
-    // =============================================
-    // ===== СОБЫТИЯ =====
-    // =============================================
     document.addEventListener('DOMContentLoaded', function() {
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
-
+        if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
         init();
         setupNavigation();
-
-        // Сохранение
         document.getElementById('saveBtn').addEventListener('click', saveMatch);
         document.getElementById('quickAddBtn').addEventListener('click', saveMatch);
-
-        // Кнопка БК
-        document.getElementById('bookmakerBtn').addEventListener('click', showOddsModal);
-
-        // Модальное окно
-        document.getElementById('oddsModalClose').addEventListener('click', closeOddsModal);
-        document.getElementById('oddsModalCloseBtn').addEventListener('click', closeOddsModal);
-        document.getElementById('oddsModal').addEventListener('click', function(e) {
-            if (e.target === this) closeOddsModal();
-        });
-        document.getElementById('oddsModalOpenBk').addEventListener('click', function() {
-            const home = document.getElementById('inputHome').value.trim() || 'Велес';
-            const away = document.getElementById('inputAway').value.trim() || 'Ротор';
-            const query = encodeURIComponent(`${home} ${away}`);
-            window.open(`https://www.google.com/search?q=${query}+1xBet`, '_blank');
-        });
-
-        // API-ключ
+        document.getElementById('bookmakerBtn').addEventListener('click', function() { alert('🔗 Переход в БК (заглушка). Кэф: ' + document.getElementById('oddsDisplay').textContent); });
         document.getElementById('saveApiKeyBtn').addEventListener('click', function() {
             const key = document.getElementById('apiKeyInput').value.trim();
-            if (key) {
-                apiKey = key;
-                appData.apiKey = key;
-                saveData(appData);
-                document.getElementById('apiStatus').textContent = '✅ Ключ сохранён';
-                setupTeamSearch();
-            } else {
-                document.getElementById('apiStatus').textContent = '❌ Введите ключ';
-            }
+            if (key) { appData.apiKey = key; saveData(appData); document.getElementById('apiStatus').textContent = '✅ Ключ сохранён'; }
+            else { document.getElementById('apiStatus').textContent = '❌ Введите ключ'; }
         });
-        document.getElementById('testApiKeyBtn').addEventListener('click', testApiKey);
-
-        // Импорт
-        const importArea = document.getElementById('importArea');
-        const fileInput = document.getElementById('fileInput');
-        importArea.addEventListener('click', function() {
-            fileInput.click();
+        document.getElementById('testApiKeyBtn').addEventListener('click', function() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (!key) { document.getElementById('apiStatus').textContent = '❌ Введите ключ'; return; }
+            document.getElementById('apiStatus').textContent = '⏳ Проверка...';
+            fetch('https://api-football-v1.p.rapidapi.com/v3/status', {
+                headers: { 'x-rapidapi-key': key, 'x-rapidapi-host': 'api-football-v1.p.rapidapi.com' }
+            }).then(r => {
+                if (r.ok) { document.getElementById('apiStatus').textContent = '✅ Ключ работает!'; appData.apiKey = key; saveData(appData); }
+                else { document.getElementById('apiStatus').textContent = '❌ Ключ не работает (' + r.status + ')'; }
+            }).catch(() => { document.getElementById('apiStatus').textContent = '❌ Ошибка соединения'; });
         });
-        importArea.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.classList.add('dragover');
-        });
-        importArea.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-        });
-        importArea.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-            if (e.dataTransfer.files.length > 0) {
-                importData(e.dataTransfer.files[0]);
-            }
-        });
-        fileInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                importData(this.files[0]);
-                this.value = '';
-            }
-        });
-
-        // Экспорт и сброс
+        document.getElementById('importArea').addEventListener('click', function() { document.getElementById('fileInput').click(); });
+        document.getElementById('importArea').addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
+        document.getElementById('importArea').addEventListener('dragleave', function(e) { e.preventDefault(); this.classList.remove('dragover'); });
+        document.getElementById('importArea').addEventListener('drop', function(e) { e.preventDefault(); this.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) importData(e.dataTransfer.files[0]); });
+        document.getElementById('fileInput').addEventListener('change', function() { if (this.files.length > 0) { importData(this.files[0]); this.value = ''; } });
         document.getElementById('exportDataBtn').addEventListener('click', exportData);
         document.getElementById('resetAllBtn').addEventListener('click', resetAll);
-
-        // Настройки
-        document.getElementById('settingTrust').addEventListener('input', function() {
-            const val = parseInt(this.value);
-            document.getElementById('settingTrustVal').textContent = val + '%';
-            appData.settings.trust = val;
-            saveData(appData);
-            updateMainMatchCard();
-        });
-        document.getElementById('settingOz').addEventListener('input', function() {
-            const val = parseInt(this.value);
-            document.getElementById('settingOzVal').textContent = val + '%';
-            appData.settings.minOz = val;
-            saveData(appData);
-            updateMainMatchCard();
-        });
-        document.getElementById('settingKelly').addEventListener('input', function() {
-            const val = parseInt(this.value);
-            document.getElementById('settingKellyVal').textContent = val + '%';
-            appData.settings.kellyPercent = val;
-            saveData(appData);
-            updateMainMatchCard();
-        });
-        document.getElementById('settingBank').addEventListener('change', function() {
-            const val = parseInt(this.value) || 0;
-            appData.settings.bank = val;
-            saveData(appData);
-            updateMainMatchCard();
-        });
-
+        document.getElementById('settingTrust').addEventListener('input', function() { const val = parseInt(this.value); document.getElementById('settingTrustVal').textContent = val + '%'; appData.settings.trust = val; saveData(appData); updateMainMatchCard(); });
+        document.getElementById('settingOz').addEventListener('input', function() { const val = parseInt(this.value); document.getElementById('settingOzVal').textContent = val + '%'; appData.settings.minOz = val; saveData(appData); updateMainMatchCard(); });
+        document.getElementById('settingKelly').addEventListener('input', function() { const val = parseInt(this.value); document.getElementById('settingKellyVal').textContent = val + '%'; appData.settings.kellyPercent = val; saveData(appData); updateMainMatchCard(); });
+        document.getElementById('settingBank').addEventListener('change', function() { const val = parseInt(this.value) || 0; appData.settings.bank = val; saveData(appData); updateMainMatchCard(); });
         function setupToggle(id, key) {
             const el = document.getElementById(id);
             if (!el) return;
             el.addEventListener('click', function() {
                 this.classList.toggle('active');
-                if (key === 'theme') {
-                    appData.settings.theme = this.classList.contains('active') ? 'light' : 'dark';
-                    applyTheme();
-                } else {
-                    appData.settings[key] = this.classList.contains('active');
-                }
+                if (key === 'theme') { appData.settings.theme = this.classList.contains('active') ? 'light' : 'dark'; applyTheme(); }
+                else { appData.settings[key] = this.classList.contains('active'); }
                 saveData(appData);
             });
         }
@@ -2271,8 +1288,6 @@ function resetAll() {
         setupToggle('toggleVibration', 'vibration');
         setupToggle('toggleReminder', 'reminder');
         setupToggle('toggleTheme', 'theme');
-
-        // Фильтры
         document.querySelectorAll('.filter-bar .tag').forEach(tag => {
             tag.addEventListener('click', function() {
                 document.querySelectorAll('.filter-bar .tag').forEach(t => t.classList.remove('active'));
@@ -2280,20 +1295,8 @@ function resetAll() {
                 renderHistory(this.dataset.filter);
             });
         });
-
-        // Обучение
         document.getElementById('trainBtn').addEventListener('click', runTraining);
         document.getElementById('copyStatsBtn').addEventListener('click', copyStats);
-        document.getElementById('exportBtn').addEventListener('click', function() {
-            const json = JSON.stringify(appData, null, 2);
-            const blob = new Blob([json], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `quantum_data_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-        });
         document.getElementById('resetBtn').addEventListener('click', resetAll);
         document.getElementById('resetSettingsBtn').addEventListener('click', function() {
             appData.settings = JSON.parse(JSON.stringify(defaultSettings));
@@ -2302,13 +1305,10 @@ function resetAll() {
             applyTheme();
             updateMainMatchCard();
         });
-
-        // Обновление карточки
         ['inputHome', 'inputAway', 'inputLeague', 'inputCountry', 'inputXg', 'inputXga', 'inputOz', 'inputOdds', 'inputComment'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('input', updateMainMatchCard);
         });
-
         renderHistory();
         updateTrainingTab();
         updateMainMatchCard();
