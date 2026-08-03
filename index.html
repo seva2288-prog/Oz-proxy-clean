@@ -118,9 +118,9 @@
 
     <div class="container" id="appContainer">
 
-        <!-- ===== ГЛАВНАЯ ===== -->
+        <!-- ГЛАВНАЯ -->
         <div class="screen active" id="screen-home">
-            <div class="status-indicator" id="statusIndicator">
+            <div class="status-indicator">
                 <span class="status-item"><span class="dot green" id="apiDot"></span><span id="apiStatusText">API: подключён</span></span>
                 <span class="status-item"><span class="dot red" id="weatherDot"></span><span id="weatherStatusText">Погода: выкл</span></span>
             </div>
@@ -128,7 +128,7 @@
             <div class="card" id="matchCard">
                 <div class="vs">⚔️ <span id="teamHome">—</span> — <span id="teamAway">—</span><small id="tournament">Нет данных</small></div>
                 <div class="meta"><span>🏆 <span id="leagueDisplay">—</span></span><span>📅 <span id="dateDisplay">—</span></span><span>⏰ <span id="timeDisplay">—</span></span></div>
-                <div class="indicator"><div class="label"><span>📊 Индекс доверия</span><span class="value" id="trustValue">—%</span></div><div class="bar"><div class="fill" id="trustFill" style="width:0%"></div></div></div>
+                <div class="indicator"><div class="label"><span>📊 Индекс доверия</span><span class="value" id="trustValue">38%</span></div><div class="bar"><div class="fill" id="trustFill" style="width:38%"></div></div></div>
                 <div class="indicator"><div class="label"><span>🎯 Вероятность ОЗ</span><span class="value" id="ozValue">—%</span></div><div class="bar"><div class="fill" id="ozFill" style="width:0%"></div></div></div>
                 <div class="recommendation" id="recommendationBadge">⚪ НЕТ ДАННЫХ</div>
                 <div style="margin:10px 0 6px; display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; font-size:15px;">
@@ -168,7 +168,7 @@
             </div>
         </div>
 
-        <!-- ===== ИСТОРИЯ ===== -->
+        <!-- ИСТОРИЯ -->
         <div class="screen" id="screen-history">
             <div class="filter-bar">
                 <span class="tag active" data-filter="all">Все</span>
@@ -186,7 +186,7 @@
             <div class="day-stats"><div class="title">📅 По дням недели</div><div class="grid" id="dayStatsGrid"></div></div>
         </div>
 
-        <!-- ===== НАСТРОЙКИ ===== -->
+        <!-- НАСТРОЙКИ -->
         <div class="screen" id="screen-settings">
             <div class="setting-group">
                 <div class="title">🔍 Основные параметры</div>
@@ -227,7 +227,7 @@
             <button class="btn btn-primary" style="width:100%; margin-top:12px;" id="resetSettingsBtn">🔄 Сбросить к начальным</button>
         </div>
 
-        <!-- ===== ОБУЧЕНИЕ ===== -->
+        <!-- ОБУЧЕНИЕ -->
         <div class="screen" id="screen-training">
             <div class="training-status">
                 <div class="row"><span>🟢 Статус</span><span class="badge" id="modelStatus">Обучена</span></div>
@@ -253,7 +253,7 @@
         </div>
     </div>
 
-    <!-- ===== НАВИГАЦИЯ ===== -->
+    <!-- НАВИГАЦИЯ -->
     <div class="nav-bar" id="navBar">
         <button class="nav-item active" data-tab="screen-home"><span class="icon">🏠</span>Главная</button>
         <button class="nav-item" data-tab="screen-history"><span class="icon">📋</span>История</button>
@@ -265,11 +265,8 @@
     (function() {
         'use strict';
 
-        console.log('✅ v5.0 — Слой 2 (исправленный, автопоиск работает)');
+        console.log('✅ v5.0 Слой 2 — исправленный');
 
-        // ============================================================
-        // ДАННЫЕ
-        // ============================================================
         let appData = loadData();
         let currentFilter = 'all';
         let apiKey = '';
@@ -295,9 +292,6 @@
             localStorage.setItem('quantumData', JSON.stringify(appData));
         }
 
-        // ============================================================
-        // НАСТРОЙКИ ПО УМОЛЧАНИЮ
-        // ============================================================
         const defaultSettings = {
             trust: 38, minOz: 86, kellyPercent: 20, bank: 10000,
             onlyOz: true, onlyValue: false, sound: true, vibration: true, reminder: true, theme: 'dark'
@@ -309,9 +303,7 @@
             return s;
         }
 
-        // ============================================================
-        // НАВИГАЦИЯ
-        // ============================================================
+        // =========================== НАВИГАЦИЯ ===========================
         const navItems = document.querySelectorAll('.nav-item');
         const screens = {
             'screen-home': document.getElementById('screen-home'),
@@ -336,9 +328,7 @@
             });
         });
 
-        // ============================================================
-        // ТЕМА
-        // ============================================================
+        // =========================== ТЕМА ===========================
         function applyTheme() {
             const settings = getSettings();
             const isLight = settings.theme === 'light';
@@ -347,9 +337,7 @@
             if (toggle) toggle.classList.toggle('active', isLight);
         }
 
-        // ============================================================
-        // НАСТРОЙКИ UI
-        // ============================================================
+        // =========================== НАСТРОЙКИ UI ===========================
         function loadSettingsToUI() {
             const s = getSettings();
             document.getElementById('settingTrust').value = s.trust;
@@ -391,9 +379,7 @@
             else el.classList.remove('active');
         }
 
-        // ============================================================
-        // ИНДИКАТОРЫ СТАТУСА
-        // ============================================================
+        // =========================== ИНДИКАТОРЫ ===========================
         function updateStatusIndicators() {
             const apiOk = appData.apiKey && appData.apiKey.length > 0;
             const weatherOk = appData.weatherKey && appData.weatherKey.length > 0;
@@ -405,9 +391,7 @@
             document.getElementById('weatherStatusText').textContent = weatherOk ? 'Погода: вкл' : 'Погода: выкл';
         }
 
-        // ============================================================
-        // API-FOOTBALL
-        // ============================================================
+        // =========================== API ===========================
         const API_BASE = 'https://api-football-v1.p.rapidapi.com/v3';
 
         function getApiKey() {
@@ -452,18 +436,12 @@
             }
         }
 
-        // ============================================================
-        // ПОЛУЧЕНИЕ ДАННЫХ МАТЧА (xG, кэф, лига, страна)
-        // ============================================================
         async function getMatchData(teamName) {
             const key = getApiKey();
             if (!key) return null;
             try {
                 const teamResponse = await fetch(API_BASE + '/teams?search=' + encodeURIComponent(teamName), {
-                    headers: {
-                        'x-rapidapi-key': key,
-                        'x-rapidapi-host': 'api-football-v1.p.rapidapi.com'
-                    }
+                    headers: { 'x-rapidapi-key': key, 'x-rapidapi-host': 'api-football-v1.p.rapidapi.com' }
                 });
                 if (!teamResponse.ok) return null;
                 const teamData = await teamResponse.json();
@@ -474,10 +452,7 @@
                 const league = teamData.response[0].team.league || 'Неизвестно';
 
                 const fixtureResponse = await fetch(API_BASE + '/fixtures?team=' + teamId + '&last=1', {
-                    headers: {
-                        'x-rapidapi-key': key,
-                        'x-rapidapi-host': 'api-football-v1.p.rapidapi.com'
-                    }
+                    headers: { 'x-rapidapi-key': key, 'x-rapidapi-host': 'api-football-v1.p.rapidapi.com' }
                 });
                 if (!fixtureResponse.ok) return { country, league, xg: 0, xga: 0, odds: 0 };
 
@@ -492,10 +467,7 @@
                 let xgHome = 0, xgAway = 0;
                 try {
                     const statsResponse = await fetch(API_BASE + '/fixtures/statistics?fixture=' + fixtureId, {
-                        headers: {
-                            'x-rapidapi-key': key,
-                            'x-rapidapi-host': 'api-football-v1.p.rapidapi.com'
-                        }
+                        headers: { 'x-rapidapi-key': key, 'x-rapidapi-host': 'api-football-v1.p.rapidapi.com' }
                     });
                     if (statsResponse.ok) {
                         const statsData = await statsResponse.json();
@@ -503,16 +475,12 @@
                             statsData.response.forEach(function(stat) {
                                 if (stat.team && stat.team.name === fixture.teams.home.name) {
                                     stat.statistics.forEach(function(s) {
-                                        if (s.type === 'Expected Goals') {
-                                            xgHome = parseFloat(s.value) || 0;
-                                        }
+                                        if (s.type === 'Expected Goals') { xgHome = parseFloat(s.value) || 0; }
                                     });
                                 }
                                 if (stat.team && stat.team.name === fixture.teams.away.name) {
                                     stat.statistics.forEach(function(s) {
-                                        if (s.type === 'Expected Goals') {
-                                            xgAway = parseFloat(s.value) || 0;
-                                        }
+                                        if (s.type === 'Expected Goals') { xgAway = parseFloat(s.value) || 0; }
                                     });
                                 }
                             });
@@ -523,10 +491,7 @@
                 let odds = 0;
                 try {
                     const oddsResponse = await fetch(API_BASE + '/odds?fixture=' + fixtureId, {
-                        headers: {
-                            'x-rapidapi-key': key,
-                            'x-rapidapi-host': 'api-football-v1.p.rapidapi.com'
-                        }
+                        headers: { 'x-rapidapi-key': key, 'x-rapidapi-host': 'api-football-v1.p.rapidapi.com' }
                     });
                     if (oddsResponse.ok) {
                         const oddsData = await oddsResponse.json();
@@ -535,10 +500,7 @@
                                 for (let bet of bookmaker.bets) {
                                     if (bet.name === 'Both Teams Score') {
                                         const yes = bet.values.find(function(v) { return v.value === 'Yes'; });
-                                        if (yes) {
-                                            odds = parseFloat(yes.odd) || 0;
-                                            break;
-                                        }
+                                        if (yes) { odds = parseFloat(yes.odd) || 0; break; }
                                     }
                                 }
                                 if (odds > 0) break;
@@ -547,21 +509,13 @@
                     }
                 } catch (e) {}
 
-                return {
-                    country: country,
-                    league: league,
-                    xg: xgHome,
-                    xga: xgAway,
-                    odds: odds
-                };
+                return { country, league, xg: xgHome, xga: xgAway, odds: odds };
             } catch (e) {
                 return null;
             }
         }
 
-        // ============================================================
-        // УМНЫЙ ПОИСК КОМАНД (исправленный)
-        // ============================================================
+        // =========================== УМНЫЙ ПОИСК ===========================
         function setupTeamSearch() {
             const homeInput = document.getElementById('inputHome');
             const awayInput = document.getElementById('inputAway');
@@ -573,18 +527,12 @@
                 input.addEventListener('input', function() {
                     const query = this.value.trim();
                     currentQuery = query;
-                    if (query.length < 2) {
-                        container.style.display = 'none';
-                        return;
-                    }
+                    if (query.length < 2) { container.style.display = 'none'; return; }
                     const key = getApiKey();
                     if (key) {
                         searchTeamsApi(query).then(function(results) {
                             if (currentQuery !== query) return;
-                            if (results.length === 0) {
-                                container.style.display = 'none';
-                                return;
-                            }
+                            if (results.length === 0) { container.style.display = 'none'; return; }
                             container.innerHTML = results.map(function(r) {
                                 return '<div class="item" data-name="' + r.name +
                                     '" data-country="' + r.country +
@@ -604,7 +552,6 @@
                                     document.getElementById('inputLeague').value = league;
                                     document.getElementById('inputCountry').value = country;
                                     container.style.display = 'none';
-
                                     getMatchData(name).then(function(data) {
                                         if (data) {
                                             if (data.xg > 0) document.getElementById('inputXg').value = data.xg;
@@ -625,10 +572,7 @@
                     } else {
                         // Локальный поиск
                         var results = searchTeamsLocal(query);
-                        if (results.length === 0) {
-                            container.style.display = 'none';
-                            return;
-                        }
+                        if (results.length === 0) { container.style.display = 'none'; return; }
                         container.innerHTML = results.map(function(r) {
                             return '<div class="item" data-name="' + r.name +
                                 '" data-country="' + r.country +
@@ -699,9 +643,7 @@
             setupField(awayInput, awayContainer);
         }
 
-        // ============================================================
-        // КАРТОЧКА МАТЧА
-        // ============================================================
+        // =========================== КАРТОЧКА ===========================
         function updateMainCard() {
             const settings = getSettings();
             const home = document.getElementById('inputHome').value || '—';
@@ -719,30 +661,18 @@
             document.getElementById('trustFill').style.width = Math.min(trust, 100) + '%';
 
             const badge = document.getElementById('recommendationBadge');
-            if (oz >= 86) {
-                badge.textContent = '🟢 ОЗ – ДА';
-            } else if (oz > 0) {
-                badge.textContent = '🔴 ОЗ – НЕТ';
-            } else {
-                badge.textContent = '⚪ НЕТ ДАННЫХ';
-            }
+            if (oz >= 86) { badge.textContent = '🟢 ОЗ – ДА'; }
+            else if (oz > 0) { badge.textContent = '🔴 ОЗ – НЕТ'; }
+            else { badge.textContent = '⚪ НЕТ ДАННЫХ'; }
 
             const valueEl = document.getElementById('valueDisplay');
             if (oz > 0 && odds > 0) {
                 var value = (oz / 100) * odds - 1;
-                if (value > 0.05) {
-                    valueEl.textContent = 'ДА (+' + value.toFixed(2) + ')';
-                    valueEl.style.color = '#00E676';
-                } else if (value > -0.05) {
-                    valueEl.textContent = 'Нейтрально (' + value.toFixed(2) + ')';
-                    valueEl.style.color = '#FFD740';
-                } else {
-                    valueEl.textContent = 'НЕТ (' + value.toFixed(2) + ')';
-                    valueEl.style.color = '#FF5253';
-                }
+                if (value > 0.05) { valueEl.textContent = 'ДА (+' + value.toFixed(2) + ')'; valueEl.style.color = '#00E676'; }
+                else if (value > -0.05) { valueEl.textContent = 'Нейтрально (' + value.toFixed(2) + ')'; valueEl.style.color = '#FFD740'; }
+                else { valueEl.textContent = 'НЕТ (' + value.toFixed(2) + ')'; valueEl.style.color = '#FF5253'; }
             } else {
-                valueEl.textContent = '—';
-                valueEl.style.color = '#9E9E9E';
+                valueEl.textContent = '—'; valueEl.style.color = '#9E9E9E';
             }
 
             var bank = settings.bank || 10000;
@@ -757,9 +687,6 @@
             document.getElementById('leagueDisplay').textContent = document.getElementById('inputLeague').value || '—';
         }
 
-        // ============================================================
-        // ОЧИСТКА ПОЛЕЙ
-        // ============================================================
         function clearFields() {
             document.getElementById('inputHome').value = '';
             document.getElementById('inputAway').value = '';
@@ -773,9 +700,7 @@
             updateMainCard();
         }
 
-        // ============================================================
-        // СОХРАНЕНИЕ МАТЧА
-        // ============================================================
+        // =========================== СОХРАНЕНИЕ ===========================
         function saveMatch() {
             var home = document.getElementById('inputHome').value.trim() || '—';
             var away = document.getElementById('inputAway').value.trim() || '—';
@@ -818,21 +743,15 @@
             }, 400);
         }
 
-        // ============================================================
-        // ИСТОРИЯ
-        // ============================================================
+        // =========================== ИСТОРИЯ ===========================
         function renderHistory(filter) {
             currentFilter = filter || currentFilter;
             var list = document.getElementById('historyList');
             var matches = appData.matches || [];
 
-            if (currentFilter === 'waiting') {
-                matches = matches.filter(function(m) { return m.status === 'waiting'; });
-            } else if (currentFilter === 'win') {
-                matches = matches.filter(function(m) { return m.status === 'win'; });
-            } else if (currentFilter === 'loss') {
-                matches = matches.filter(function(m) { return m.status === 'loss'; });
-            }
+            if (currentFilter === 'waiting') { matches = matches.filter(function(m) { return m.status === 'waiting'; }); }
+            else if (currentFilter === 'win') { matches = matches.filter(function(m) { return m.status === 'win'; }); }
+            else if (currentFilter === 'loss') { matches = matches.filter(function(m) { return m.status === 'loss'; }); }
 
             if (matches.length === 0) {
                 list.innerHTML = '<div style="text-align:center; color:#9E9E9E; padding:30px 0;">Нет матчей</div>';
@@ -897,9 +816,6 @@
             renderDayStats();
         }
 
-        // ============================================================
-        // ВВОД СЧЁТА
-        // ============================================================
         function enterScore(id) {
             var match = appData.matches.find(function(m) { return m.id === id; });
             if (!match) return;
@@ -916,9 +832,6 @@
             }
         }
 
-        // ============================================================
-        // РЕДАКТИРОВАНИЕ
-        // ============================================================
         function editMatch(id) {
             var match = appData.matches.find(function(m) { return m.id === id; });
             if (!match) return;
@@ -935,9 +848,6 @@
             alert('✅ Матч обновлён!');
         }
 
-        // ============================================================
-        // ДУБЛИРОВАНИЕ
-        // ============================================================
         function duplicateMatch(id) {
             var original = appData.matches.find(function(m) { return m.id === id; });
             if (!original) return;
@@ -953,9 +863,6 @@
             alert('✅ Матч продублирован!');
         }
 
-        // ============================================================
-        // СТАТИСТИКА
-        // ============================================================
         function updateStats() {
             var total = appData.matches.length;
             var wins = appData.matches.filter(function(m) { return m.status === 'win'; }).length;
@@ -967,9 +874,6 @@
             document.getElementById('percentDisplay').textContent = pct + '%';
         }
 
-        // ============================================================
-        // СТАТИСТИКА ПО ДНЯМ
-        // ============================================================
         function renderDayStats() {
             var days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
             var stats = {};
@@ -995,9 +899,6 @@
             }).join('');
         }
 
-        // ============================================================
-        // ЭКСПОРТ / ИМПОРТ / СБРОС
-        // ============================================================
         function exportData() {
             var data = {
                 version: '5.0 PRO',
@@ -1073,9 +974,6 @@
             }
         }
 
-        // ============================================================
-        // ОБУЧЕНИЕ (заглушка)
-        // ============================================================
         function runTraining() {
             var matches = appData.matches || [];
             var wins = matches.filter(function(m) { return m.status === 'win'; }).length;
@@ -1100,9 +998,22 @@
             alert('✅ Обучение завершено! Точность: ' + pct + '%');
         }
 
-        // ============================================================
-        // СОБЫТИЯ
-        // ============================================================
+        function copyStats() {
+            var matches = appData.matches || [];
+            var total = matches.length;
+            var wins = matches.filter(function(m) { return m.status === 'win'; }).length;
+            var losses = matches.filter(function(m) { return m.status === 'loss'; }).length;
+            var pct = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
+            var report = '🔥 КВАНТУМ PRO v5.0\n\nВсего матчей: ' + total + '\nЗашло: ' + wins +
+                '\nНе зашло: ' + losses + '\nПроцент побед: ' + pct + '%';
+            navigator.clipboard.writeText(report).then(function() {
+                alert('✅ Статистика скопирована!');
+            }).catch(function() {
+                alert('❌ Не удалось скопировать');
+            });
+        }
+
+        // =========================== ЗАПУСК ===========================
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🔄 DOM загружен');
 
@@ -1228,20 +1139,7 @@
             document.getElementById('resetAllBtn').addEventListener('click', resetAll);
 
             document.getElementById('trainBtn').addEventListener('click', runTraining);
-            document.getElementById('copyStatsBtn').addEventListener('click', function() {
-                var matches = appData.matches || [];
-                var total = matches.length;
-                var wins = matches.filter(function(m) { return m.status === 'win'; }).length;
-                var losses = matches.filter(function(m) { return m.status === 'loss'; }).length;
-                var pct = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
-                var report = '🔥 КВАНТУМ PRO v5.0\n\nВсего матчей: ' + total + '\nЗашло: ' + wins +
-                    '\nНе зашло: ' + losses + '\nПроцент побед: ' + pct + '%';
-                navigator.clipboard.writeText(report).then(function() {
-                    alert('✅ Статистика скопирована!');
-                }).catch(function() {
-                    alert('❌ Не удалось скопировать');
-                });
-            });
+            document.getElementById('copyStatsBtn').addEventListener('click', copyStats);
             document.getElementById('resetBtn').addEventListener('click', resetAll);
 
             document.getElementById('resetSettingsBtn').addEventListener('click', function() {
