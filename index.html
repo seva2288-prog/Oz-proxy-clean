@@ -280,7 +280,7 @@
     (function() {
         'use strict';
 
-        console.log('✅ v5.0 — с прокси');
+        console.log('✅ v5.0 — с прокси и правильным заголовком');
 
         // ============================================================
         // ПРОКСИ
@@ -438,7 +438,7 @@
             try {
                 const response = await fetch(API_BASE + '/teams?search=' + encodeURIComponent(query), {
                     headers: {
-                        'x-rapidapi-key': key,
+                        'x-apisports-key': key,
                         'x-rapidapi-host': 'api-football-v1.p.rapidapi.com'
                     }
                 });
@@ -465,7 +465,7 @@
             if (!key) return null;
             try {
                 const teamResponse = await fetch(API_BASE + '/teams?search=' + encodeURIComponent(teamName), {
-                    headers: { 'x-rapidapi-key': key, 'x-rapidapi-host': 'api-football-v1.p.rapidapi.com' }
+                    headers: { 'x-apisports-key': key, 'x-rapidapi-host': 'api-football-v1.p.rapidapi.com' }
                 });
                 if (!teamResponse.ok) return null;
                 const teamData = await teamResponse.json();
@@ -476,7 +476,7 @@
                 const league = teamData.response[0].team.league || 'Неизвестно';
 
                 const fixtureResponse = await fetch(API_BASE + '/fixtures?team=' + teamId + '&last=1', {
-                    headers: { 'x-rapidapi-key': key, 'x-rapidapi-host': 'api-football-v1.p.rapidapi.com' }
+                    headers: { 'x-apisports-key': key, 'x-rapidapi-host': 'api-football-v1.p.rapidapi.com' }
                 });
                 if (!fixtureResponse.ok) return { country, league, xg: 0, xga: 0, odds: 0 };
 
@@ -491,7 +491,7 @@
                 let xgHome = 0, xgAway = 0;
                 try {
                     const statsResponse = await fetch(API_BASE + '/fixtures/statistics?fixture=' + fixtureId, {
-                        headers: { 'x-rapidapi-key': key, 'x-rapidapi-host': 'api-football-v1.p.rapidapi.com' }
+                        headers: { 'x-apisports-key': key, 'x-rapidapi-host': 'api-football-v1.p.rapidapi.com' }
                     });
                     if (statsResponse.ok) {
                         const statsData = await statsResponse.json();
@@ -515,7 +515,7 @@
                 let odds = 0;
                 try {
                     const oddsResponse = await fetch(API_BASE + '/odds?fixture=' + fixtureId, {
-                        headers: { 'x-rapidapi-key': key, 'x-rapidapi-host': 'api-football-v1.p.rapidapi.com' }
+                        headers: { 'x-apisports-key': key, 'x-rapidapi-host': 'api-football-v1.p.rapidapi.com' }
                     });
                     if (oddsResponse.ok) {
                         const oddsData = await oddsResponse.json();
@@ -553,7 +553,7 @@
             try {
                 const response = await fetch(API_BASE + '/fixtures?live=all', {
                     headers: {
-                        'x-rapidapi-key': key,
+                        'x-apisports-key': key,
                         'x-rapidapi-host': 'api-football-v1.p.rapidapi.com'
                     }
                 });
@@ -1071,7 +1071,7 @@
                     '<span style="color:#9E9E9E;">loss ' + h.loss + '</span></div>';
             }).join('');
             document.getElementById('modelMatches').textContent = total;
-            document.getElementById('modelAcc').textContent = pct + '%';
+            document.getElementById('modelAcc').textContent = pct + '%;
             document.getElementById('modelLoss').textContent = (1 - pct / 100).toFixed(2);
             alert('✅ Обучение завершено! Точность: ' + pct + '%');
         }
