@@ -9,56 +9,288 @@
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogItCa0LLQsNC90YLRg9C8IFBSTyB2NS4wIiwKICAic2hvcnRfbmFtZSI6ICLQmtCy0LDQvdGC0YPQvSBQUk8iLAogICJkZXNjcmlwdGlvbiI6ICLQo9C80L3Ri9C5INCw0L3QsNC70LjRgtC40YfQtdGB0LrQuNC5INGG0LXQvdGC0YAg0LTQu9GPINGB0YLQsNCy0L7QuiIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMEIwRTE3IiwKICAidGhlbWVfY29sb3IiOiAiIzAwRTY3NiIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxjaXJjbGUgY3g9JzUwJyBjeT0nNTAnIHI9JzUwJyBmaWxsPSclMjMwMEU2NzYnLz48dGV4dCB4PSc1MCcgeT0nNjUnIGZvbnQtc2l6ZT0nNDAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9JyUyMzBCMEUxNycgZm9udC1mYW1pbHk9J3NhbnMtc2VyaWYnPuKArTwvdGV4dD48L3N2Zz4iLAogICAgICAic2l6ZXMiOiAiNTEyeDUxMiIsCiAgICAgICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiLAogICAgICAicHVycG9zZSI6ICJhbnkgbWFzayBhbnlsYW5nIgogICAgfQogIF0KfQ==">
     <title>Квантум PRO v5.0</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        body { background: #0B0E17; color: #E0E0E0; padding-bottom: 70px; transition: background 0.3s, color 0.3s; }
-        body.light { background: #F2F2F7; color: #1C1C1E; }
-        .status-indicator { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; padding: 8px 12px; background: #141A26; border-radius: 12px; font-size: 12px; }
-        .status-indicator .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #0B0E17;
+            color: #E0E0E0;
+            padding-bottom: 70px;
+            transition: background 0.3s, color 0.3s;
+        }
+        body.light {
+            background: #F2F2F7;
+            color: #1C1C1E;
+        }
+        .status-indicator {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: #141A26;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .status-indicator .dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
         .status-indicator .dot.green { background: #00E676; }
         .status-indicator .dot.red { background: #FF5253; }
-        .status-item { display: flex; align-items: center; gap: 4px; }
-        .header { background: #0B0E17; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1F2633; }
-        .header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-        .header h1 span { background: #00E676; color: #0B0E17; font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700; }
-        .header .live { color: #00E676; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
-        .header .live::before { content: "●"; animation: pulse-dot 1.5s infinite; }
-        @keyframes pulse-dot { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        .container { padding: 16px; max-width: 600px; margin: 0 auto; }
-        .screen { display: none; }
-        .screen.active { display: block; animation: fadeSlide 0.25s ease; }
-        @keyframes fadeSlide { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
-        .card { background: #141A26; border-radius: 20px; padding: 20px; margin-bottom: 16px; border: 1px solid #1F2633; }
-        .card .vs { font-size: 22px; font-weight: 700; text-align: center; }
-        .card .vs small { display: block; font-size: 13px; color: #9E9E9E; font-weight: 400; margin-top: 2px; }
-        .card .meta { text-align: center; font-size: 13px; color: #9E9E9E; margin: 8px 0 16px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
-        .card .meta span { background: #1F2633; padding: 2px 12px; border-radius: 20px; }
-        .indicator { margin-bottom: 12px; }
-        .indicator .label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; }
-        .indicator .label .value { color: #00E676; font-weight: 700; }
-        .indicator .bar { height: 8px; background: #1F2633; border-radius: 12px; overflow: hidden; margin-top: 4px; }
-        .indicator .bar .fill { height: 100%; border-radius: 12px; background: linear-gradient(90deg, #00E676, #00C853); transition: width 0.6s ease; width: 0%; }
-        .recommendation { background: #00E676; color: #0B0E17; font-weight: 700; font-size: 18px; padding: 6px 16px; border-radius: 40px; display: inline-block; margin: 6px 0 12px; }
-        .btn-group { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
-        .btn { flex: 1; min-width: 120px; padding: 14px 12px; border-radius: 40px; border: none; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.15s; background: #1F2633; color: #E0E0E0; text-align: center; -webkit-tap-highlight-color: transparent; user-select: none; }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .header {
+            background: #0B0E17;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1F2633;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header h1 span {
+            background: #00E676;
+            color: #0B0E17;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+        .header .live {
+            color: #00E676;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .header .live::before {
+            content: "●";
+            animation: pulse-dot 1.5s infinite;
+        }
+        @keyframes pulse-dot {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        .container {
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+            animation: fadeSlide 0.25s ease;
+        }
+        @keyframes fadeSlide {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .card {
+            background: #141A26;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #1F2633;
+        }
+        .card .vs {
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+        }
+        .card .vs small {
+            display: block;
+            font-size: 13px;
+            color: #9E9E9E;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+        .card .meta {
+            text-align: center;
+            font-size: 13px;
+            color: #9E9E9E;
+            margin: 8px 0 16px;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .card .meta span {
+            background: #1F2633;
+            padding: 2px 12px;
+            border-radius: 20px;
+        }
+        .indicator {
+            margin-bottom: 12px;
+        }
+        .indicator .label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .indicator .label .value {
+            color: #00E676;
+            font-weight: 700;
+        }
+        .indicator .bar {
+            height: 8px;
+            background: #1F2633;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .indicator .bar .fill {
+            height: 100%;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #00E676, #00C853);
+            transition: width 0.6s ease;
+            width: 0%;
+        }
+        .recommendation {
+            background: #00E676;
+            color: #0B0E17;
+            font-weight: 700;
+            font-size: 18px;
+            padding: 6px 16px;
+            border-radius: 40px;
+            display: inline-block;
+            margin: 6px 0 12px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 14px 12px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.15s;
+            background: #1F2633;
+            color: #E0E0E0;
+            text-align: center;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
         .btn:active { transform: scale(0.96); }
-        .btn-primary { background: #00E676; color: #0B0E17; }
+        .btn-primary {
+            background: #00E676;
+            color: #0B0E17;
+        }
         .btn-primary:active { background: #00C853; }
-        .btn-secondary { background: #1F2633; color: #E0E0E0; }
+        .btn-secondary {
+            background: #1F2633;
+            color: #E0E0E0;
+        }
         .btn-secondary:active { background: #2A3342; }
-        .btn-sm { padding: 8px 16px; font-size: 13px; min-width: 60px; flex: 0 1 auto; }
-        .btn-danger { background: #FF5253; color: #FFFFFF; }
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+            min-width: 60px;
+            flex: 0 1 auto;
+        }
+        .btn-danger {
+            background: #FF5253;
+            color: #FFFFFF;
+        }
         .btn-danger:active { background: #D32F2F; }
-        .quick-input { background: #141A26; border-radius: 16px; padding: 16px; margin-top: 12px; }
-        .quick-input .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .quick-input .row input { background: #0B0E17; border: 1px solid #1F2633; border-radius: 12px; padding: 12px 14px; color: #E0E0E0; font-size: 14px; width: 100%; outline: none; }
+        .quick-input {
+            background: #141A26;
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+        .quick-input .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .quick-input .row input {
+            background: #0B0E17;
+            border: 1px solid #1F2633;
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: #E0E0E0;
+            font-size: 14px;
+            width: 100%;
+            outline: none;
+        }
         .quick-input .row input::placeholder { color: #5A667A; }
-        .quick-input .full-width { width: 100%; padding: 12px 14px; background: #0B0E17; border: 1px solid #1F2633; border-radius: 12px; color: #E0E0E0; font-size: 14px; margin-bottom: 10px; outline: none; }
+        .quick-input .full-width {
+            width: 100%;
+            padding: 12px 14px;
+            background: #0B0E17;
+            border: 1px solid #1F2633;
+            border-radius: 12px;
+            color: #E0E0E0;
+            font-size: 14px;
+            margin-bottom: 10px;
+            outline: none;
+        }
         .quick-input .full-width::placeholder { color: #5A667A; }
-        .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-        .filter-bar .tag { background: #1F2633; padding: 6px 16px; border-radius: 30px; font-size: 13px; font-weight: 500; color: #B0B0B0; border: 1px solid transparent; cursor: pointer; transition: 0.15s; -webkit-tap-highlight-color: transparent; user-select: none; }
-        .filter-bar .tag.active { border-color: #00E676; color: #00E676; background: #0B0E17; }
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .filter-bar .tag {
+            background: #1F2633;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #B0B0B0;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: 0.15s;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .filter-bar .tag.active {
+            border-color: #00E676;
+            color: #00E676;
+            background: #0B0E17;
+        }
         .filter-bar .tag:active { transform: scale(0.96); }
-        .history-item { background: #141A26; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid #FFD740; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+        .history-item {
+            background: #141A26;
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-left: 4px solid #FFD740;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
         .history-item.win { border-left-color: #00E676; }
         .history-item.loss { border-left-color: #FF5253; }
         .history-item .info { flex: 2; min-width: 120px; }
@@ -66,47 +298,246 @@
         .history-item .info .sub { font-size: 12px; color: #9E9E9E; }
         .history-item .status { font-size: 22px; }
         .history-item .actions { display: flex; gap: 6px; flex-wrap: wrap; }
-        .summary { background: #141A26; border-radius: 16px; padding: 16px; margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center; }
-        .summary .stat .num { font-size: 22px; font-weight: 700; color: #00E676; }
-        .summary .stat .lbl { font-size: 12px; color: #9E9E9E; }
-        .setting-group { background: #141A26; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
-        .setting-group .title { font-weight: 600; font-size: 16px; margin-bottom: 12px; color: #B0B0B0; }
-        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #1F2633; }
+        .summary {
+            background: #141A26;
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            text-align: center;
+        }
+        .summary .stat .num {
+            font-size: 22px;
+            font-weight: 700;
+            color: #00E676;
+        }
+        .summary .stat .lbl {
+            font-size: 12px;
+            color: #9E9E9E;
+        }
+        .setting-group {
+            background: #141A26;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .setting-group .title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #B0B0B0;
+        }
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #1F2633;
+        }
         .setting-row:last-child { border-bottom: none; }
         .setting-row .label { font-size: 14px; }
-        .setting-row input[type="range"] { width: 140px; accent-color: #00E676; background: #1F2633; height: 4px; border-radius: 8px; }
-        .setting-row input[type="text"], .setting-row input[type="password"] { width: 200px; padding: 6px 10px; border-radius: 12px; border: 1px solid #1F2633; background: #0B0E17; color: #E0E0E0; font-size: 13px; font-family: monospace; outline: none; }
-        .toggle { width: 48px; height: 28px; background: #1F2633; border-radius: 30px; cursor: pointer; position: relative; transition: 0.2s; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+        .setting-row input[type="range"] {
+            width: 140px;
+            accent-color: #00E676;
+            background: #1F2633;
+            height: 4px;
+            border-radius: 8px;
+        }
+        .setting-row input[type="text"],
+        .setting-row input[type="password"] {
+            width: 200px;
+            padding: 6px 10px;
+            border-radius: 12px;
+            border: 1px solid #1F2633;
+            background: #0B0E17;
+            color: #E0E0E0;
+            font-size: 13px;
+            font-family: monospace;
+            outline: none;
+        }
+        .toggle {
+            width: 48px;
+            height: 28px;
+            background: #1F2633;
+            border-radius: 30px;
+            cursor: pointer;
+            position: relative;
+            transition: 0.2s;
+            flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
         .toggle.active { background: #00E676; }
-        .toggle::after { content: ""; width: 22px; height: 22px; background: #E0E0E0; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: 0.2s; }
-        .toggle.active::after { transform: translateX(20px); background: #0B0E17; }
-        .training-status { background: #141A26; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
-        .training-status .row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
-        .training-status .badge { background: #00E676; color: #0B0E17; padding: 2px 12px; border-radius: 30px; font-weight: 700; font-size: 12px; }
-        .ai-advice { background: #1F2633; border-radius: 16px; padding: 16px; margin: 16px 0; font-size: 14px; line-height: 1.5; border-left: 4px solid #00E676; }
-        .import-area { border: 2px dashed #1F2633; border-radius: 16px; padding: 20px; text-align: center; color: #9E9E9E; margin: 12px 0; cursor: pointer; transition: border-color 0.3s, background 0.3s; }
-        .import-area.dragover { border-color: #00E676; background: rgba(0, 230, 118, 0.05); }
-        .import-area .icon { font-size: 32px; display: block; margin-bottom: 8px; }
-        .import-area .sub { font-size: 12px; color: #5A667A; }
-        .day-stats { background: #141A26; border-radius: 16px; padding: 12px; margin-top: 12px; }
-        .day-stats .title { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
-        .day-stats .grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr; gap: 4px; font-size: 11px; text-align: center; }
-        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0B0E17; border-top: 1px solid #1F2633; display: flex; justify-content: space-around; padding: 8px 0 12px; z-index: 100; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: #9E9E9E; cursor: pointer; background: none; border: none; padding: 4px 12px; font-family: inherit; transition: 0.15s; -webkit-tap-highlight-color: transparent; user-select: none; }
+        .toggle::after {
+            content: "";
+            width: 22px;
+            height: 22px;
+            background: #E0E0E0;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            transition: 0.2s;
+        }
+        .toggle.active::after {
+            transform: translateX(20px);
+            background: #0B0E17;
+        }
+        .training-status {
+            background: #141A26;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .training-status .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 14px;
+        }
+        .training-status .badge {
+            background: #00E676;
+            color: #0B0E17;
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 12px;
+        }
+        .ai-advice {
+            background: #1F2633;
+            border-radius: 16px;
+            padding: 16px;
+            margin: 16px 0;
+            font-size: 14px;
+            line-height: 1.5;
+            border-left: 4px solid #00E676;
+        }
+        .import-area {
+            border: 2px dashed #1F2633;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            color: #9E9E9E;
+            margin: 12px 0;
+            cursor: pointer;
+            transition: border-color 0.3s, background 0.3s;
+        }
+        .import-area.dragover {
+            border-color: #00E676;
+            background: rgba(0, 230, 118, 0.05);
+        }
+        .import-area .icon {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .import-area .sub {
+            font-size: 12px;
+            color: #5A667A;
+        }
+        .day-stats {
+            background: #141A26;
+            border-radius: 16px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+        .day-stats .title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+        .day-stats .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+            gap: 4px;
+            font-size: 11px;
+            text-align: center;
+        }
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #0B0E17;
+            border-top: 1px solid #1F2633;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 12px;
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 11px;
+            color: #9E9E9E;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px 12px;
+            font-family: inherit;
+            transition: 0.15s;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
         .nav-item .icon { font-size: 24px; line-height: 1.2; }
         .nav-item.active { color: #00E676; }
         .nav-item.active .icon { transform: scale(1.05); }
         .nav-item:active { transform: scale(0.92); }
-        .fly-away { animation: flyOut 0.5s ease forwards; }
-        @keyframes flyOut { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-120px) scale(0.8); } }
-        .suggestions { background: #1F2633; border-radius: 12px; margin-top: 4px; max-height: 150px; overflow-y: auto; display: none; }
-        body.light .suggestions { background: #FFFFFF; border: 1px solid #E5E5EA; }
-        .suggestions .item { padding: 10px 14px; border-bottom: 1px solid #2A3342; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+        .fly-away {
+            animation: flyOut 0.5s ease forwards;
+        }
+        @keyframes flyOut {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-120px) scale(0.8); }
+        }
+        .suggestions {
+            background: #1F2633;
+            border-radius: 12px;
+            margin-top: 4px;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none;
+        }
+        body.light .suggestions {
+            background: #FFFFFF;
+            border: 1px solid #E5E5EA;
+        }
+        .suggestions .item {
+            padding: 10px 14px;
+            border-bottom: 1px solid #2A3342;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
         body.light .suggestions .item { border-bottom-color: #E5E5EA; }
         .suggestions .item:hover { background: #2A3342; }
         body.light .suggestions .item:hover { background: #F2F2F7; }
         .suggestions .item .flag { font-size: 18px; }
         .suggestions .item .league-name { color: #9E9E9E; font-size: 12px; }
+        /* LIVE блок */
+        .live-match {
+            background: #141A26;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            border-left: 4px solid #00E676;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .live-match .teams { font-weight: 600; font-size: 15px; }
+        .live-match .score { font-size: 18px; font-weight: 700; color: #00E676; }
+        .live-match .league { font-size: 11px; color: #9E9E9E; }
+        .live-match .time { font-size: 12px; color: #FFD740; }
+        .live-empty {
+            text-align: center;
+            color: #9E9E9E;
+            padding: 30px 0;
+        }
     </style>
 </head>
 <body>
@@ -118,7 +549,7 @@
 
     <div class="container" id="appContainer">
 
-        <!-- ГЛАВНАЯ -->
+        <!-- ===== ГЛАВНАЯ ===== -->
         <div class="screen active" id="screen-home">
             <div class="status-indicator">
                 <span class="status-item"><span class="dot green" id="apiDot"></span><span id="apiStatusText">API: подключён</span></span>
@@ -168,7 +599,7 @@
             </div>
         </div>
 
-        <!-- ИСТОРИЯ -->
+        <!-- ===== ИСТОРИЯ ===== -->
         <div class="screen" id="screen-history">
             <div class="filter-bar">
                 <span class="tag active" data-filter="all">Все</span>
@@ -186,7 +617,15 @@
             <div class="day-stats"><div class="title">📅 По дням недели</div><div class="grid" id="dayStatsGrid"></div></div>
         </div>
 
-        <!-- НАСТРОЙКИ -->
+        <!-- ===== LIVE ===== -->
+        <div class="screen" id="screen-live">
+            <div style="font-weight:600; font-size:16px; margin-bottom:12px;">⚡ LIVE матчи</div>
+            <div id="liveMatches">
+                <div class="live-empty">Загрузка матчей...</div>
+            </div>
+        </div>
+
+        <!-- ===== НАСТРОЙКИ ===== -->
         <div class="screen" id="screen-settings">
             <div class="setting-group">
                 <div class="title">🔍 Основные параметры</div>
@@ -227,7 +666,7 @@
             <button class="btn btn-primary" style="width:100%; margin-top:12px;" id="resetSettingsBtn">🔄 Сбросить к начальным</button>
         </div>
 
-        <!-- ОБУЧЕНИЕ -->
+        <!-- ===== ОБУЧЕНИЕ ===== -->
         <div class="screen" id="screen-training">
             <div class="training-status">
                 <div class="row"><span>🟢 Статус</span><span class="badge" id="modelStatus">Обучена</span></div>
@@ -253,10 +692,11 @@
         </div>
     </div>
 
-    <!-- НАВИГАЦИЯ -->
+    <!-- ===== НАВИГАЦИЯ (теперь 5 табов) ===== -->
     <div class="nav-bar" id="navBar">
         <button class="nav-item active" data-tab="screen-home"><span class="icon">🏠</span>Главная</button>
         <button class="nav-item" data-tab="screen-history"><span class="icon">📋</span>История</button>
+        <button class="nav-item" data-tab="screen-live"><span class="icon">⚡</span>LIVE</button>
         <button class="nav-item" data-tab="screen-training"><span class="icon">🧠</span>Обучение</button>
         <button class="nav-item" data-tab="screen-settings"><span class="icon">⚙️</span>Настройки</button>
     </div>
@@ -265,7 +705,7 @@
     (function() {
         'use strict';
 
-        console.log('✅ v5.0 Слой 2 — исправленный');
+        console.log('✅ v5.0 — Слой 2 + LIVE');
 
         let appData = loadData();
         let currentFilter = 'all';
@@ -308,6 +748,7 @@
         const screens = {
             'screen-home': document.getElementById('screen-home'),
             'screen-history': document.getElementById('screen-history'),
+            'screen-live': document.getElementById('screen-live'),
             'screen-training': document.getElementById('screen-training'),
             'screen-settings': document.getElementById('screen-settings')
         };
@@ -324,6 +765,7 @@
                     screens[target].classList.add('active');
                     if (target === 'screen-history') renderHistory();
                     if (target === 'screen-settings') loadSettingsToUI();
+                    if (target === 'screen-live') loadLiveMatches();
                 }
             });
         });
@@ -515,6 +957,58 @@
             }
         }
 
+        // =========================== LIVE МАТЧИ ===========================
+        async function loadLiveMatches() {
+            const container = document.getElementById('liveMatches');
+            const key = getApiKey();
+            if (!key) {
+                container.innerHTML = '<div class="live-empty">Введите API-ключ в настройках</div>';
+                return;
+            }
+
+            container.innerHTML = '<div class="live-empty">⏳ Загрузка live матчей...</div>';
+
+            try {
+                const response = await fetch(API_BASE + '/fixtures?live=all', {
+                    headers: {
+                        'x-rapidapi-key': key,
+                        'x-rapidapi-host': 'api-football-v1.p.rapidapi.com'
+                    }
+                });
+                if (!response.ok) throw new Error('API не отвечает');
+
+                const data = await response.json();
+                if (!data.response || data.response.length === 0) {
+                    container.innerHTML = '<div class="live-empty">Нет live матчей</div>';
+                    return;
+                }
+
+                // Берём первые 5 матчей
+                const matches = data.response.slice(0, 5);
+                container.innerHTML = matches.map(function(m) {
+                    const home = m.teams.home.name;
+                    const away = m.teams.away.name;
+                    const homeScore = m.goals.home !== null ? m.goals.home : '—';
+                    const awayScore = m.goals.away !== null ? m.goals.away : '—';
+                    const league = m.league.name || '—';
+                    const time = m.fixture.status.elapsed || '0';
+                    return '<div class="live-match">' +
+                        '<div>' +
+                        '<div class="teams">' + home + ' — ' + away + '</div>' +
+                        '<div class="league">' + league + '</div>' +
+                        '</div>' +
+                        '<div style="text-align:right;">' +
+                        '<div class="score">' + homeScore + ':' + awayScore + '</div>' +
+                        '<div class="time">' + time + '\'</div>' +
+                        '</div>' +
+                        '</div>';
+                }).join('');
+
+            } catch (error) {
+                container.innerHTML = '<div class="live-empty">Ошибка загрузки: ' + error.message + '</div>';
+            }
+        }
+
         // =========================== УМНЫЙ ПОИСК ===========================
         function setupTeamSearch() {
             const homeInput = document.getElementById('inputHome');
@@ -570,7 +1064,6 @@
                             });
                         });
                     } else {
-                        // Локальный поиск
                         var results = searchTeamsLocal(query);
                         if (results.length === 0) { container.style.display = 'none'; return; }
                         container.innerHTML = results.map(function(r) {
@@ -1157,6 +1650,10 @@
             renderHistory();
             updateMainCard();
             updateStatusIndicators();
+            // Загружаем live матчи при старте (если ключ есть)
+            if (appData.apiKey && appData.apiKey.length > 0) {
+                loadLiveMatches();
+            }
             console.log('✅ v5.0 Слой 2 загружен, матчей:', appData.matches.length);
         });
     })();
