@@ -4,666 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Квантум PRO v4.2</title>
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogItCa0LLQsNC90YLRg9C8IFBSTyB2NC4yIiwKICAic2hvcnRfbmFtZSI6ICLQmtCy0LDQvdGC0YPQvSBQUk8iLAogICJkZXNjcmlwdGlvbiI6ICLQkNC90LDQu9C40YLQuNGH0LXRgdC60LjQuSDRhtC10L3RgtGAINC00LDRgdGC0L7QstC10YDQvdGL0YUg0LTQu9GPINGB0YLQsNCy0L7QuiIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMEIwRTE3IiwKICAidGhlbWVfY29sb3IiOiAiIzAwRTY3NiIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxjaXJjbGUgY3g9JzUwJyBjeT0nNTAnIHI9JzUwJyBmaWxsPSclMjMwMEU2NzYnLz48dGV4dCB4PSc1MCcgeT0nNjUnIGZvbnQtc2l6ZT0nNDAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9JyUyMzBCMEUxNycgZm9udC1mYW1pbHk9J3NhbnMtc2VyaWYnPuKArTwvdGV4dD48L3N2Zz4iLAogICAgICAic2l6ZXMiOiAiNTEyeDUxMiIsCiAgICAgICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiLAogICAgICAicHVycG9zZSI6ICJhbnkgbWFzayBhbnlsYW5nIgogICAgfQogIF0KfQ==">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
-        body {
-            background-color: #0B0E17;
-            color: #E0E0E0;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            padding-bottom: 70px;
-            transition: background 0.3s, color 0.3s;
-        }
-        body.light {
-            background-color: #F2F2F7;
-            color: #1C1C1E;
-        }
-        body.light .header,
-        body.light .nav-bar {
-            background: #FFFFFF;
-            border-bottom-color: #E5E5EA;
-            border-top-color: #E5E5EA;
-        }
-        body.light .match-card,
-        body.light .history-item,
-        body.light .summary,
-        body.light .training-status,
-        body.light .quick-input,
-        body.light .setting-group {
-            background: #FFFFFF;
-            border-color: #E5E5EA;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        body.light .match-card .meta span,
-        body.light .filter-bar .tag {
-            background: #E5E5EA;
-            color: #1C1C1E;
-        }
-        body.light .btn-secondary {
-            background: #E5E5EA;
-            color: #1C1C1E;
-        }
-        body.light .header h1 span {
-            background: #007AFF;
-            color: #FFFFFF;
-        }
-        body.light .setting-row input[type="number"],
-        body.light .quick-input .row input,
-        body.light .quick-input .full-width {
-            background: #F2F2F7;
-            border-color: #E5E5EA;
-            color: #1C1C1E;
-        }
-        body.light .nav-item.active {
-            color: #007AFF;
-        }
-        body.light .indicator .bar {
-            background: #E5E5EA;
-        }
-        body.light .ai-advice {
-            background: #F2F2F7;
-            border-left-color: #007AFF;
-        }
-        body.light .toggle {
-            background: #E5E5EA;
-        }
-        body.light .toggle.active {
-            background: #007AFF;
-        }
-        body.light .toggle::after {
-            background: #FFFFFF;
-        }
-        body.light .toggle.active::after {
-            background: #FFFFFF;
-        }
-        body.light .history-item .info .sub {
-            color: #8E8E93;
-        }
-        body.light .summary .stat .num {
-            color: #007AFF;
-        }
-        body.light .header .live {
-            color: #007AFF;
-        }
-        body.light .header .live::before {
-            color: #007AFF;
-        }
-        body.light .recommendation {
-            background: #007AFF;
-            color: #FFFFFF;
-        }
-        body.light .indicator .label .value {
-            color: #007AFF;
-        }
-        body.light .indicator .bar .fill {
-            background: linear-gradient(90deg, #007AFF, #0055CC);
-        }
-        body.light .filter-bar .tag.active {
-            border-color: #007AFF;
-            color: #007AFF;
-            background: #F2F2F7;
-        }
-        body.light .history-item.win {
-            border-left-color: #007AFF;
-        }
-        body.light .btn-primary {
-            background: #007AFF;
-            color: #FFFFFF;
-            box-shadow: 0 0 20px rgba(0, 122, 255, 0.15);
-        }
-        body.light .btn-primary:active {
-            background: #0055CC;
-        }
-        body.light .btn-secondary:active {
-            background: #D1D1D6;
-        }
-        body.light .training-status .badge {
-            background: #007AFF;
-            color: #FFFFFF;
-        }
-        body.light .ai-advice {
-            border-left-color: #007AFF;
-        }
-        body.light .setting-row input[type="range"] {
-            accent-color: #007AFF;
-            background: #E5E5EA;
-        }
-        body.light .toggle.active {
-            background: #007AFF;
-        }
-        body.light .spoiler .data-grid strong {
-            color: #1C1C1E;
-        }
-        .header {
-            background: #0B0E17;
-            padding: 16px 20px 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #1F2633;
-            flex-shrink: 0;
-        }
-        .header h1 {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .header h1 span {
-            background: #00E676;
-            color: #0B0E17;
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-        }
-        .header .live {
-            color: #00E676;
-            font-size: 12px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .header .live::before {
-            content: "●";
-            animation: pulse-dot 1.5s infinite;
-        }
-        @keyframes pulse-dot {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
-        }
-        .screen-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px 16px 20px 16px;
-        }
-        .screen {
-            display: none;
-            animation: fadeSlide 0.3s ease;
-        }
-        .screen.active {
-            display: block;
-        }
-        @keyframes fadeSlide {
-            0% { opacity: 0; transform: translateY(8px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        .match-card {
-            background: #141A26;
-            border-radius: 20px;
-            padding: 20px 18px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-            border: 1px solid #1F2633;
-        }
-        .match-card .vs {
-            font-size: 22px;
-            font-weight: 700;
-            text-align: center;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-        }
-        .match-card .vs small {
-            display: block;
-            font-size: 13px;
-            font-weight: 400;
-            color: #9E9E9E;
-            margin-top: 2px;
-            letter-spacing: 0;
-        }
-        .match-card .meta {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            font-size: 13px;
-            color: #9E9E9E;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-        .match-card .meta span {
-            background: #1F2633;
-            padding: 2px 12px;
-            border-radius: 20px;
-        }
-        .indicator {
-            margin-bottom: 16px;
-        }
-        .indicator .label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-        .indicator .label .value {
-            color: #00E676;
-            font-weight: 700;
-        }
-        .indicator .bar {
-            width: 100%;
-            height: 8px;
-            background: #1F2633;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        .indicator .bar .fill {
-            height: 100%;
-            border-radius: 12px;
-            background: linear-gradient(90deg, #00E676, #00C853);
-            transition: width 0.6s ease;
-            width: 0%;
-        }
-        .recommendation {
-            background: #00E676;
-            color: #0B0E17;
-            font-weight: 700;
-            font-size: 18px;
-            padding: 8px 16px;
-            border-radius: 40px;
-            display: inline-block;
-            margin: 6px 0 12px 0;
-            letter-spacing: 0.3px;
-        }
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 14px;
-            flex-wrap: wrap;
-        }
-        .btn {
-            flex: 1;
-            min-width: 120px;
-            padding: 14px 12px;
-            border-radius: 40px;
-            border: none;
-            font-weight: 700;
-            font-size: 15px;
-            cursor: pointer;
-            transition: 0.15s;
-            background: #1F2633;
-            color: #E0E0E0;
-            text-align: center;
-        }
-        .btn-primary {
-            background: #00E676;
-            color: #0B0E17;
-            box-shadow: 0 0 20px rgba(0, 230, 118, 0.15);
-        }
-        .btn-primary:active {
-            transform: scale(0.96);
-            background: #00C853;
-        }
-        .btn-secondary {
-            background: #1F2633;
-            color: #E0E0E0;
-        }
-        .btn-secondary:active {
-            background: #2A3342;
-        }
-        .btn-sm {
-            padding: 8px 16px;
-            font-size: 13px;
-            min-width: 60px;
-            flex: 0 1 auto;
-        }
-        .btn-danger {
-            background: #FF5253;
-            color: #FFFFFF;
-        }
-        .btn-danger:active {
-            background: #D32F2F;
-        }
-        .spoiler {
-            margin-top: 12px;
-            border-top: 1px solid #1F2633;
-            padding-top: 12px;
-        }
-        .spoiler summary {
-            font-size: 14px;
-            color: #9E9E9E;
-            cursor: pointer;
-            outline: none;
-            font-weight: 500;
-        }
-        .spoiler .data-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px 16px;
-            margin-top: 10px;
-            font-size: 14px;
-            color: #B0B0B0;
-        }
-        .spoiler .data-grid strong {
-            color: #E0E0E0;
-        }
-        .filter-bar {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
-        }
-        .filter-bar .tag {
-            background: #1F2633;
-            padding: 6px 16px;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #B0B0B0;
-            border: 1px solid transparent;
-            cursor: pointer;
-        }
-        .filter-bar .tag.active {
-            border-color: #00E676;
-            color: #00E676;
-            background: #0B0E17;
-        }
-        .history-item {
-            background: #141A26;
-            border-radius: 16px;
-            padding: 14px 16px;
-            margin-bottom: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px;
-            border-left: 4px solid #FFD740;
-        }
-        .history-item.win {
-            border-left-color: #00E676;
-        }
-        .history-item.loss {
-            border-left-color: #FF5253;
-        }
-        .history-item .info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            flex: 2;
-            min-width: 120px;
-        }
-        .history-item .info .title {
-            font-weight: 600;
-            font-size: 15px;
-        }
-        .history-item .info .sub {
-            font-size: 12px;
-            color: #9E9E9E;
-        }
-        .history-item .info .comment {
-            font-size: 12px;
-            color: #FFD740;
-            font-style: italic;
-        }
-        .history-item .status {
-            font-size: 22px;
-        }
-        .history-item .actions {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .summary {
-            background: #141A26;
-            border-radius: 16px;
-            padding: 16px;
-            margin-top: 16px;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-            text-align: center;
-        }
-        .summary .stat .num {
-            font-size: 22px;
-            font-weight: 700;
-            color: #00E676;
-        }
-        .summary .stat .lbl {
-            font-size: 12px;
-            color: #9E9E9E;
-        }
-        .setting-group {
-            background: #141A26;
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-        .setting-group .title {
-            font-weight: 600;
-            font-size: 16px;
-            margin-bottom: 12px;
-            color: #B0B0B0;
-        }
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #1F2633;
-        }
-        .setting-row .label {
-            font-size: 14px;
-        }
-        .setting-row input[type="range"] {
-            width: 140px;
-            accent-color: #00E676;
-            background: #1F2633;
-            height: 4px;
-            border-radius: 8px;
-        }
-        .setting-row input[type="password"] {
-            width: 200px;
-            padding: 6px 10px;
-            border-radius: 12px;
-            border: 1px solid #1F2633;
-            background: #0B0E17;
-            color: #E0E0E0;
-            font-size: 13px;
-            font-family: monospace;
-        }
-        .setting-row input[type="number"] {
-            width: 100px;
-            padding: 6px 10px;
-            border-radius: 12px;
-            border: 1px solid #1F2633;
-            background: #0B0E17;
-            color: #E0E0E0;
-            font-size: 14px;
-            text-align: center;
-        }
-        .toggle {
-            width: 48px;
-            height: 28px;
-            background: #1F2633;
-            border-radius: 30px;
-            cursor: pointer;
-            position: relative;
-            transition: 0.2s;
-        }
-        .toggle.active {
-            background: #00E676;
-        }
-        .toggle::after {
-            content: "";
-            width: 22px;
-            height: 22px;
-            background: #E0E0E0;
-            border-radius: 50%;
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            transition: 0.2s;
-        }
-        .toggle.active::after {
-            transform: translateX(20px);
-            background: #0B0E17;
-        }
-        .training-status {
-            background: #141A26;
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-        .training-status .row {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-            font-size: 14px;
-        }
-        .training-status .badge {
-            background: #00E676;
-            color: #0B0E17;
-            padding: 2px 12px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 12px;
-        }
-        .ai-advice {
-            background: #1F2633;
-            border-radius: 16px;
-            padding: 16px;
-            margin: 16px 0;
-            font-size: 14px;
-            line-height: 1.5;
-            border-left: 4px solid #00E676;
-        }
-        .nav-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: #0B0E17;
-            border-top: 1px solid #1F2633;
-            display: flex;
-            justify-content: space-around;
-            padding: 8px 0 12px 0;
-            z-index: 100;
-        }
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 11px;
-            color: #9E9E9E;
-            cursor: pointer;
-            transition: 0.15s;
-            background: none;
-            border: none;
-            padding: 4px 12px;
-            font-family: inherit;
-        }
-        .nav-item .icon {
-            font-size: 24px;
-            line-height: 1.2;
-        }
-        .nav-item.active {
-            color: #00E676;
-        }
-        .nav-item.active .icon {
-            transform: scale(1.05);
-        }
-        .fly-away {
-            animation: flyOut 0.5s ease forwards;
-        }
-        @keyframes flyOut {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-120px) scale(0.8); }
-        }
-        .quick-input {
-            background: #141A26;
-            border-radius: 16px;
-            padding: 16px;
-            margin-top: 12px;
-        }
-        .quick-input .row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .quick-input .row input {
-            background: #0B0E17;
-            border: 1px solid #1F2633;
-            border-radius: 12px;
-            padding: 12px 14px;
-            color: #E0E0E0;
-            font-size: 14px;
-            width: 100%;
-        }
-        .quick-input .row input::placeholder {
-            color: #5A667A;
-        }
-        .quick-input .full-width {
-            width: 100%;
-            padding: 12px 14px;
-            background: #0B0E17;
-            border: 1px solid #1F2633;
-            border-radius: 12px;
-            color: #E0E0E0;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        .quick-input .full-width::placeholder {
-            color: #5A667A;
-        }
-        .import-area {
-            border: 2px dashed #1F2633;
-            border-radius: 16px;
-            padding: 20px;
-            text-align: center;
-            color: #9E9E9E;
-            margin: 12px 0;
-            cursor: pointer;
-            transition: border-color 0.3s, background 0.3s;
-        }
-        .import-area.dragover {
-            border-color: #00E676;
-            background: rgba(0, 230, 118, 0.05);
-        }
-        .import-area .icon {
-            font-size: 32px;
-            display: block;
-            margin-bottom: 8px;
-        }
-        .import-area .sub {
-            font-size: 12px;
-            color: #5A667A;
-        }
-        .day-stats {
-            margin-top: 12px;
-            background: #141A26;
-            border-radius: 16px;
-            padding: 12px;
-        }
-        .day-stats .title {
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 6px;
-        }
-        .day-stats .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-            gap: 4px;
-            font-size: 11px;
-            text-align: center;
-        }
-        @media (max-width: 380px) {
-            .header h1 { font-size: 17px; }
-            .match-card .vs { font-size: 18px; }
-            .btn { font-size: 13px; padding: 12px 8px; }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #0B0E17; color: #E0E0E0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; padding-bottom: 70px; }
+        .header { background: #0B0E17; padding: 16px 20px 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1F2633; flex-shrink: 0; }
+        .header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .header h1 span { background: #00E676; color: #0B0E17; font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700; }
+        .header .live { color: #00E676; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .header .live::before { content: "●"; animation: pulse-dot 1.5s infinite; }
+        @keyframes pulse-dot { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .screen-container { flex: 1; overflow-y: auto; padding: 16px; }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        .match-card { background: #141A26; border-radius: 20px; padding: 20px 18px; margin-bottom: 20px; border: 1px solid #1F2633; }
+        .match-card .vs { font-size: 22px; font-weight: 700; text-align: center; }
+        .match-card .vs small { display: block; font-size: 13px; font-weight: 400; color: #9E9E9E; }
+        .match-card .meta { display: flex; justify-content: center; gap: 16px; font-size: 13px; color: #9E9E9E; margin-bottom: 16px; flex-wrap: wrap; }
+        .match-card .meta span { background: #1F2633; padding: 2px 12px; border-radius: 20px; }
+        .indicator { margin-bottom: 16px; }
+        .indicator .label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+        .indicator .label .value { color: #00E676; font-weight: 700; }
+        .indicator .bar { width: 100%; height: 8px; background: #1F2633; border-radius: 12px; overflow: hidden; }
+        .indicator .bar .fill { height: 100%; border-radius: 12px; background: linear-gradient(90deg, #00E676, #00C853); transition: width 0.6s ease; width: 0%; }
+        .recommendation { background: #00E676; color: #0B0E17; font-weight: 700; font-size: 18px; padding: 8px 16px; border-radius: 40px; display: inline-block; margin: 6px 0 12px 0; }
+        .btn-group { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+        .btn { flex: 1; min-width: 120px; padding: 14px 12px; border-radius: 40px; border: none; font-weight: 700; font-size: 15px; cursor: pointer; background: #1F2633; color: #E0E0E0; text-align: center; }
+        .btn-primary { background: #00E676; color: #0B0E17; }
+        .btn-primary:active { transform: scale(0.96); background: #00C853; }
+        .btn-secondary { background: #1F2633; color: #E0E0E0; }
+        .btn-secondary:active { background: #2A3342; }
+        .btn-sm { padding: 8px 16px; font-size: 13px; min-width: 60px; flex: 0 1 auto; }
+        .btn-danger { background: #FF5253; color: #FFFFFF; }
+        .quick-input { background: #141A26; border-radius: 16px; padding: 16px; margin-top: 12px; }
+        .quick-input .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .quick-input .row input { background: #0B0E17; border: 1px solid #1F2633; border-radius: 12px; padding: 12px 14px; color: #E0E0E0; font-size: 14px; width: 100%; }
+        .quick-input .row input::placeholder { color: #5A667A; }
+        .quick-input .full-width { width: 100%; padding: 12px 14px; background: #0B0E17; border: 1px solid #1F2633; border-radius: 12px; color: #E0E0E0; font-size: 14px; margin-bottom: 10px; }
+        .quick-input .full-width::placeholder { color: #5A667A; }
+        .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+        .filter-bar .tag { background: #1F2633; padding: 6px 16px; border-radius: 30px; font-size: 13px; font-weight: 500; color: #B0B0B0; border: 1px solid transparent; cursor: pointer; }
+        .filter-bar .tag.active { border-color: #00E676; color: #00E676; background: #0B0E17; }
+        .history-item { background: #141A26; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border-left: 4px solid #FFD740; }
+        .history-item.win { border-left-color: #00E676; }
+        .history-item.loss { border-left-color: #FF5253; }
+        .history-item .info { flex: 2; min-width: 120px; }
+        .history-item .info .title { font-weight: 600; font-size: 15px; }
+        .history-item .info .sub { font-size: 12px; color: #9E9E9E; }
+        .history-item .status { font-size: 22px; }
+        .history-item .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .summary { background: #141A26; border-radius: 16px; padding: 16px; margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center; }
+        .summary .stat .num { font-size: 22px; font-weight: 700; color: #00E676; }
+        .summary .stat .lbl { font-size: 12px; color: #9E9E9E; }
+        .setting-group { background: #141A26; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+        .setting-group .title { font-weight: 600; font-size: 16px; margin-bottom: 12px; color: #B0B0B0; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #1F2633; }
+        .setting-row .label { font-size: 14px; }
+        .setting-row input[type="range"] { width: 140px; accent-color: #00E676; background: #1F2633; height: 4px; border-radius: 8px; }
+        .setting-row input[type="password"] { width: 200px; padding: 6px 10px; border-radius: 12px; border: 1px solid #1F2633; background: #0B0E17; color: #E0E0E0; font-size: 13px; font-family: monospace; }
+        .setting-row input[type="number"] { width: 100px; padding: 6px 10px; border-radius: 12px; border: 1px solid #1F2633; background: #0B0E17; color: #E0E0E0; font-size: 14px; text-align: center; }
+        .toggle { width: 48px; height: 28px; background: #1F2633; border-radius: 30px; cursor: pointer; position: relative; transition: 0.2s; }
+        .toggle.active { background: #00E676; }
+        .toggle::after { content: ""; width: 22px; height: 22px; background: #E0E0E0; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: 0.2s; }
+        .toggle.active::after { transform: translateX(20px); background: #0B0E17; }
+        .training-status { background: #141A26; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+        .training-status .row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
+        .training-status .badge { background: #00E676; color: #0B0E17; padding: 2px 12px; border-radius: 30px; font-weight: 700; font-size: 12px; }
+        .ai-advice { background: #1F2633; border-radius: 16px; padding: 16px; margin: 16px 0; font-size: 14px; line-height: 1.5; border-left: 4px solid #00E676; }
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0B0E17; border-top: 1px solid #1F2633; display: flex; justify-content: space-around; padding: 8px 0 12px 0; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: #9E9E9E; cursor: pointer; background: none; border: none; padding: 4px 12px; font-family: inherit; }
+        .nav-item .icon { font-size: 24px; line-height: 1.2; }
+        .nav-item.active { color: #00E676; }
+        .nav-item.active .icon { transform: scale(1.05); }
+        .fly-away { animation: flyOut 0.5s ease forwards; }
+        @keyframes flyOut { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-120px) scale(0.8); } }
+        .import-area { border: 2px dashed #1F2633; border-radius: 16px; padding: 20px; text-align: center; color: #9E9E9E; margin: 12px 0; cursor: pointer; }
+        .import-area .icon { font-size: 32px; display: block; margin-bottom: 8px; }
+        .import-area .sub { font-size: 12px; color: #5A667A; }
+        .day-stats { margin-top: 12px; background: #141A26; border-radius: 16px; padding: 12px; }
+        .day-stats .title { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+        .day-stats .grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr; gap: 4px; font-size: 11px; text-align: center; }
+        @media (max-width: 380px) { .header h1 { font-size: 17px; } .match-card .vs { font-size: 18px; } .btn { font-size: 13px; padding: 12px 8px; } }
     </style>
 </head>
 <body>
@@ -674,7 +94,7 @@
 </div>
 
 <div class="screen-container" id="appContainer">
-    <!-- ГЛАВНЫЙ ЭКРАН -->
+    <!-- ГЛАВНЫЙ -->
     <div class="screen active" id="screen-home">
         <div class="match-card" id="matchCard">
             <div class="vs">⚔️ <span id="teamHome">Велес</span> — <span id="teamAway">Ротор</span>
@@ -693,22 +113,14 @@
                 <button class="btn btn-primary" id="saveBtn">🟢 СОХРАНИТЬ ПРОГНОЗ</button>
                 <button class="btn btn-secondary" id="bookmakerBtn">🔗 ПЕРЕЙТИ В БК</button>
             </div>
-            <details class="spoiler"><summary>▼ РАСШИРЕННЫЕ ДАННЫЕ</summary>
-                <div class="data-grid">
-                    <span><strong>xG:</strong> <span id="xgHome">1.27</span> / <span id="xgAway">1.18</span></span>
-                    <span><strong>Poisson:</strong> П1 <span id="poissonP1">69%</span> П2 <span id="poissonP2">66%</span></span>
-                    <span><strong>xGA:</strong> <span id="xgaHome">0.93</span> / <span id="xgaAway">0.73</span></span>
-                    <span><strong>Тренд:</strong> <span id="trendDisplay">Спад голов</span></span>
-                </div>
-            </details>
         </div>
         <div class="quick-input">
             <div style="font-size:14px; font-weight:600; margin-bottom:8px;">⚡ Быстрый ввод матча</div>
             <div class="row"><input type="text" id="inputHome" placeholder="Хозяева"><input type="text" id="inputAway" placeholder="Гости"></div>
-            <div class="row"><input type="text" id="inputLeague" placeholder="Лига (авто)"><input type="text" id="inputCountry" placeholder="Страна (авто)"></div>
+            <div class="row"><input type="text" id="inputLeague" placeholder="Лига"><input type="text" id="inputCountry" placeholder="Страна"></div>
             <div class="row"><input type="number" id="inputXg" placeholder="xG хозяев" step="0.01"><input type="number" id="inputXga" placeholder="xG гостей" step="0.01"></div>
             <div class="row"><input type="number" id="inputOz" placeholder="ОЗ % (91)" step="0.1"><input type="number" id="inputOdds" placeholder="Кэф (2.10)" step="0.01"></div>
-            <input type="text" class="full-width" id="inputComment" placeholder="📝 Комментарий (например, дерби, эксперимент)">
+            <input type="text" class="full-width" id="inputComment" placeholder="📝 Комментарий">
             <button class="btn btn-primary" style="width:100%;" id="quickAddBtn">➕ Добавить матч</button>
         </div>
     </div>
@@ -749,12 +161,12 @@
         <div class="setting-group">
             <div class="title">🌐 API-FOOTBALL</div>
             <div class="setting-row"><span class="label">🔑 API Ключ</span><input type="password" id="apiKeyInput" placeholder="Вставьте ваш ключ"></div>
-            <div class="setting-row"><span class="label"></span><button class="btn btn-sm btn-primary" id="saveApiKeyBtn" style="min-width:100px;">💾 Сохранить</button><button class="btn btn-sm btn-secondary" id="testApiKeyBtn" style="min-width:100px;">🔍 Тест</button></div>
+            <div class="setting-row"><span class="label"></span><button class="btn btn-sm btn-primary" id="saveApiKeyBtn" style="min-width:100px;">💾 Сохранить</button></div>
             <div id="apiStatus" style="font-size:12px; color:#9E9E9E; margin-top:4px; text-align:center;"></div>
         </div>
         <div class="setting-group">
             <div class="title">💾 Управление данными</div>
-            <div class="import-area" id="importArea"><span class="icon">📂</span><div>Нажмите или перетащите JSON-файл</div><div class="sub">Поддерживается формат экспорта Квантум PRO</div><input type="file" id="fileInput" accept=".json" style="display:none;"></div>
+            <div class="import-area" id="importArea"><span class="icon">📂</span><div>Нажмите для импорта JSON</div><div class="sub">Формат экспорта Квантум PRO</div><input type="file" id="fileInput" accept=".json" style="display:none;"></div>
             <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;"><button class="btn btn-sm btn-primary" id="exportDataBtn" style="flex:1;">💾 Сохранить данные</button><button class="btn btn-sm btn-danger" id="resetAllBtn" style="flex:1;">🗑️ Сбросить всё</button></div>
         </div>
         <div class="setting-group">
@@ -802,6 +214,9 @@
 (function() {
     'use strict';
 
+    console.log('✅ Квантум PRO v4.2 запущен');
+
+    // Данные
     let appData = loadData();
     let currentFilter = 'all';
 
@@ -815,6 +230,7 @@
 
     function saveData(data) {
         localStorage.setItem('quantumProData', JSON.stringify(data));
+        console.log('💾 Данные сохранены');
     }
 
     const defaultSettings = {
@@ -822,7 +238,9 @@
         onlyOz: true, onlyValue: false, sound: true, vibration: true, reminder: true, theme: 'dark'
     };
 
+    // Инициализация
     function init() {
+        console.log('🔄 Инициализация...');
         if (!appData.settings || Object.keys(appData.settings).length === 0) {
             appData.settings = JSON.parse(JSON.stringify(defaultSettings));
         }
@@ -842,11 +260,13 @@
         updateMainMatchCard();
         saveData(appData);
         checkReminders();
+        console.log('✅ Инициализация завершена');
     }
 
     function applyTheme() {
         const isLight = appData.settings.theme === 'light';
-        document.body.classList.toggle('light', isLight);
+        document.body.style.backgroundColor = isLight ? '#F2F2F7' : '#0B0E17';
+        document.body.style.color = isLight ? '#1C1C1E' : '#E0E0E0';
         const toggle = document.getElementById('toggleTheme');
         if (toggle) toggle.classList.toggle('active', isLight);
     }
@@ -897,13 +317,6 @@
         const bank = appData.settings.bank || 10000;
         const kellyPct = appData.settings.kellyPercent || 20;
         document.getElementById('betSizeDisplay').textContent = kellyPct + '% (' + Math.round(bank * kellyPct / 100) + ' ₽)';
-        document.getElementById('xgHome').textContent = document.getElementById('inputXg').value || '1.27';
-        document.getElementById('xgAway').textContent = document.getElementById('inputXga').value || '1.18';
-        document.getElementById('xgaHome').textContent = (0.7 + Math.random() * 0.3).toFixed(2);
-        document.getElementById('xgaAway').textContent = (0.7 + Math.random() * 0.3).toFixed(2);
-        document.getElementById('poissonP1').textContent = (55 + oz * 0.15).toFixed(0) + '%';
-        document.getElementById('poissonP2').textContent = (55 + oz * 0.12).toFixed(0) + '%';
-        document.getElementById('trendDisplay').textContent = 'Спад голов';
     }
 
     function saveMatch() {
@@ -917,14 +330,22 @@
         const xga = parseFloat(document.getElementById('inputXga').value) || 0;
         const comment = document.getElementById('inputComment').value.trim() || '';
         const trust = appData.settings.trust || 38;
-        const match = { id: Date.now(), home, away, league, country, oz, odds, xg, xga, comment, trust, status: 'waiting', score: '', date: new Date().toLocaleDateString(), time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) };
+        const match = { 
+            id: Date.now(), 
+            home, away, league, country, oz, odds, xg, xga, comment, trust, 
+            status: 'waiting', 
+            score: '', 
+            date: new Date().toLocaleDateString(), 
+            time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) 
+        };
         appData.matches.unshift(match);
         saveData(appData);
-        const card = document.getElementById('matchCard');
-        card.classList.add('fly-away');
-        setTimeout(() => { card.classList.remove('fly-away'); renderHistory(); updateTrainingTab(); updateMainMatchCard(); }, 400);
+        renderHistory();
+        updateTrainingTab();
+        updateMainMatchCard();
         if (appData.settings.sound) playSound();
         if (appData.settings.reminder) scheduleReminder(match);
+        alert('✅ Матч сохранён!');
     }
 
     function playSound() {
@@ -993,7 +414,7 @@
                         <div class="title">${m.home} — ${m.away} ${isValue ? '💎' : ''}</div>
                         <div class="sub">ОЗ ${m.oz}% · Кэф ${m.odds} · ${m.date} ${m.time}</div>
                         ${m.league && m.league !== 'Не указана' ? `<div class="sub">🏆 ${m.league} · ${m.country}</div>` : ''}
-                        ${m.comment ? `<div class="comment">📝 ${m.comment}</div>` : ''}
+                        ${m.comment ? `<div class="sub">📝 ${m.comment}</div>` : ''}
                         ${m.score ? `<div class="sub">⚽ Счёт: ${m.score}</div>` : ''}
                     </div>
                     <div class="status">${statusIcon}</div>
@@ -1006,10 +427,13 @@
                 </div>`;
             }).join('');
         }
+        // Обработчики
         document.querySelectorAll('[data-id]').forEach(btn => { btn.addEventListener('click', function(e) { e.stopPropagation(); const id = parseInt(this.dataset.id); enterScore(id); }); });
         document.querySelectorAll('[data-edit]').forEach(btn => { btn.addEventListener('click', function(e) { e.stopPropagation(); const id = parseInt(this.dataset.edit); editMatch(id); }); });
         document.querySelectorAll('[data-del]').forEach(btn => { btn.addEventListener('click', function(e) { e.stopPropagation(); const id = parseInt(this.dataset.del); if (confirm('Удалить матч?')) { appData.matches = appData.matches.filter(m => m.id !== id); saveData(appData); renderHistory(); updateTrainingTab(); } }); });
         document.querySelectorAll('[data-duplicate]').forEach(btn => { btn.addEventListener('click', function(e) { e.stopPropagation(); const id = parseInt(this.dataset.duplicate); duplicateMatch(id); }); });
+
+        // Сводка
         const total = appData.matches.length;
         const wins = appData.matches.filter(m => m.status === 'win').length;
         const losses = appData.matches.filter(m => m.status === 'loss').length;
@@ -1037,8 +461,7 @@
         if (score !== null && score.trim() !== '') {
             match.score = score.trim();
             const [homeGoals, awayGoals] = score.split(':').map(Number);
-            const ozHit = (homeGoals > 0 && awayGoals > 0);
-            match.status = ozHit ? 'win' : 'loss';
+            match.status = (homeGoals > 0 && awayGoals > 0) ? 'win' : 'loss';
             saveData(appData);
             renderHistory();
             updateTrainingTab();
@@ -1057,7 +480,7 @@
         const newLeague = prompt('Лига:', match.league || ''); if (newLeague !== null) match.league = newLeague.trim();
         const newCountry = prompt('Страна:', match.country || ''); if (newCountry !== null) match.country = newCountry.trim();
         const newComment = prompt('Комментарий:', match.comment || ''); if (newComment !== null) match.comment = newComment.trim();
-        const newScore = prompt('Счёт (например: 2:1):', match.score || ''); if (newScore !== null) { match.score = newScore.trim(); if (match.score) { const [h, a] = match.score.split(':').map(Number); match.status = (h > 0 && a > 0) ? 'win' : 'loss'; } }
+        const newScore = prompt('Счёт:', match.score || ''); if (newScore !== null) { match.score = newScore.trim(); if (match.score) { const [h, a] = match.score.split(':').map(Number); match.status = (h > 0 && a > 0) ? 'win' : 'loss'; } }
         saveData(appData);
         renderHistory();
         updateTrainingTab();
@@ -1215,7 +638,9 @@
         }
     }
 
+    // === НАВИГАЦИЯ ===
     function setupNavigation() {
+        console.log('🔧 Настройка навигации...');
         const items = document.querySelectorAll('.nav-item');
         const screens = {
             'screen-home': document.getElementById('screen-home'),
@@ -1234,44 +659,39 @@
                 if (target === 'screen-history') renderHistory();
                 if (target === 'screen-training') updateTrainingTab();
                 if (target === 'screen-home') updateMainMatchCard();
+                console.log('🔀 Переключено на:', target);
             });
         });
+        console.log('✅ Навигация настроена');
     }
 
+    // === ЗАПУСК ===
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 DOM загружен');
         if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
         init();
         setupNavigation();
+
         document.getElementById('saveBtn').addEventListener('click', saveMatch);
         document.getElementById('quickAddBtn').addEventListener('click', saveMatch);
         document.getElementById('bookmakerBtn').addEventListener('click', function() { alert('🔗 Переход в БК (заглушка). Кэф: ' + document.getElementById('oddsDisplay').textContent); });
+
         document.getElementById('saveApiKeyBtn').addEventListener('click', function() {
             const key = document.getElementById('apiKeyInput').value.trim();
             if (key) { appData.apiKey = key; saveData(appData); document.getElementById('apiStatus').textContent = '✅ Ключ сохранён'; }
             else { document.getElementById('apiStatus').textContent = '❌ Введите ключ'; }
         });
-        document.getElementById('testApiKeyBtn').addEventListener('click', function() {
-            const key = document.getElementById('apiKeyInput').value.trim();
-            if (!key) { document.getElementById('apiStatus').textContent = '❌ Введите ключ'; return; }
-            document.getElementById('apiStatus').textContent = '⏳ Проверка...';
-            fetch('https://api-football-v1.p.rapidapi.com/v3/status', {
-                headers: { 'x-rapidapi-key': key, 'x-rapidapi-host': 'api-football-v1.p.rapidapi.com' }
-            }).then(r => {
-                if (r.ok) { document.getElementById('apiStatus').textContent = '✅ Ключ работает!'; appData.apiKey = key; saveData(appData); }
-                else { document.getElementById('apiStatus').textContent = '❌ Ключ не работает (' + r.status + ')'; }
-            }).catch(() => { document.getElementById('apiStatus').textContent = '❌ Ошибка соединения'; });
-        });
+
         document.getElementById('importArea').addEventListener('click', function() { document.getElementById('fileInput').click(); });
-        document.getElementById('importArea').addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
-        document.getElementById('importArea').addEventListener('dragleave', function(e) { e.preventDefault(); this.classList.remove('dragover'); });
-        document.getElementById('importArea').addEventListener('drop', function(e) { e.preventDefault(); this.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) importData(e.dataTransfer.files[0]); });
         document.getElementById('fileInput').addEventListener('change', function() { if (this.files.length > 0) { importData(this.files[0]); this.value = ''; } });
         document.getElementById('exportDataBtn').addEventListener('click', exportData);
         document.getElementById('resetAllBtn').addEventListener('click', resetAll);
+
         document.getElementById('settingTrust').addEventListener('input', function() { const val = parseInt(this.value); document.getElementById('settingTrustVal').textContent = val + '%'; appData.settings.trust = val; saveData(appData); updateMainMatchCard(); });
         document.getElementById('settingOz').addEventListener('input', function() { const val = parseInt(this.value); document.getElementById('settingOzVal').textContent = val + '%'; appData.settings.minOz = val; saveData(appData); updateMainMatchCard(); });
         document.getElementById('settingKelly').addEventListener('input', function() { const val = parseInt(this.value); document.getElementById('settingKellyVal').textContent = val + '%'; appData.settings.kellyPercent = val; saveData(appData); updateMainMatchCard(); });
         document.getElementById('settingBank').addEventListener('change', function() { const val = parseInt(this.value) || 0; appData.settings.bank = val; saveData(appData); updateMainMatchCard(); });
+
         function setupToggle(id, key) {
             const el = document.getElementById(id);
             if (!el) return;
@@ -1288,6 +708,7 @@
         setupToggle('toggleVibration', 'vibration');
         setupToggle('toggleReminder', 'reminder');
         setupToggle('toggleTheme', 'theme');
+
         document.querySelectorAll('.filter-bar .tag').forEach(tag => {
             tag.addEventListener('click', function() {
                 document.querySelectorAll('.filter-bar .tag').forEach(t => t.classList.remove('active'));
@@ -1295,6 +716,7 @@
                 renderHistory(this.dataset.filter);
             });
         });
+
         document.getElementById('trainBtn').addEventListener('click', runTraining);
         document.getElementById('copyStatsBtn').addEventListener('click', copyStats);
         document.getElementById('resetBtn').addEventListener('click', resetAll);
@@ -1305,14 +727,17 @@
             applyTheme();
             updateMainMatchCard();
         });
+
         ['inputHome', 'inputAway', 'inputLeague', 'inputCountry', 'inputXg', 'inputXga', 'inputOz', 'inputOdds', 'inputComment'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('input', updateMainMatchCard);
         });
+
         renderHistory();
         updateTrainingTab();
         updateMainMatchCard();
         checkReminders();
+        console.log('🎯 Приложение полностью загружено');
     });
 })();
 </script>
