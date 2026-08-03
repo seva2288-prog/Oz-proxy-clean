@@ -1939,81 +1939,83 @@ ${pct >= 75 ? '🔥 Отлично! Продолжай в том же духе.'
         });
     }
 
-    // =============================================
-    // ===== ЭКСПОРТ / ИМПОРТ / СБРОС =====
-    // =============================================
-    function exportData() {
-        const data = {
-            version: '4.2 PRO',
-            exportDate: new Date().toISOString(),
-            matches: appData.matches || [],
-            settings: appData.settings || defaultSettings,
-            trainingHistory: appData.trainingHistory || [],
-            apiKey: appData.apiKey ? '****' : ''
-        };
-        const json = JSON.stringify(data, null, 2);
-        const blob = new Blob([json], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `quantum_backup_${new Date().toISOString().slice(0,10)}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+// =============================================
+// ===== ЭКСПОРТ / ИМПОРТ / СБРОС =====
+// =============================================
+function exportData() {
+    const data = {
+        version: '4.2 PRO',
+        exportDate: new Date().toISOString(),
+        matches: appData.matches || [],
+        settings: appData.settings || defaultSettings,
+        trainingHistory: appData.trainingHistory || [],
+        apiKey: appData.apiKey ? '****' : ''
+    };
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `quantum_backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
 
-    function importData(file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const data = JSON.parse(e.target.result);
-                if (data.matches && Array.isArray(data.matches)) {
-                    // Проверяем структуру
-                    const validMatches = data.matches.filter(m => m.home && m.away);
-                    if (validMatches.length > 0) {
-                        // Добавляем матчи, избегая дубликатов по id
-                        const existingIds = new Set(appData.matches.map(m => m.id));
-                        let added = 0;
-                        validMatches.forEach(m => {
-                            if (!existingIds.has(m.id)) {
-                                appData.matches.push(m);
-                                added++;
-                            }
-                        });
-                        if (added > 0) {
-                            saveData(appData);
-                            renderHistory();
-                            updateTrainingTab();
-                            alert(`✅ Импортировано ${added} матчей`);
-                        } else {
-                            alert('ℹ️ Новых матчей не найдено (все уже есть)');
+function importData(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (data.matches && Array.isArray(data.matches)) {
+                const validMatches = data.matches.filter(m => m.home && m.away);
+                if (validMatches.length > 0) {
+                    const existingIds = new Set(appData.matches.map(m => m.id));
+                    let added = 0;
+                    validMatches.forEach(m => {
+                        if (!existingIds.has(m.id)) {
+                            appData.matches.push(m);
+                            existingIds.add(m.id);
+                            added++;
                         }
+                    });
+                    if (added > 0) {
+                        // Обновляем localStorage
+                        saveData(appData);
+                        // Перерисовываем историю и обучение
+                        renderHistory();
+                        updateTrainingTab();
+                        updateMainMatchCard();
+                        alert(`✅ Импортировано ${added} матчей`);
                     } else {
-                        alert('❌ Не найдено валидных матчей в файле');
+                        alert('ℹ️ Новых матчей не найдено (все уже есть)');
                     }
                 } else {
-                    alert('❌ Неверный формат файла');
+                    alert('❌ Не найдено валидных матчей в файле');
                 }
-            } catch(err) {
-                alert('❌ Ошибка при чтении файла: ' + err.message);
+            } else {
+                alert('❌ Неверный формат файла');
             }
-        };
-        reader.readAsText(file);
-    }
-
-    function resetAll() {
-        if (confirm('Удалить все данные?')) {
-            appData = { matches: [], settings: JSON.parse(JSON.stringify(defaultSettings)), trainingHistory: [], apiKey: '' };
-            apiKey = '';
-            document.getElementById('apiKeyInput').value = '';
-            document.getElementById('apiStatus').textContent = '';
-            saveData(appData);
-            renderHistory();
-            updateTrainingTab();
-            applySettingsToUI();
-            applyTheme();
-            updateMainMatchCard();
+        } catch(err) {
+            alert('❌ Ошибка при чтении файла: ' + err.message);
         }
+    };
+    reader.readAsText(file);
+}
+
+function resetAll() {
+    if (confirm('Удалить все данные?')) {
+        appData = { matches: [], settings: JSON.parse(JSON.stringify(defaultSettings)), trainingHistory: [], apiKey: '' };
+        apiKey = '';
+        document.getElementById('apiKeyInput').value = '';
+        document.getElementById('apiStatus').textContent = '';
+        saveData(appData);
+        renderHistory();
+        updateTrainingTab();
+        applySettingsToUI();
+        applyTheme();
+        updateMainMatchCard();
     }
+}
 
     // =============================================
     // ===== МОДАЛЬНОЕ ОКНО ДЛЯ КЭФОВ =====
