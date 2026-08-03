@@ -5,102 +5,676 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Квантум PRO v4.2</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
-        body { background: #0B0E17; color: #E0E0E0; padding-bottom: 70px; }
-        .header { background: #0B0E17; padding: 16px 20px; border-bottom: 1px solid #1F2633; display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 20px; }
-        .header h1 span { background: #00E676; color: #0B0E17; padding: 2px 8px; border-radius: 12px; font-size: 10px; }
-        .header .live { color: #00E676; font-size: 12px; }
-        .container { padding: 16px; }
-        .screen { display: none; }
-        .screen.active { display: block; }
-        .card { background: #141A26; border-radius: 20px; padding: 20px; margin-bottom: 16px; border: 1px solid #1F2633; }
-        .vs { font-size: 22px; font-weight: 700; text-align: center; }
-        .vs small { display: block; font-size: 13px; color: #9E9E9E; font-weight: 400; }
-        .meta { text-align: center; font-size: 13px; color: #9E9E9E; margin: 8px 0 16px; }
-        .meta span { background: #1F2633; padding: 2px 12px; border-radius: 20px; margin: 0 4px; }
-        .indicator { margin-bottom: 12px; }
-        .indicator .label { display: flex; justify-content: space-between; }
-        .indicator .label .value { color: #00E676; font-weight: 700; }
-        .indicator .bar { height: 8px; background: #1F2633; border-radius: 12px; overflow: hidden; margin-top: 4px; }
-        .indicator .bar .fill { height: 100%; background: #00E676; border-radius: 12px; width: 0%; }
-        .recommendation { background: #00E676; color: #0B0E17; font-weight: 700; padding: 6px 16px; border-radius: 40px; display: inline-block; margin: 6px 0 12px; }
-        .btn-group { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
-        .btn { flex: 1; min-width: 120px; padding: 14px 12px; border-radius: 40px; border: none; font-weight: 700; font-size: 15px; cursor: pointer; background: #1F2633; color: #E0E0E0; text-align: center; }
-        .btn-primary { background: #00E676; color: #0B0E17; }
-        .btn-secondary { background: #1F2633; color: #E0E0E0; }
-        .btn-sm { padding: 8px 16px; font-size: 13px; min-width: 60px; flex: 0 1 auto; }
-        .btn-danger { background: #FF5253; color: #FFF; }
-        .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .input-group input { background: #0B0E17; border: 1px solid #1F2633; border-radius: 12px; padding: 12px 14px; color: #E0E0E0; font-size: 14px; width: 100%; }
-        .input-group input::placeholder { color: #5A667A; }
-        .full-width { width: 100%; padding: 12px 14px; background: #0B0E17; border: 1px solid #1F2633; border-radius: 12px; color: #E0E0E0; font-size: 14px; margin-bottom: 10px; }
-        .history-item { background: #141A26; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid #FFD740; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-        .history-item.win { border-left-color: #00E676; }
-        .history-item.loss { border-left-color: #FF5253; }
-        .history-item .info { flex: 2; min-width: 120px; }
-        .history-item .info .title { font-weight: 600; }
-        .history-item .info .sub { font-size: 12px; color: #9E9E9E; }
-        .history-item .status { font-size: 22px; }
-        .history-item .actions { display: flex; gap: 6px; flex-wrap: wrap; }
-        .summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center; background: #141A26; border-radius: 16px; padding: 16px; margin-top: 16px; }
-        .summary .num { font-size: 22px; font-weight: 700; color: #00E676; }
-        .summary .lbl { font-size: 12px; color: #9E9E9E; }
-        .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-        .filter-bar .tag { background: #1F2633; padding: 6px 16px; border-radius: 30px; font-size: 13px; color: #B0B0B0; border: 1px solid transparent; cursor: pointer; }
-        .filter-bar .tag.active { border-color: #00E676; color: #00E676; background: #0B0E17; }
-        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0B0E17; border-top: 1px solid #1F2633; display: flex; justify-content: space-around; padding: 8px 0 12px; z-index: 100; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: #9E9E9E; cursor: pointer; background: none; border: none; padding: 4px 12px; font-family: inherit; }
-        .nav-item .icon { font-size: 24px; }
-        .nav-item.active { color: #00E676; }
-        .setting-group { background: #141A26; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
-        .setting-group .title { font-weight: 600; font-size: 16px; margin-bottom: 12px; color: #B0B0B0; }
-        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #1F2633; }
-        .setting-row .label { font-size: 14px; }
-        .setting-row input[type="range"] { width: 140px; accent-color: #00E676; }
-        .toggle { width: 48px; height: 28px; background: #1F2633; border-radius: 30px; cursor: pointer; position: relative; transition: 0.2s; }
-        .toggle.active { background: #00E676; }
-        .toggle::after { content: ""; width: 22px; height: 22px; background: #E0E0E0; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: 0.2s; }
-        .toggle.active::after { transform: translateX(20px); background: #0B0E17; }
-        .training-status { background: #141A26; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
-        .training-status .row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
-        .training-status .badge { background: #00E676; color: #0B0E17; padding: 2px 12px; border-radius: 30px; font-weight: 700; font-size: 12px; }
-        .ai-advice { background: #1F2633; border-radius: 16px; padding: 16px; margin: 16px 0; border-left: 4px solid #00E676; }
-        .import-area { border: 2px dashed #1F2633; border-radius: 16px; padding: 20px; text-align: center; color: #9E9E9E; margin: 12px 0; cursor: pointer; }
-        .day-stats { background: #141A26; border-radius: 16px; padding: 12px; margin-top: 12px; }
-        .day-stats .grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr; gap: 4px; font-size: 11px; text-align: center; }
-        .quick-input { background: #141A26; border-radius: 16px; padding: 16px; margin-top: 12px; }
-        .quick-input .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .quick-input .row input { background: #0B0E17; border: 1px solid #1F2633; border-radius: 12px; padding: 12px 14px; color: #E0E0E0; font-size: 14px; width: 100%; }
-        .quick-input .full-width { width: 100%; padding: 12px 14px; background: #0B0E17; border: 1px solid #1F2633; border-radius: 12px; color: #E0E0E0; font-size: 14px; margin-bottom: 10px; }
-        @media (max-width: 380px) { .header h1 { font-size: 17px; } .vs { font-size: 18px; } .btn { font-size: 13px; padding: 12px 8px; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #0B0E17;
+            color: #E0E0E0;
+            padding-bottom: 70px;
+            transition: background 0.3s, color 0.3s;
+        }
+        body.light {
+            background: #F2F2F7;
+            color: #1C1C1E;
+        }
+        body.light .header,
+        body.light .nav-bar {
+            background: #FFFFFF;
+            border-bottom-color: #E5E5EA;
+            border-top-color: #E5E5EA;
+        }
+        body.light .card,
+        body.light .history-item,
+        body.light .summary,
+        body.light .training-status,
+        body.light .quick-input,
+        body.light .setting-group {
+            background: #FFFFFF;
+            border-color: #E5E5EA;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        body.light .header h1 span {
+            background: #007AFF;
+            color: #FFFFFF;
+        }
+        body.light .nav-item.active {
+            color: #007AFF;
+        }
+        body.light .btn-primary {
+            background: #007AFF;
+            color: #FFFFFF;
+        }
+        body.light .btn-primary:active {
+            background: #0055CC;
+        }
+        body.light .btn-secondary {
+            background: #E5E5EA;
+            color: #1C1C1E;
+        }
+        body.light .btn-secondary:active {
+            background: #D1D1D6;
+        }
+        body.light .indicator .label .value {
+            color: #007AFF;
+        }
+        body.light .indicator .bar {
+            background: #E5E5EA;
+        }
+        body.light .indicator .bar .fill {
+            background: linear-gradient(90deg, #007AFF, #0055CC);
+        }
+        body.light .toggle {
+            background: #E5E5EA;
+        }
+        body.light .toggle.active {
+            background: #007AFF;
+        }
+        body.light .toggle::after {
+            background: #FFFFFF;
+        }
+        body.light .toggle.active::after {
+            background: #FFFFFF;
+        }
+        body.light .filter-bar .tag {
+            background: #E5E5EA;
+            color: #1C1C1E;
+        }
+        body.light .filter-bar .tag.active {
+            border-color: #007AFF;
+            color: #007AFF;
+            background: #F2F2F7;
+        }
+        body.light .history-item.win {
+            border-left-color: #007AFF;
+        }
+        body.light .summary .stat .num {
+            color: #007AFF;
+        }
+        body.light .training-status .badge {
+            background: #007AFF;
+            color: #FFFFFF;
+        }
+        body.light .ai-advice {
+            background: #F2F2F7;
+            border-left-color: #007AFF;
+        }
+        body.light .import-area {
+            border-color: #E5E5EA;
+        }
+        body.light .import-area.dragover {
+            border-color: #007AFF;
+            background: rgba(0, 122, 255, 0.05);
+        }
+        body.light .setting-row input[type="range"] {
+            accent-color: #007AFF;
+            background: #E5E5EA;
+        }
+        body.light .setting-row input[type="text"],
+        body.light .quick-input .row input,
+        body.light .quick-input .full-width {
+            background: #F2F2F7;
+            border-color: #E5E5EA;
+            color: #1C1C1E;
+        }
+        .header {
+            background: #0B0E17;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1F2633;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header h1 span {
+            background: #00E676;
+            color: #0B0E17;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+        .header .live {
+            color: #00E676;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .header .live::before {
+            content: "●";
+            animation: pulse-dot 1.5s infinite;
+        }
+        @keyframes pulse-dot {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        .container {
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+            animation: fadeSlide 0.25s ease;
+        }
+        @keyframes fadeSlide {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .card {
+            background: #141A26;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #1F2633;
+        }
+        .vs {
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+        }
+        .vs small {
+            display: block;
+            font-size: 13px;
+            color: #9E9E9E;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+        .meta {
+            text-align: center;
+            font-size: 13px;
+            color: #9E9E9E;
+            margin: 8px 0 16px;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .meta span {
+            background: #1F2633;
+            padding: 2px 12px;
+            border-radius: 20px;
+        }
+        .indicator {
+            margin-bottom: 12px;
+        }
+        .indicator .label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .indicator .label .value {
+            color: #00E676;
+            font-weight: 700;
+        }
+        .indicator .bar {
+            height: 8px;
+            background: #1F2633;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .indicator .bar .fill {
+            height: 100%;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #00E676, #00C853);
+            transition: width 0.6s ease;
+            width: 0%;
+        }
+        .recommendation {
+            background: #00E676;
+            color: #0B0E17;
+            font-weight: 700;
+            font-size: 18px;
+            padding: 6px 16px;
+            border-radius: 40px;
+            display: inline-block;
+            margin: 6px 0 12px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 14px 12px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.15s;
+            background: #1F2633;
+            color: #E0E0E0;
+            text-align: center;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .btn:active {
+            transform: scale(0.96);
+        }
+        .btn-primary {
+            background: #00E676;
+            color: #0B0E17;
+        }
+        .btn-primary:active {
+            background: #00C853;
+        }
+        .btn-secondary {
+            background: #1F2633;
+            color: #E0E0E0;
+        }
+        .btn-secondary:active {
+            background: #2A3342;
+        }
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+            min-width: 60px;
+            flex: 0 1 auto;
+        }
+        .btn-danger {
+            background: #FF5253;
+            color: #FFFFFF;
+        }
+        .btn-danger:active {
+            background: #D32F2F;
+        }
+        .quick-input {
+            background: #141A26;
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+        .quick-input .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .quick-input .row input {
+            background: #0B0E17;
+            border: 1px solid #1F2633;
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: #E0E0E0;
+            font-size: 14px;
+            width: 100%;
+            outline: none;
+        }
+        .quick-input .row input::placeholder {
+            color: #5A667A;
+        }
+        .quick-input .full-width {
+            width: 100%;
+            padding: 12px 14px;
+            background: #0B0E17;
+            border: 1px solid #1F2633;
+            border-radius: 12px;
+            color: #E0E0E0;
+            font-size: 14px;
+            margin-bottom: 10px;
+            outline: none;
+        }
+        .quick-input .full-width::placeholder {
+            color: #5A667A;
+        }
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .filter-bar .tag {
+            background: #1F2633;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #B0B0B0;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: 0.15s;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .filter-bar .tag.active {
+            border-color: #00E676;
+            color: #00E676;
+            background: #0B0E17;
+        }
+        .filter-bar .tag:active {
+            transform: scale(0.96);
+        }
+        .history-item {
+            background: #141A26;
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-left: 4px solid #FFD740;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+        .history-item.win {
+            border-left-color: #00E676;
+        }
+        .history-item.loss {
+            border-left-color: #FF5253;
+        }
+        .history-item .info {
+            flex: 2;
+            min-width: 120px;
+        }
+        .history-item .info .title {
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .history-item .info .sub {
+            font-size: 12px;
+            color: #9E9E9E;
+        }
+        .history-item .status {
+            font-size: 22px;
+        }
+        .history-item .actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .summary {
+            background: #141A26;
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            text-align: center;
+        }
+        .summary .stat .num {
+            font-size: 22px;
+            font-weight: 700;
+            color: #00E676;
+        }
+        .summary .stat .lbl {
+            font-size: 12px;
+            color: #9E9E9E;
+        }
+        .setting-group {
+            background: #141A26;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .setting-group .title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #B0B0B0;
+        }
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #1F2633;
+        }
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+        .setting-row .label {
+            font-size: 14px;
+        }
+        .setting-row input[type="range"] {
+            width: 140px;
+            accent-color: #00E676;
+            background: #1F2633;
+            height: 4px;
+            border-radius: 8px;
+        }
+        .setting-row input[type="text"],
+        .setting-row input[type="password"] {
+            width: 200px;
+            padding: 6px 10px;
+            border-radius: 12px;
+            border: 1px solid #1F2633;
+            background: #0B0E17;
+            color: #E0E0E0;
+            font-size: 13px;
+            font-family: monospace;
+            outline: none;
+        }
+        .toggle {
+            width: 48px;
+            height: 28px;
+            background: #1F2633;
+            border-radius: 30px;
+            cursor: pointer;
+            position: relative;
+            transition: 0.2s;
+            flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .toggle.active {
+            background: #00E676;
+        }
+        .toggle::after {
+            content: "";
+            width: 22px;
+            height: 22px;
+            background: #E0E0E0;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            transition: 0.2s;
+        }
+        .toggle.active::after {
+            transform: translateX(20px);
+            background: #0B0E17;
+        }
+        .training-status {
+            background: #141A26;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .training-status .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 14px;
+        }
+        .training-status .badge {
+            background: #00E676;
+            color: #0B0E17;
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 12px;
+        }
+        .ai-advice {
+            background: #1F2633;
+            border-radius: 16px;
+            padding: 16px;
+            margin: 16px 0;
+            font-size: 14px;
+            line-height: 1.5;
+            border-left: 4px solid #00E676;
+        }
+        .import-area {
+            border: 2px dashed #1F2633;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            color: #9E9E9E;
+            margin: 12px 0;
+            cursor: pointer;
+            transition: border-color 0.3s, background 0.3s;
+        }
+        .import-area.dragover {
+            border-color: #00E676;
+            background: rgba(0, 230, 118, 0.05);
+        }
+        .import-area .icon {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .import-area .sub {
+            font-size: 12px;
+            color: #5A667A;
+        }
+        .day-stats {
+            background: #141A26;
+            border-radius: 16px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+        .day-stats .title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+        .day-stats .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+            gap: 4px;
+            font-size: 11px;
+            text-align: center;
+        }
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #0B0E17;
+            border-top: 1px solid #1F2633;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 12px;
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 11px;
+            color: #9E9E9E;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px 12px;
+            font-family: inherit;
+            transition: 0.15s;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .nav-item .icon {
+            font-size: 24px;
+            line-height: 1.2;
+        }
+        .nav-item.active {
+            color: #00E676;
+        }
+        .nav-item.active .icon {
+            transform: scale(1.05);
+        }
+        .nav-item:active {
+            transform: scale(0.92);
+        }
+        .fly-away {
+            animation: flyOut 0.5s ease forwards;
+        }
+        @keyframes flyOut {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-120px) scale(0.8); }
+        }
+        @media (max-width: 380px) {
+            .header h1 { font-size: 17px; }
+            .vs { font-size: 18px; }
+            .btn { font-size: 13px; padding: 12px 8px; }
+            .setting-row input[type="text"] { width: 140px; font-size: 12px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
     <h1>🔥 КВАНТУМ PRO <span>v4.2</span></h1>
-    <div class="live">● LIVE</div>
+    <div class="live">LIVE</div>
 </div>
 
 <div class="container" id="appContainer">
     <!-- ГЛАВНЫЙ ЭКРАН -->
     <div class="screen active" id="screen-home">
-        <div class="card">
-            <div class="vs">⚔️ Велес — Ротор <small>ФНЛ · 03.08</small></div>
-            <div class="meta"><span>🏆 ФНЛ</span><span>📅 03.08</span><span>⏰ 21:00</span></div>
-            <div class="indicator"><div class="label"><span>📊 Индекс доверия</span><span class="value" id="trustValue">38%</span></div><div class="bar"><div class="fill" id="trustFill" style="width:38%"></div></div></div>
-            <div class="indicator"><div class="label"><span>🎯 Вероятность ОЗ</span><span class="value" id="ozValue">91%</span></div><div class="bar"><div class="fill" id="ozFill" style="width:91%"></div></div></div>
-            <div class="recommendation">🟢 ОЗ – ДА</div>
-            <div style="display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; margin:10px 0;"><span>💰 КЭФ В БК: <strong>2.10</strong></span><span>📈 Валуй: <strong style="color:#00E676;">ДА (+0.91)</strong></span><span>💡 Ставка: <strong>20% (2000 ₽)</strong></span></div>
-            <div class="btn-group"><button class="btn btn-primary" id="saveBtn">🟢 СОХРАНИТЬ ПРОГНОЗ</button><button class="btn btn-secondary" id="bookmakerBtn">🔗 ПЕРЕЙТИ В БК</button></div>
+        <div class="card" id="matchCard">
+            <div class="vs">⚔️ <span id="teamHome">Велес</span> — <span id="teamAway">Ротор</span>
+                <small id="tournament">ФНЛ · 03.08</small>
+            </div>
+            <div class="meta">
+                <span>🏆 ФНЛ</span>
+                <span>📅 03.08</span>
+                <span>⏰ 21:00</span>
+            </div>
+            <div class="indicator">
+                <div class="label"><span>📊 Индекс доверия</span><span class="value" id="trustValue">38%</span></div>
+                <div class="bar"><div class="fill" id="trustFill" style="width:38%"></div></div>
+            </div>
+            <div class="indicator">
+                <div class="label"><span>🎯 Вероятность ОЗ</span><span class="value" id="ozValue">91%</span></div>
+                <div class="bar"><div class="fill" id="ozFill" style="width:91%"></div></div>
+            </div>
+            <div class="recommendation" id="recommendationBadge">🟢 ОЗ – ДА</div>
+            <div style="margin:10px 0 6px; display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; font-size:15px;">
+                <span>💰 КЭФ В БК: <strong id="oddsDisplay">2.10</strong></span>
+                <span>📈 Валуй: <strong id="valueDisplay" style="color:#00E676;">ДА (+0.91)</strong></span>
+                <span>💡 Ставка: <strong id="betSizeDisplay">20% (2000 ₽)</strong></span>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="saveBtn">🟢 СОХРАНИТЬ ПРОГНОЗ</button>
+                <button class="btn btn-secondary" id="bookmakerBtn">🔗 ПЕРЕЙТИ В БК</button>
+            </div>
         </div>
         <div class="quick-input">
-            <div style="font-weight:600; margin-bottom:8px;">⚡ Быстрый ввод матча</div>
-            <div class="row"><input type="text" id="inputHome" placeholder="Хозяева"><input type="text" id="inputAway" placeholder="Гости"></div>
-            <div class="row"><input type="text" id="inputLeague" placeholder="Лига"><input type="text" id="inputCountry" placeholder="Страна"></div>
-            <div class="row"><input type="number" id="inputXg" placeholder="xG хозяев" step="0.01"><input type="number" id="inputXga" placeholder="xG гостей" step="0.01"></div>
-            <div class="row"><input type="number" id="inputOz" placeholder="ОЗ % (91)" step="0.1"><input type="number" id="inputOdds" placeholder="Кэф (2.10)" step="0.01"></div>
+            <div style="font-size:14px; font-weight:600; margin-bottom:8px;">⚡ Быстрый ввод матча</div>
+            <div class="row">
+                <input type="text" id="inputHome" placeholder="Хозяева">
+                <input type="text" id="inputAway" placeholder="Гости">
+            </div>
+            <div class="row">
+                <input type="text" id="inputLeague" placeholder="Лига">
+                <input type="text" id="inputCountry" placeholder="Страна">
+            </div>
+            <div class="row">
+                <input type="number" id="inputXg" placeholder="xG хозяев" step="0.01">
+                <input type="number" id="inputXga" placeholder="xG гостей" step="0.01">
+            </div>
+            <div class="row">
+                <input type="number" id="inputOz" placeholder="ОЗ % (91)" step="0.1">
+                <input type="number" id="inputOdds" placeholder="Кэф (2.10)" step="0.01">
+            </div>
             <input type="text" class="full-width" id="inputComment" placeholder="📝 Комментарий">
             <button class="btn btn-primary" style="width:100%;" id="quickAddBtn">➕ Добавить матч</button>
         </div>
@@ -108,61 +682,134 @@
 
     <!-- ИСТОРИЯ -->
     <div class="screen" id="screen-history">
-        <div class="filter-bar"><span class="tag active" data-filter="all">Все</span><span class="tag" data-filter="waiting">⏳ Ожидают</span><span class="tag" data-filter="win">✅ Зашло</span><span class="tag" data-filter="loss">❌ Не зашло</span></div>
+        <div class="filter-bar">
+            <span class="tag active" data-filter="all">Все</span>
+            <span class="tag" data-filter="waiting">⏳ Ожидают</span>
+            <span class="tag" data-filter="win">✅ Зашло</span>
+            <span class="tag" data-filter="loss">❌ Не зашло</span>
+            <span class="tag" data-filter="value">💎 Только валуй</span>
+        </div>
         <div id="historyList"></div>
         <div class="summary" id="summaryBlock">
-            <div><div class="num" id="totalCount">0</div><div class="lbl">Всего</div></div>
-            <div><div class="num" id="winCount">0</div><div class="lbl">Зашло</div></div>
-            <div><div class="num" id="lossCount">0</div><div class="lbl">Не зашло</div></div>
-            <div><div class="num" id="percentDisplay">0%</div><div class="lbl">% побед</div></div>
-            <div><div class="num" id="roiDisplay">0%</div><div class="lbl">ROI</div></div>
-            <div><div class="num" id="streakDisplay">0</div><div class="lbl">Серия</div></div>
+            <div class="stat"><div class="num" id="totalCount">0</div><div class="lbl">Всего</div></div>
+            <div class="stat"><div class="num" id="winCount">0</div><div class="lbl">Зашло</div></div>
+            <div class="stat"><div class="num" id="lossCount">0</div><div class="lbl">Не зашло</div></div>
+            <div class="stat"><div class="num" id="percentDisplay">0%</div><div class="lbl">% побед</div></div>
+            <div class="stat"><div class="num" id="roiDisplay">0%</div><div class="lbl">ROI</div></div>
+            <div class="stat"><div class="num" id="streakDisplay">0</div><div class="lbl">Серия</div></div>
+            <div class="stat"><div class="num" id="avgOddsDisplay">0.00</div><div class="lbl">Ср. кэф зашедших</div></div>
         </div>
-        <div class="day-stats"><div style="font-weight:600; margin-bottom:6px;">📅 По дням недели</div><div class="grid" id="dayStatsGrid"></div></div>
+        <div class="day-stats">
+            <div class="title">📅 По дням недели</div>
+            <div class="grid" id="dayStatsGrid"></div>
+        </div>
     </div>
 
     <!-- НАСТРОЙКИ -->
     <div class="screen" id="screen-settings">
         <div class="setting-group">
             <div class="title">🔍 Основные параметры</div>
-            <div class="setting-row"><span class="label">🎯 Индекс доверия</span><input type="range" min="0" max="100" value="38" id="settingTrust"><span id="settingTrustVal">38%</span></div>
-            <div class="setting-row"><span class="label">🎯 Минимальная ОЗ</span><input type="range" min="50" max="95" value="86" id="settingOz"><span id="settingOzVal">86%</span></div>
-            <div class="setting-row"><span class="label">📈 % ставки</span><input type="range" min="5" max="40" value="20" id="settingKelly"><span id="settingKellyVal">20%</span></div>
-            <div class="setting-row"><span class="label">Только ОЗ – ДА</span><div class="toggle active" id="toggleOnlyOz"></div></div>
-            <div class="setting-row"><span class="label">🌓 Светлая тема</span><div class="toggle" id="toggleTheme"></div></div>
+            <div class="setting-row">
+                <span class="label">🎯 Индекс доверия</span>
+                <input type="range" min="0" max="100" value="38" id="settingTrust">
+                <span id="settingTrustVal">38%</span>
+            </div>
+            <div class="setting-row">
+                <span class="label">🎯 Минимальная ОЗ</span>
+                <input type="range" min="50" max="95" value="86" id="settingOz">
+                <span id="settingOzVal">86%</span>
+            </div>
+            <div class="setting-row">
+                <span class="label">📈 % ставки (Келли)</span>
+                <input type="range" min="5" max="40" value="20" id="settingKelly">
+                <span id="settingKellyVal">20%</span>
+            </div>
+            <div class="setting-row">
+                <span class="label">Только ОЗ – ДА</span>
+                <div class="toggle active" id="toggleOnlyOz"></div>
+            </div>
+            <div class="setting-row">
+                <span class="label">Режим «Только валуй»</span>
+                <div class="toggle" id="toggleOnlyValue"></div>
+            </div>
+            <div class="setting-row">
+                <span class="label">🌓 Светлая тема</span>
+                <div class="toggle" id="toggleTheme"></div>
+            </div>
         </div>
+
+        <div class="setting-group">
+            <div class="title">🌐 API-FOOTBALL</div>
+            <div class="setting-row">
+                <span class="label">🔑 API Ключ</span>
+                <input type="password" id="apiKeyInput" placeholder="Вставьте ваш ключ">
+            </div>
+            <div class="setting-row">
+                <span class="label"></span>
+                <button class="btn btn-sm btn-primary" id="saveApiKeyBtn" style="min-width:100px;">💾 Сохранить</button>
+            </div>
+            <div id="apiStatus" style="font-size:12px; color:#9E9E9E; margin-top:4px; text-align:center;"></div>
+        </div>
+
         <div class="setting-group">
             <div class="title">💾 Управление данными</div>
-            <div class="import-area" id="importArea"><span style="font-size:32px; display:block;">📂</span>Нажмите для импорта JSON<input type="file" id="fileInput" accept=".json" style="display:none;"></div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;"><button class="btn btn-sm btn-primary" id="exportDataBtn">💾 Сохранить данные</button><button class="btn btn-sm btn-danger" id="resetAllBtn">🗑️ Сбросить всё</button></div>
+            <div class="import-area" id="importArea">
+                <span class="icon">📂</span>
+                <div>Нажмите или перетащите JSON-файл</div>
+                <div class="sub">Поддерживается формат экспорта Квантум PRO</div>
+                <input type="file" id="fileInput" accept=".json" style="display:none;">
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+                <button class="btn btn-sm btn-primary" id="exportDataBtn" style="flex:1;">💾 Сохранить данные</button>
+                <button class="btn btn-sm btn-danger" id="resetAllBtn" style="flex:1;">🗑️ Сбросить всё</button>
+            </div>
         </div>
+
         <div class="setting-group">
             <div class="title">🔔 Уведомления</div>
-            <div class="setting-row"><span class="label">Звук</span><div class="toggle active" id="toggleSound"></div></div>
-            <div class="setting-row"><span class="label">Виброотклик</span><div class="toggle active" id="toggleVibration"></div></div>
-            <div class="setting-row"><span class="label">Напоминания</span><div class="toggle active" id="toggleReminder"></div></div>
+            <div class="setting-row">
+                <span class="label">Звук при находке валуя</span>
+                <div class="toggle active" id="toggleSound"></div>
+            </div>
+            <div class="setting-row">
+                <span class="label">Виброотклик при заходе</span>
+                <div class="toggle active" id="toggleVibration"></div>
+            </div>
+            <div class="setting-row">
+                <span class="label">Напоминание о результате</span>
+                <div class="toggle active" id="toggleReminder"></div>
+            </div>
         </div>
-        <button class="btn btn-primary" style="width:100%;" id="resetSettingsBtn">🔄 Сбросить к начальным</button>
+        <button class="btn btn-primary" style="width:100%; margin-top:12px;" id="resetSettingsBtn">🔄 Сбросить к начальным</button>
     </div>
 
     <!-- ОБУЧЕНИЕ -->
     <div class="screen" id="screen-training">
         <div class="training-status">
-            <div class="row"><span>🟢 Статус</span><span class="badge">Обучена</span></div>
+            <div class="row"><span>🟢 Статус</span><span class="badge" id="modelStatus">Обучена</span></div>
             <div class="row"><span>📊 Матчей в базе</span><span id="modelMatches">0</span></div>
-            <div class="row"><span>🎯 Точность</span><span id="modelAcc">0%</span></div>
-            <div class="row"><span>📉 Ошибка</span><span id="modelLoss">0.00</span></div>
+            <div class="row"><span>🎯 Точность (acc)</span><span id="modelAcc">0%</span></div>
+            <div class="row"><span>📉 Ошибка (loss)</span><span id="modelLoss">0.00</span></div>
         </div>
-        <div style="background:#141A26; border-radius:16px; padding:16px; margin-bottom:16px;"><div style="font-weight:600; margin-bottom:8px;">📈 История обучения</div><div id="trainingHistory" style="font-size:14px; color:#9E9E9E;">Пока нет данных</div></div>
+        <div style="background:#141A26; border-radius:16px; padding:16px; margin-bottom:16px;">
+            <div style="font-weight:600; margin-bottom:8px;">📈 История обучения</div>
+            <div id="trainingHistory" style="font-size:14px; color:#9E9E9E;">Пока нет данных</div>
+        </div>
         <div style="background:#141A26; border-radius:16px; padding:16px; margin-bottom:16px;">
             <div style="font-weight:600; margin-bottom:8px;">🔍 Твой паттерн</div>
             <div style="font-size:14px; display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-                <span>🎯 Индекс 38% + ОЗ ≥ 86%</span><span style="text-align:right;">📊 <span id="patternPercent">0%</span></span>
-                <span>📈 ROI</span><span style="text-align:right; color:#00E676;" id="patternRoi">0%</span>
-                <span>✅ Статус</span><span style="text-align:right; color:#FFD740;" id="patternStatus">⏳ Сбор данных...</span>
+                <span>🎯 Индекс 38% + ОЗ ≥ 86%</span>
+                <span style="text-align:right;">📊 <span id="patternPercent">0%</span></span>
+                <span>📈 ROI</span>
+                <span style="text-align:right; color:#00E676;" id="patternRoi">0%</span>
+                <span>✅ Статус</span>
+                <span style="text-align:right; color:#FFD740;" id="patternStatus">⏳ Сбор данных...</span>
             </div>
         </div>
-        <div class="ai-advice"><strong>🧠 Персональный совет AI</strong><br><span id="aiAdviceText">Соберите 10+ матчей для первых рекомендаций.</span></div>
+        <div class="ai-advice" id="aiAdviceBlock">
+            <strong>🧠 Персональный совет AI</strong><br>
+            <span id="aiAdviceText">Соберите 10+ матчей для первых рекомендаций.</span>
+        </div>
         <div style="display:flex; flex-direction:column; gap:10px;">
             <button class="btn btn-primary" id="trainBtn">🧠 ЗАПУСТИТЬ ОБУЧЕНИЕ</button>
             <button class="btn btn-secondary" id="copyStatsBtn">📋 СКОПИРОВАТЬ СТАТИСТИКУ</button>
@@ -171,7 +818,6 @@
     </div>
 </div>
 
-<!-- НАВИГАЦИЯ -->
 <div class="nav-bar" id="navBar">
     <button class="nav-item active" data-tab="screen-home"><span class="icon">🏠</span>Главная</button>
     <button class="nav-item" data-tab="screen-history"><span class="icon">📋</span>История</button>
@@ -180,484 +826,790 @@
 </div>
 
 <script>
-    // ============================================================
-    // ПРОСТАЯ И НАДЁЖНАЯ ЛОГИКА — ТОЛЬКО САМОЕ НУЖНОЕ
-    // ============================================================
+    (function() {
+        'use strict';
 
-    // === ДАННЫЕ ===
-    let appData = loadData();
-    let currentFilter = 'all';
+        // === ДАННЫЕ ===
+        let appData = loadData();
+        let currentFilter = 'all';
 
-    function loadData() {
-        try {
-            const raw = localStorage.getItem('quantumData');
-            if (raw) return JSON.parse(raw);
-        } catch(e) {}
-        return { matches: [], settings: {} };
-    }
-
-    function saveData() {
-        localStorage.setItem('quantumData', JSON.stringify(appData));
-    }
-
-    // === НАСТРОЙКИ ПО УМОЛЧАНИЮ ===
-    const defaultSettings = {
-        trust: 38,
-        minOz: 86,
-        kellyPercent: 20,
-        bank: 10000,
-        onlyOz: true,
-        sound: true,
-        vibration: true,
-        reminder: true
-    };
-
-    // === ИНИЦИАЛИЗАЦИЯ ===
-    function init() {
-        if (!appData.settings || Object.keys(appData.settings).length === 0) {
-            appData.settings = JSON.parse(JSON.stringify(defaultSettings));
+        function loadData() {
+            try {
+                const raw = localStorage.getItem('quantumData');
+                if (raw) return JSON.parse(raw);
+            } catch(e) {}
+            return { matches: [], settings: {} };
         }
-        for (let k in defaultSettings) {
-            if (!(k in appData.settings)) appData.settings[k] = defaultSettings[k];
+
+        function saveData() {
+            localStorage.setItem('quantumData', JSON.stringify(appData));
         }
-        if (!appData.matches) appData.matches = [];
-        applySettings();
-        renderHistory();
-        updateTraining();
-        updateMainCard();
-        saveData();
-    }
 
-    // === ПРИМЕНЕНИЕ НАСТРОЕК ===
-    function applySettings() {
-        const s = appData.settings;
-        document.getElementById('settingTrust').value = s.trust;
-        document.getElementById('settingTrustVal').textContent = s.trust + '%';
-        document.getElementById('settingOz').value = s.minOz;
-        document.getElementById('settingOzVal').textContent = s.minOz + '%';
-        document.getElementById('settingKelly').value = s.kellyPercent;
-        document.getElementById('settingKellyVal').textContent = s.kellyPercent + '%';
-        setToggle('toggleOnlyOz', s.onlyOz);
-        setToggle('toggleSound', s.sound);
-        setToggle('toggleVibration', s.vibration);
-        setToggle('toggleReminder', s.reminder);
-    }
-
-    function setToggle(id, state) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        if (state) el.classList.add('active');
-        else el.classList.remove('active');
-    }
-
-    function getToggle(id) {
-        const el = document.getElementById(id);
-        return el ? el.classList.contains('active') : false;
-    }
-
-    // === ГЛАВНАЯ КАРТОЧКА ===
-    function updateMainCard() {
-        const home = document.getElementById('inputHome').value || 'Велес';
-        const away = document.getElementById('inputAway').value || 'Ротор';
-        const oz = parseFloat(document.getElementById('inputOz').value) || 91;
-        const odds = parseFloat(document.getElementById('inputOdds').value) || 2.10;
-        document.getElementById('ozValue').textContent = oz + '%';
-        document.getElementById('ozFill').style.width = Math.min(oz, 100) + '%';
-        const trust = appData.settings.trust || 38;
-        document.getElementById('trustValue').textContent = trust + '%';
-        document.getElementById('trustFill').style.width = Math.min(trust, 100) + '%';
-    }
-
-    // === СОХРАНЕНИЕ МАТЧА ===
-    function saveMatch() {
-        const home = document.getElementById('inputHome').value.trim() || 'Велес';
-        const away = document.getElementById('inputAway').value.trim() || 'Ротор';
-        const league = document.getElementById('inputLeague').value.trim() || 'Не указана';
-        const country = document.getElementById('inputCountry').value.trim() || 'Не указана';
-        const oz = parseFloat(document.getElementById('inputOz').value) || 91;
-        const odds = parseFloat(document.getElementById('inputOdds').value) || 2.10;
-        const comment = document.getElementById('inputComment').value.trim() || '';
-        const match = {
-            id: Date.now(),
-            home, away, league, country, oz, odds, comment,
-            status: 'waiting',
-            score: '',
-            date: new Date().toLocaleDateString(),
-            time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+        const defaultSettings = {
+            trust: 38,
+            minOz: 86,
+            kellyPercent: 20,
+            bank: 10000,
+            onlyOz: true,
+            onlyValue: false,
+            sound: true,
+            vibration: true,
+            reminder: true,
+            theme: 'dark'
         };
-        appData.matches.unshift(match);
-        saveData();
-        renderHistory();
-        updateTraining();
-        updateMainCard();
-        alert('✅ Матч сохранён!');
-    }
 
-    // === ИСТОРИЯ ===
-    function renderHistory(filter) {
-        currentFilter = filter || currentFilter;
-        const list = document.getElementById('historyList');
-        let matches = appData.matches || [];
-        if (currentFilter === 'waiting') matches = matches.filter(m => m.status === 'waiting');
-        else if (currentFilter === 'win') matches = matches.filter(m => m.status === 'win');
-        else if (currentFilter === 'loss') matches = matches.filter(m => m.status === 'loss');
-        if (matches.length === 0) {
-            list.innerHTML = '<div style="text-align:center; color:#9E9E9E; padding:30px 0;">Нет матчей</div>';
-        } else {
-            list.innerHTML = matches.map(m => {
-                let statusIcon = '⏳', cls = '';
-                if (m.status === 'win') { statusIcon = '✅'; cls = 'win'; }
-                else if (m.status === 'loss') { statusIcon = '❌'; cls = 'loss'; }
-                const isWaiting = m.status === 'waiting';
-                return `<div class="history-item ${cls}">
-                    <div class="info">
-                        <div class="title">${m.home} — ${m.away}</div>
-                        <div class="sub">ОЗ ${m.oz}% · Кэф ${m.odds} · ${m.date} ${m.time}</div>
-                        ${m.score ? `<div class="sub">⚽ Счёт: ${m.score}</div>` : ''}
-                    </div>
-                    <div class="status">${statusIcon}</div>
-                    <div class="actions">
-                        ${isWaiting ? `<button class="btn btn-sm btn-primary" data-id="${m.id}">📝 Счёт</button>` : ''}
-                        <button class="btn btn-sm btn-secondary" data-edit="${m.id}">✏️</button>
-                        <button class="btn btn-sm btn-danger" data-del="${m.id}">🗑️</button>
-                        <button class="btn btn-sm btn-secondary" data-duplicate="${m.id}">📋</button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-        // Обработчики
-        document.querySelectorAll('[data-id]').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const id = parseInt(this.dataset.id);
-                enterScore(id);
-            });
-        });
-        document.querySelectorAll('[data-edit]').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const id = parseInt(this.dataset.edit);
-                editMatch(id);
-            });
-        });
-        document.querySelectorAll('[data-del]').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const id = parseInt(this.dataset.del);
-                if (confirm('Удалить матч?')) {
-                    appData.matches = appData.matches.filter(m => m.id !== id);
-                    saveData();
-                    renderHistory();
-                    updateTraining();
-                }
-            });
-        });
-        document.querySelectorAll('[data-duplicate]').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const id = parseInt(this.dataset.duplicate);
-                duplicateMatch(id);
-            });
-        });
-        // Сводка
-        const total = appData.matches.length;
-        const wins = appData.matches.filter(m => m.status === 'win').length;
-        const losses = appData.matches.filter(m => m.status === 'loss').length;
-        const pct = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
-        const roi = total > 0 ? ((wins - losses) / total * 100) : 0;
-        document.getElementById('totalCount').textContent = total;
-        document.getElementById('winCount').textContent = wins;
-        document.getElementById('lossCount').textContent = losses;
-        document.getElementById('percentDisplay').textContent = pct + '%';
-        document.getElementById('roiDisplay').textContent = roi.toFixed(0) + '%';
-        let streak = 0, current = 0;
-        for (let m of appData.matches) {
-            if (m.status === 'win') { current++; streak = Math.max(streak, current); }
-            else if (m.status === 'loss') { current = 0; }
-        }
-        document.getElementById('streakDisplay').textContent = streak;
-        renderDayStats();
-        updateTraining();
-    }
-
-    // === ВВОД СЧЁТА ===
-    function enterScore(id) {
-        const match = appData.matches.find(m => m.id === id);
-        if (!match) return;
-        const score = prompt('Введите счёт (например: 2:1):', match.score || '0:0');
-        if (score !== null && score.trim() !== '') {
-            match.score = score.trim();
-            const [homeGoals, awayGoals] = score.split(':').map(Number);
-            match.status = (homeGoals > 0 && awayGoals > 0) ? 'win' : 'loss';
-            saveData();
+        // === ИНИЦИАЛИЗАЦИЯ ===
+        function init() {
+            if (!appData.settings || Object.keys(appData.settings).length === 0) {
+                appData.settings = JSON.parse(JSON.stringify(defaultSettings));
+            }
+            for (let k in defaultSettings) {
+                if (!(k in appData.settings)) appData.settings[k] = defaultSettings[k];
+            }
+            if (!appData.matches) appData.matches = [];
+            if (appData.apiKey) {
+                document.getElementById('apiKeyInput').value = appData.apiKey;
+                document.getElementById('apiStatus').textContent = '✅ Ключ загружен';
+            }
+            applySettings();
+            applyTheme();
             renderHistory();
             updateTraining();
+            updateMainCard();
+            saveData();
+            checkReminders();
         }
-    }
 
-    // === РЕДАКТИРОВАНИЕ ===
-    function editMatch(id) {
-        const match = appData.matches.find(m => m.id === id);
-        if (!match) return;
-        const newHome = prompt('Хозяева:', match.home); if (newHome !== null && newHome.trim() !== '') match.home = newHome.trim();
-        const newAway = prompt('Гости:', match.away); if (newAway !== null && newAway.trim() !== '') match.away = newAway.trim();
-        const newOz = prompt('ОЗ %:', match.oz); if (newOz !== null && !isNaN(parseFloat(newOz))) match.oz = parseFloat(newOz);
-        const newOdds = prompt('Кэф:', match.odds); if (newOdds !== null && !isNaN(parseFloat(newOdds))) match.odds = parseFloat(newOdds);
-        const newScore = prompt('Счёт:', match.score || ''); if (newScore !== null) { match.score = newScore.trim(); if (match.score) { const [h, a] = match.score.split(':').map(Number); match.status = (h > 0 && a > 0) ? 'win' : 'loss'; } }
-        saveData();
-        renderHistory();
-        updateTraining();
-    }
-
-    // === ДУБЛИРОВАНИЕ ===
-    function duplicateMatch(id) {
-        const original = appData.matches.find(m => m.id === id);
-        if (!original) return;
-        const copy = JSON.parse(JSON.stringify(original));
-        copy.id = Date.now();
-        copy.status = 'waiting';
-        copy.score = '';
-        copy.date = new Date().toLocaleDateString();
-        copy.time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-        appData.matches.unshift(copy);
-        saveData();
-        renderHistory();
-        updateTraining();
-    }
-
-    // === СТАТИСТИКА ПО ДНЯМ ===
-    function renderDayStats() {
-        const days = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-        const stats = {};
-        days.forEach(d => stats[d] = { total: 0, wins: 0 });
-        appData.matches.forEach(m => {
-            if (m.status === 'waiting') return;
-            const date = new Date(m.date);
-            const dayName = days[date.getDay() === 0 ? 6 : date.getDay() - 1];
-            if (stats[dayName]) { stats[dayName].total++; if (m.status === 'win') stats[dayName].wins++; }
-        });
-        const grid = document.getElementById('dayStatsGrid');
-        grid.innerHTML = days.map(d => {
-            const s = stats[d];
-            const pct = s.total > 0 ? Math.round((s.wins / s.total) * 100) : 0;
-            return `<div><div style="font-weight:600;">${d}</div><div style="font-size:16px; color:${pct >= 70 ? '#00E676' : pct >= 50 ? '#FFD740' : '#FF5253'};">${pct}%</div><div style="font-size:10px; color:#9E9E9E;">${s.total} матчей</div></div>`;
-        }).join('');
-    }
-
-    // === ОБУЧЕНИЕ ===
-    function updateTraining() {
-        const matches = appData.matches || [];
-        const total = matches.length;
-        const wins = matches.filter(m => m.status === 'win').length;
-        const losses = matches.filter(m => m.status === 'loss').length;
-        const pct = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
-        document.getElementById('modelMatches').textContent = total;
-        document.getElementById('modelAcc').textContent = pct + '%';
-        document.getElementById('modelLoss').textContent = (wins + losses) > 0 ? (1 - pct/100).toFixed(2) : '0.00';
-        document.getElementById('patternPercent').textContent = pct + '%';
-        const roi = total > 0 ? ((wins - losses) / total * 100).toFixed(0) : '0';
-        document.getElementById('patternRoi').textContent = roi + '%';
-        if (total >= 10 && pct >= 70) {
-            document.getElementById('patternStatus').textContent = '🟢 РАБОТАЕТ';
-            document.getElementById('patternStatus').style.color = '#00E676';
-        } else if (total >= 5) {
-            document.getElementById('patternStatus').textContent = '🟡 НАБИРАЕТ';
-            document.getElementById('patternStatus').style.color = '#FFD740';
-        } else {
-            document.getElementById('patternStatus').textContent = '⏳ Сбор данных...';
-            document.getElementById('patternStatus').style.color = '#9E9E9E';
+        // === ТЕМА ===
+        function applyTheme() {
+            const isLight = appData.settings.theme === 'light';
+            document.body.classList.toggle('light', isLight);
+            const toggle = document.getElementById('toggleTheme');
+            if (toggle) toggle.classList.toggle('active', isLight);
         }
-        const advice = document.getElementById('aiAdviceText');
-        if (total < 5) advice.textContent = 'Соберите 10+ матчей для первых рекомендаций.';
-        else if (pct >= 75) advice.textContent = `🔥 Отлично! Проходимость ${pct}%!`;
-        else if (pct >= 60) advice.textContent = `📊 Проходимость ${pct}%. Попробуйте ОЗ ≥ 90%.`;
-        else advice.textContent = `⚠️ Проходимость ${pct}% — проверьте данные.`;
-    }
 
-    // === КОПИРОВАТЬ СТАТИСТИКУ ===
-    function copyStats() {
-        const matches = appData.matches || [];
-        const total = matches.length;
-        const wins = matches.filter(m => m.status === 'win').length;
-        const losses = matches.filter(m => m.status === 'loss').length;
-        const pct = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
-        const roi = total > 0 ? ((wins - losses) / total * 100).toFixed(0) : '0';
-        const report = `🔥 КВАНТУМ PRO v4.2\n\nВсего матчей: ${total}\nЗашло: ${wins}\nНе зашло: ${losses}\nПроцент побед: ${pct}%\nROI: ${roi}%`;
-        navigator.clipboard.writeText(report).then(() => { alert('✅ Статистика скопирована!'); }).catch(() => { alert('❌ Не удалось скопировать'); });
-    }
+        // === НАСТРОЙКИ ===
+        function applySettings() {
+            const s = appData.settings;
+            document.getElementById('settingTrust').value = s.trust;
+            document.getElementById('settingTrustVal').textContent = s.trust + '%';
+            document.getElementById('settingOz').value = s.minOz;
+            document.getElementById('settingOzVal').textContent = s.minOz + '%';
+            document.getElementById('settingKelly').value = s.kellyPercent;
+            document.getElementById('settingKellyVal').textContent = s.kellyPercent + '%';
+            document.getElementById('settingBank').value = s.bank;
+            setToggle('toggleOnlyOz', s.onlyOz);
+            setToggle('toggleOnlyValue', s.onlyValue);
+            setToggle('toggleSound', s.sound);
+            setToggle('toggleVibration', s.vibration);
+            setToggle('toggleReminder', s.reminder);
+            setToggle('toggleTheme', s.theme === 'light');
+        }
 
-    // === ЭКСПОРТ ===
-    function exportData() {
-        const data = { version: '4.2', date: new Date().toISOString(), matches: appData.matches, settings: appData.settings };
-        const json = JSON.stringify(data, null, 2);
-        const blob = new Blob([json], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `quantum_backup_${new Date().toISOString().slice(0,10)}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+        function setToggle(id, state) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (state) el.classList.add('active');
+            else el.classList.remove('active');
+        }
 
-    // === ИМПОРТ ===
-    function importData(file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
+        function getToggle(id) {
+            const el = document.getElementById(id);
+            return el ? el.classList.contains('active') : false;
+        }
+
+        // === ГЛАВНАЯ КАРТОЧКА ===
+        function updateMainCard() {
+            const home = document.getElementById('inputHome').value || 'Велес';
+            const away = document.getElementById('inputAway').value || 'Ротор';
+            const oz = parseFloat(document.getElementById('inputOz').value) || 91;
+            const odds = parseFloat(document.getElementById('inputOdds').value) || 2.10;
+            document.getElementById('teamHome').textContent = home;
+            document.getElementById('teamAway').textContent = away;
+            document.getElementById('ozValue').textContent = oz + '%';
+            document.getElementById('ozFill').style.width = Math.min(oz, 100) + '%';
+            document.getElementById('oddsDisplay').textContent = odds.toFixed(2);
+            const trust = appData.settings.trust || 38;
+            document.getElementById('trustValue').textContent = trust + '%';
+            document.getElementById('trustFill').style.width = Math.min(trust, 100) + '%';
+            document.getElementById('recommendationBadge').textContent = oz >= 86 ? '🟢 ОЗ – ДА' : '🔴 ОЗ – НЕТ';
+            const value = (oz / 100) * odds - 1;
+            const valueEl = document.getElementById('valueDisplay');
+            if (value > 0.05) {
+                valueEl.textContent = 'ДА (+' + value.toFixed(2) + ')';
+                valueEl.style.color = '#00E676';
+            } else if (value > -0.05) {
+                valueEl.textContent = 'Нейтрально (' + value.toFixed(2) + ')';
+                valueEl.style.color = '#FFD740';
+            } else {
+                valueEl.textContent = 'НЕТ (' + value.toFixed(2) + ')';
+                valueEl.style.color = '#FF5253';
+            }
+            const bank = appData.settings.bank || 10000;
+            const kellyPct = appData.settings.kellyPercent || 20;
+            document.getElementById('betSizeDisplay').textContent = kellyPct + '% (' + Math.round(bank * kellyPct / 100) + ' ₽)';
+            document.getElementById('xgHome').textContent = document.getElementById('inputXg').value || '1.27';
+            document.getElementById('xgAway').textContent = document.getElementById('inputXga').value || '1.18';
+        }
+
+        // === СОХРАНЕНИЕ МАТЧА ===
+        function saveMatch() {
+            const home = document.getElementById('inputHome').value.trim() || 'Велес';
+            const away = document.getElementById('inputAway').value.trim() || 'Ротор';
+            const league = document.getElementById('inputLeague').value.trim() || 'Не указана';
+            const country = document.getElementById('inputCountry').value.trim() || 'Не указана';
+            const oz = parseFloat(document.getElementById('inputOz').value) || 91;
+            const odds = parseFloat(document.getElementById('inputOdds').value) || 2.10;
+            const xg = parseFloat(document.getElementById('inputXg').value) || 0;
+            const xga = parseFloat(document.getElementById('inputXga').value) || 0;
+            const comment = document.getElementById('inputComment').value.trim() || '';
+            const trust = appData.settings.trust || 38;
+            const match = {
+                id: Date.now(),
+                home,
+                away,
+                league,
+                country,
+                oz,
+                odds,
+                xg,
+                xga,
+                comment,
+                trust,
+                status: 'waiting',
+                score: '',
+                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            appData.matches.unshift(match);
+            saveData();
+            const card = document.getElementById('matchCard');
+            card.classList.add('fly-away');
+            setTimeout(() => {
+                card.classList.remove('fly-away');
+                renderHistory();
+                updateTraining();
+                updateMainCard();
+            }, 400);
+            if (appData.settings.sound) playSound();
+            if (appData.settings.reminder) scheduleReminder(match);
+        }
+
+        // === ЗВУК, ВИБРАЦИЯ, НАПОМИНАНИЯ ===
+        function playSound() {
             try {
-                const data = JSON.parse(e.target.result);
-                if (data.matches && Array.isArray(data.matches)) {
-                    const existingIds = new Set(appData.matches.map(m => m.id));
-                    let added = 0;
-                    data.matches.forEach(m => {
-                        if (!existingIds.has(m.id)) {
-                            appData.matches.push(m);
-                            existingIds.add(m.id);
-                            added++;
-                        }
+                const ctx = new(window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = 880;
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.2);
+            } catch(e) {}
+        }
+
+        function vibrate() {
+            if (appData.settings.vibration && navigator.vibrate) navigator.vibrate(30);
+        }
+
+        function scheduleReminder(match) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                setTimeout(() => {
+                    new Notification('⏳ Квантум PRO v4.2', {
+                        body: `Не забудь записать результат матча ${match.home} — ${match.away}`,
+                        icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="50" fill="%2300E676"/%3E%3Ctext x="50" y="65" font-size="40" text-anchor="middle" fill="%230B0E17" font-family="sans-serif"%3E🔥%3C/text%3E%3C/svg%3E'
                     });
-                    if (added > 0) {
+                }, 6 * 3600 * 1000);
+            }
+        }
+
+        function checkReminders() {
+            const waiting = appData.matches.filter(m => m.status === 'waiting');
+            if (waiting.length > 0 && appData.settings.reminder) {
+                setTimeout(() => {
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification('⏳ Квантум PRO v4.2', {
+                            body: `У вас ${waiting.length} матчей в ожидании.`,
+                            icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="50" fill="%2300E676"/%3E%3Ctext x="50" y="65" font-size="40" text-anchor="middle" fill="%230B0E17" font-family="sans-serif"%3E🔥%3C/text%3E%3C/svg%3E'
+                        });
+                    }
+                }, 3000);
+            }
+        }
+
+        // === ИСТОРИЯ ===
+        function renderHistory(filter) {
+            currentFilter = filter || currentFilter;
+            const list = document.getElementById('historyList');
+            let matches = appData.matches || [];
+
+            if (currentFilter === 'value') {
+                matches = matches.filter(m => {
+                    const val = (m.oz / 100) * m.odds - 1;
+                    return val > 0.05;
+                });
+            } else if (currentFilter === 'waiting') {
+                matches = matches.filter(m => m.status === 'waiting');
+            } else if (currentFilter === 'win') {
+                matches = matches.filter(m => m.status === 'win');
+            } else if (currentFilter === 'loss') {
+                matches = matches.filter(m => m.status === 'loss');
+            }
+
+            if (matches.length === 0) {
+                list.innerHTML = '<div style="text-align:center; color:#9E9E9E; padding:30px 0;">Нет матчей</div>';
+            } else {
+                list.innerHTML = matches.map(m => {
+                    let statusIcon = '⏳',
+                        cls = '';
+                    if (m.status === 'win') { statusIcon = '✅';
+                        cls = 'win'; } else if (m.status === 'loss') { statusIcon = '❌';
+                        cls = 'loss'; }
+                    const isWaiting = m.status === 'waiting';
+                    const val = (m.oz / 100) * m.odds - 1;
+                    const isValue = val > 0.05;
+                    return `<div class="history-item ${cls}">
+                        <div class="info">
+                            <div class="title">${m.home} — ${m.away} ${isValue ? '💎' : ''}</div>
+                            <div class="sub">ОЗ ${m.oz}% · Кэф ${m.odds} · ${m.date} ${m.time}</div>
+                            ${m.league && m.league !== 'Не указана' ? `<div class="sub">🏆 ${m.league} · ${m.country}</div>` : ''}
+                            ${m.comment ? `<div class="sub">📝 ${m.comment}</div>` : ''}
+                            ${m.score ? `<div class="sub">⚽ Счёт: ${m.score}</div>` : ''}
+                        </div>
+                        <div class="status">${statusIcon}</div>
+                        <div class="actions">
+                            ${isWaiting ? `<button class="btn btn-sm btn-primary" data-id="${m.id}">📝 Счёт</button>` : ''}
+                            <button class="btn btn-sm btn-secondary" data-edit="${m.id}">✏️</button>
+                            <button class="btn btn-sm btn-danger" data-del="${m.id}">🗑️</button>
+                            <button class="btn btn-sm btn-secondary" data-duplicate="${m.id}">📋</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            document.querySelectorAll('[data-id]').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = parseInt(this.dataset.id);
+                    enterScore(id);
+                });
+            });
+            document.querySelectorAll('[data-edit]').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = parseInt(this.dataset.edit);
+                    editMatch(id);
+                });
+            });
+            document.querySelectorAll('[data-del]').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = parseInt(this.dataset.del);
+                    if (confirm('Удалить матч?')) {
+                        appData.matches = appData.matches.filter(m => m.id !== id);
                         saveData();
                         renderHistory();
                         updateTraining();
-                        alert(`✅ Импортировано ${added} матчей`);
-                    } else {
-                        alert('ℹ️ Новых матчей не найдено');
                     }
-                } else {
-                    alert('❌ Неверный формат файла');
-                }
-            } catch(err) {
-                alert('❌ Ошибка: ' + err.message);
-            }
-        };
-        reader.readAsText(file);
-    }
+                });
+            });
+            document.querySelectorAll('[data-duplicate]').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = parseInt(this.dataset.duplicate);
+                    duplicateMatch(id);
+                });
+            });
 
-    // === СБРОС ===
-    function resetAll() {
-        if (confirm('Удалить все данные?')) {
-            appData = { matches: [], settings: JSON.parse(JSON.stringify(defaultSettings)) };
+            // Сводка
+            const total = appData.matches.length;
+            const wins = appData.matches.filter(m => m.status === 'win').length;
+            const losses = appData.matches.filter(m => m.status === 'loss').length;
+            const pct = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
+            const roi = total > 0 ? ((wins - losses) / total * 100) : 0;
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('winCount').textContent = wins;
+            document.getElementById('lossCount').textContent = losses;
+            document.getElementById('percentDisplay').textContent = pct + '%';
+            document.getElementById('roiDisplay').textContent = roi.toFixed(0) + '%';
+
+            let streak = 0,
+                current = 0;
+            for (let m of appData.matches) {
+                if (m.status === 'win') { current++;
+                    streak = Math.max(streak, current); } else if (m.status === 'loss') { current = 0; }
+            }
+            document.getElementById('streakDisplay').textContent = streak;
+
+            const wonMatches = appData.matches.filter(m => m.status === 'win');
+            const avgOdds = wonMatches.length > 0 ? wonMatches.reduce((s, m) => s + m.odds, 0) / wonMatches.length : 0;
+            document.getElementById('avgOddsDisplay').textContent = avgOdds > 0 ? avgOdds.toFixed(2) : '0.00';
+
+            renderDayStats();
+            updateTraining();
+        }
+
+        // === ВВОД СЧЁТА ===
+        function enterScore(id) {
+            const match = appData.matches.find(m => m.id === id);
+            if (!match) return;
+            const score = prompt('Введите счёт (например: 2:1):', match.score || '0:0');
+            if (score !== null && score.trim() !== '') {
+                match.score = score.trim();
+                const [homeGoals, awayGoals] = score.split(':').map(Number);
+                match.status = (homeGoals > 0 && awayGoals > 0) ? 'win' : 'loss';
+                saveData();
+                renderHistory();
+                updateTraining();
+                if (appData.settings.vibration) vibrate();
+                if (appData.settings.sound) playSound();
+            }
+        }
+
+        // === РЕДАКТИРОВАНИЕ ===
+        function editMatch(id) {
+            const match = appData.matches.find(m => m.id === id);
+            if (!match) return;
+            const newHome = prompt('Хозяева:', match.home);
+            if (newHome !== null && newHome.trim() !== '') match.home = newHome.trim();
+            const newAway = prompt('Гости:', match.away);
+            if (newAway !== null && newAway.trim() !== '') match.away = newAway.trim();
+            const newOz = prompt('ОЗ %:', match.oz);
+            if (newOz !== null && !isNaN(parseFloat(newOz))) match.oz = parseFloat(newOz);
+            const newOdds = prompt('Кэф:', match.odds);
+            if (newOdds !== null && !isNaN(parseFloat(newOdds))) match.odds = parseFloat(newOdds);
+            const newLeague = prompt('Лига:', match.league || '');
+            if (newLeague !== null) match.league = newLeague.trim();
+            const newCountry = prompt('Страна:', match.country || '');
+            if (newCountry !== null) match.country = newCountry.trim();
+            const newComment = prompt('Комментарий:', match.comment || '');
+            if (newComment !== null) match.comment = newComment.trim();
+            const newScore = prompt('Счёт:', match.score || '');
+            if (newScore !== null) {
+                match.score = newScore.trim();
+                if (match.score) {
+                    const [h, a] = match.score.split(':').map(Number);
+                    match.status = (h > 0 && a > 0) ? 'win' : 'loss';
+                }
+            }
             saveData();
             renderHistory();
             updateTraining();
-            updateMainCard();
-            applySettings();
         }
-    }
 
-    // === НАВИГАЦИЯ ===
-    function setupNavigation() {
-        const items = document.querySelectorAll('.nav-item');
-        const screens = {
-            'screen-home': document.getElementById('screen-home'),
-            'screen-history': document.getElementById('screen-history'),
-            'screen-settings': document.getElementById('screen-settings'),
-            'screen-training': document.getElementById('screen-training')
-        };
-        items.forEach(item => {
-            item.addEventListener('click', function() {
-                const target = this.dataset.tab;
-                items.forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-                Object.keys(screens).forEach(key => {
-                    screens[key].classList.toggle('active', key === target);
-                });
-                if (target === 'screen-history') renderHistory();
-                if (target === 'screen-training') updateTraining();
-                if (target === 'screen-home') updateMainCard();
-            });
-        });
-    }
-
-    // === ЗАПУСК ===
-    document.addEventListener('DOMContentLoaded', function() {
-        init();
-        setupNavigation();
-
-        document.getElementById('saveBtn').addEventListener('click', saveMatch);
-        document.getElementById('quickAddBtn').addEventListener('click', saveMatch);
-        document.getElementById('bookmakerBtn').addEventListener('click', function() {
-            alert('🔗 Переход в БК (заглушка)');
-        });
-
-        document.getElementById('importArea').addEventListener('click', function() {
-            document.getElementById('fileInput').click();
-        });
-        document.getElementById('fileInput').addEventListener('change', function() {
-            if (this.files.length > 0) { importData(this.files[0]); this.value = ''; }
-        });
-        document.getElementById('exportDataBtn').addEventListener('click', exportData);
-        document.getElementById('resetAllBtn').addEventListener('click', resetAll);
-
-        document.getElementById('settingTrust').addEventListener('input', function() {
-            const val = parseInt(this.value);
-            document.getElementById('settingTrustVal').textContent = val + '%';
-            appData.settings.trust = val;
+        // === ДУБЛИРОВАНИЕ ===
+        function duplicateMatch(id) {
+            const original = appData.matches.find(m => m.id === id);
+            if (!original) return;
+            const copy = JSON.parse(JSON.stringify(original));
+            copy.id = Date.now();
+            copy.status = 'waiting';
+            copy.score = '';
+            copy.date = new Date().toLocaleDateString();
+            copy.time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            appData.matches.unshift(copy);
             saveData();
-            updateMainCard();
-        });
-        document.getElementById('settingOz').addEventListener('input', function() {
-            const val = parseInt(this.value);
-            document.getElementById('settingOzVal').textContent = val + '%';
-            appData.settings.minOz = val;
-            saveData();
-        });
-        document.getElementById('settingKelly').addEventListener('input', function() {
-            const val = parseInt(this.value);
-            document.getElementById('settingKellyVal').textContent = val + '%';
-            appData.settings.kellyPercent = val;
-            saveData();
-        });
-
-        function setupToggle(id, key) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.addEventListener('click', function() {
-                this.classList.toggle('active');
-                appData.settings[key] = this.classList.contains('active');
-                saveData();
-            });
+            renderHistory();
+            updateTraining();
         }
-        setupToggle('toggleOnlyOz', 'onlyOz');
-        setupToggle('toggleSound', 'sound');
-        setupToggle('toggleVibration', 'vibration');
-        setupToggle('toggleReminder', 'reminder');
 
-        document.querySelectorAll('.filter-bar .tag').forEach(tag => {
-            tag.addEventListener('click', function() {
-                document.querySelectorAll('.filter-bar .tag').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                renderHistory(this.dataset.filter);
+        // === СТАТИСТИКА ПО ДНЯМ ===
+        function renderDayStats() {
+            const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+            const stats = {};
+            days.forEach(d => stats[d] = { total: 0, wins: 0 });
+            appData.matches.forEach(m => {
+                if (m.status === 'waiting') return;
+                const date = new Date(m.date);
+                const dayName = days[date.getDay() === 0 ? 6 : date.getDay() - 1];
+                if (stats[dayName]) {
+                    stats[dayName].total++;
+                    if (m.status === 'win') stats[dayName].wins++;
+                }
             });
-        });
+            const grid = document.getElementById('dayStatsGrid');
+            grid.innerHTML = days.map(d => {
+                const s = stats[d];
+                const pct = s.total > 0 ? Math.round((s.wins / s.total) * 100) : 0;
+                return `<div><div style="font-weight:600;">${d}</div><div style="font-size:16px; color:${pct >= 70 ? '#00E676' : pct >= 50 ? '#FFD740' : '#FF5253'};">${pct}%</div><div style="font-size:10px; color:#9E9E9E;">${s.total} матчей</div></div>`;
+            }).join('');
+        }
 
-        document.getElementById('trainBtn').addEventListener('click', function() {
+        // === ОБУЧЕНИЕ ===
+        function updateTraining() {
+            const matches = appData.matches || [];
+            const total = matches.length;
+            const wins = matches.filter(m => m.status === 'win').length;
+            const losses = matches.filter(m => m.status === 'loss').length;
+            const pct = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
+            document.getElementById('modelMatches').textContent = total;
+            document.getElementById('modelAcc').textContent = pct + '%';
+            document.getElementById('modelLoss').textContent = (wins + losses) > 0 ? (1 - pct / 100).toFixed(2) : '0.00';
+            document.getElementById('patternPercent').textContent = pct + '%';
+            const roi = total > 0 ? ((wins - losses) / total * 100).toFixed(0) : '0';
+            document.getElementById('patternRoi').textContent = roi + '%';
+            if (total >= 10 && pct >= 70) {
+                document.getElementById('patternStatus').textContent = '🟢 РАБОТАЕТ';
+                document.getElementById('patternStatus').style.color = '#00E676';
+            } else if (total >= 5) {
+                document.getElementById('patternStatus').textContent = '🟡 НАБИРАЕТ';
+                document.getElementById('patternStatus').style.color = '#FFD740';
+            } else {
+                document.getElementById('patternStatus').textContent = '⏳ Сбор данных...';
+                document.getElementById('patternStatus').style.color = '#9E9E9E';
+            }
+            const advice = document.getElementById('aiAdviceText');
+            const wonMatches = matches.filter(m => m.status === 'win');
+            const avgOdds = wonMatches.length > 0 ? wonMatches.reduce((s, m) => s + m.odds, 0) / wonMatches.length : 0;
+            if (total < 5) {
+                advice.textContent = 'Соберите 10+ матчей для первых рекомендаций.';
+            } else if (pct >= 75) {
+                advice.textContent = `🔥 Отлично! Проходимость ${pct}%, средний кэф ${avgOdds.toFixed(2)}. Продолжайте!`;
+            } else if (pct >= 60) {
+                advice.textContent = `📊 Проходимость ${pct}%, средний кэф ${avgOdds.toFixed(2)}. Попробуйте ОЗ ≥ 90%.`;
+            } else {
+                advice.textContent = `⚠️ Проходимость ${pct}% — проверьте данные.`;
+            }
+        }
+
+        // === ОБУЧЕНИЕ (запуск) ===
+        function runTraining() {
             const matches = appData.matches || [];
             const wins = matches.filter(m => m.status === 'win').length;
             const losses = matches.filter(m => m.status === 'loss').length;
             const total = wins + losses;
             const pct = total > 0 ? Math.round((wins / total) * 100) : 0;
             if (total < 3) { alert('Нужно минимум 3 завершённых матча.'); return; }
-            alert('✅ Обучение завершено! Точность: ' + pct + '%');
-            updateTraining();
-        });
-        document.getElementById('copyStatsBtn').addEventListener('click', copyStats);
-        document.getElementById('resetBtn').addEventListener('click', resetAll);
-        document.getElementById('resetSettingsBtn').addEventListener('click', function() {
-            appData.settings = JSON.parse(JSON.stringify(defaultSettings));
+            const history = appData.trainingHistory || [];
+            history.push({
+                date: new Date().toLocaleDateString(),
+                matches: total,
+                acc: pct,
+                loss: (1 - pct / 100).toFixed(2)
+            });
+            appData.trainingHistory = history;
             saveData();
-            applySettings();
+            const histDiv = document.getElementById('trainingHistory');
+            histDiv.innerHTML = history.map((h, i) =>
+                `<div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #1F2633;">
+                    <span>#${i+1} (${h.matches} матчей)</span>
+                    <span style="color:#00E676;">${h.acc}%</span>
+                    <span style="color:#9E9E9E;">loss ${h.loss}</span>
+                </div>`
+            ).join('');
+            updateTraining();
+            alert('✅ Обучение завершено! Точность: ' + pct + '%');
+        }
+
+        // === КОПИРОВАТЬ СТАТИСТИКУ ===
+        function copyStats() {
+            const matches = appData.matches || [];
+            const total = matches.length;
+            const wins = matches.filter(m => m.status === 'win').length;
+            const losses = matches.filter(m => m.status === 'loss').length;
+            const pct = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
+            const roi = total > 0 ? ((wins - losses) / total * 100).toFixed(0) : '0';
+            const wonMatches = matches.filter(m => m.status === 'win');
+            const avgOdds = wonMatches.length > 0 ? wonMatches.reduce((s, m) => s + m.odds, 0) / wonMatches.length : 0;
+            let streak = 0,
+                current = 0;
+            for (let m of matches) {
+                if (m.status === 'win') { current++;
+                    streak = Math.max(streak, current); } else if (m.status === 'loss') { current = 0; }
+            }
+            const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+            const dayStats = {};
+            days.forEach(d => dayStats[d] = { total: 0, wins: 0 });
+            matches.forEach(m => {
+                if (m.status === 'waiting') return;
+                const date = new Date(m.date);
+                const dayName = days[date.getDay() === 0 ? 6 : date.getDay() - 1];
+                if (dayStats[dayName]) {
+                    dayStats[dayName].total++;
+                    if (m.status === 'win') dayStats[dayName].wins++;
+                }
+            });
+            const dayStr = days.map(d => {
+                const s = dayStats[d];
+                const p = s.total > 0 ? Math.round((s.wins / s.total) * 100) : 0;
+                return `${d}: ${s.total} матчей, ${p}%`;
+            }).join('\n');
+            const last10 = matches.slice(0, 10).map((m, i) => {
+                const status = m.status === 'win' ? '✅ Зашло' : m.status === 'loss' ? '❌ Не зашло' : '⏳ Ожидает';
+                return `${i+1}. ${m.home} — ${m.away} (ОЗ ${m.oz}%, кэф ${m.odds}) → ${status}`;
+            }).join('\n');
+            const report = `🔥 КВАНТУМ PRO v4.2 — ОТЧЁТ
+
+        📊 ОБЩАЯ СТАТИСТИКА:
+        Всего матчей: ${total}
+        Зашло: ${wins}
+        Не зашло: ${losses}
+        Процент побед: ${pct}%
+        ROI: ${roi}%
+        Средний кэф зашедших: ${avgOdds > 0 ? avgOdds.toFixed(2) : '0.00'}
+        Текущая серия: ${streak} ${streak > 0 ? 'побед' : 'поражений'}
+
+        📅 ПО ДНЯМ НЕДЕЛИ:
+        ${dayStr}
+
+        📋 ПОСЛЕДНИЕ 10 МАТЧЕЙ:
+        ${last10 || 'Нет данных'}
+
+        🧠 ТВОЙ ПАТТЕРН:
+        Индекс 38% + ОЗ ≥ 86%
+        Проходимость: ${pct}%
+        Статус: ${pct >= 70 ? '🟢 РАБОТАЕТ' : pct >= 50 ? '🟡 НАБИРАЕТ' : '🔴 ТРЕБУЕТ ВНИМАНИЯ'}
+
+        💡 СОВЕТ AI:
+        ${pct >= 75 ? '🔥 Отлично! Продолжай в том же духе.' :
+          pct >= 60 ? '📊 Хороший результат. Попробуй ОЗ ≥ 90%.' :
+          '⚠️ Результат ниже ожидаемого. Проверь данные.'}`;
+
+            navigator.clipboard.writeText(report).then(() => {
+                alert('✅ Статистика скопирована в буфер обмена!');
+            }).catch(() => {
+                alert('❌ Не удалось скопировать. Скопируйте текст вручную:\n\n' + report);
+            });
+        }
+
+        // === ЭКСПОРТ ===
+        function exportData() {
+            const data = {
+                version: '4.2 PRO',
+                exportDate: new Date().toISOString(),
+                matches: appData.matches || [],
+                settings: appData.settings || defaultSettings,
+                trainingHistory: appData.trainingHistory || [],
+                apiKey: appData.apiKey ? '****' : ''
+            };
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `quantum_backup_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // === ИМПОРТ ===
+        function importData(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.matches && Array.isArray(data.matches)) {
+                        const validMatches = data.matches.filter(m => m.home && m.away);
+                        if (validMatches.length > 0) {
+                            const existingIds = new Set(appData.matches.map(m => m.id));
+                            let added = 0;
+                            validMatches.forEach(m => {
+                                if (!existingIds.has(m.id)) {
+                                    appData.matches.push(m);
+                                    existingIds.add(m.id);
+                                    added++;
+                                }
+                            });
+                            if (added > 0) {
+                                saveData();
+                                renderHistory();
+                                updateTraining();
+                                updateMainCard();
+                                alert(`✅ Импортировано ${added} матчей`);
+                            } else {
+                                alert('ℹ️ Новых матчей не найдено (все уже есть)');
+                            }
+                        } else {
+                            alert('❌ Не найдено валидных матчей в файле');
+                        }
+                    } else {
+                        alert('❌ Неверный формат файла');
+                    }
+                } catch(err) {
+                    alert('❌ Ошибка при чтении файла: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // === СБРОС ===
+        function resetAll() {
+            if (confirm('Удалить все данные?')) {
+                appData = { matches: [], settings: JSON.parse(JSON.stringify(defaultSettings)), trainingHistory: [], apiKey: '' };
+                document.getElementById('apiKeyInput').value = '';
+                document.getElementById('apiStatus').textContent = '';
+                saveData();
+                renderHistory();
+                updateTraining();
+                applySettings();
+                applyTheme();
+                updateMainCard();
+            }
+        }
+
+        // === НАВИГАЦИЯ ===
+        function setupNavigation() {
+            const items = document.querySelectorAll('.nav-item');
+            const screens = {
+                'screen-home': document.getElementById('screen-home'),
+                'screen-history': document.getElementById('screen-history'),
+                'screen-settings': document.getElementById('screen-settings'),
+                'screen-training': document.getElementById('screen-training')
+            };
+
+            items.forEach(item => {
+                item.addEventListener('click', function() {
+                    const target = this.dataset.tab;
+                    items.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    Object.keys(screens).forEach(key => {
+                        screens[key].classList.toggle('active', key === target);
+                    });
+                    if (target === 'screen-history') renderHistory();
+                    if (target === 'screen-training') updateTraining();
+                    if (target === 'screen-home') updateMainCard();
+                });
+            });
+        }
+
+        // === ЗАПУСК ===
+        document.addEventListener('DOMContentLoaded', function() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+
+            init();
+            setupNavigation();
+
+            // --- ГЛАВНАЯ ---
+            document.getElementById('saveBtn').addEventListener('click', saveMatch);
+            document.getElementById('quickAddBtn').addEventListener('click', saveMatch);
+            document.getElementById('bookmakerBtn').addEventListener('click', function() {
+                alert('🔗 Переход в БК (заглушка). Кэф: ' + document.getElementById('oddsDisplay').textContent);
+            });
+
+            // --- НАСТРОЙКИ ---
+            document.getElementById('saveApiKeyBtn').addEventListener('click', function() {
+                const key = document.getElementById('apiKeyInput').value.trim();
+                if (key) {
+                    appData.apiKey = key;
+                    saveData();
+                    document.getElementById('apiStatus').textContent = '✅ Ключ сохранён';
+                } else {
+                    document.getElementById('apiStatus').textContent = '❌ Введите ключ';
+                }
+            });
+
+            document.getElementById('importArea').addEventListener('click', function() {
+                document.getElementById('fileInput').click();
+            });
+            document.getElementById('importArea').addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            document.getElementById('importArea').addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+            document.getElementById('importArea').addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    importData(e.dataTransfer.files[0]);
+                }
+            });
+            document.getElementById('fileInput').addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    importData(this.files[0]);
+                    this.value = '';
+                }
+            });
+            document.getElementById('exportDataBtn').addEventListener('click', exportData);
+            document.getElementById('resetAllBtn').addEventListener('click', resetAll);
+
+            // --- НАСТРОЙКИ (слайдеры) ---
+            document.getElementById('settingTrust').addEventListener('input', function() {
+                const val = parseInt(this.value);
+                document.getElementById('settingTrustVal').textContent = val + '%';
+                appData.settings.trust = val;
+                saveData();
+                updateMainCard();
+            });
+            document.getElementById('settingOz').addEventListener('input', function() {
+                const val = parseInt(this.value);
+                document.getElementById('settingOzVal').textContent = val + '%';
+                appData.settings.minOz = val;
+                saveData();
+                updateMainCard();
+            });
+            document.getElementById('settingKelly').addEventListener('input', function() {
+                const val = parseInt(this.value);
+                document.getElementById('settingKellyVal').textContent = val + '%';
+                appData.settings.kellyPercent = val;
+                saveData();
+                updateMainCard();
+            });
+
+            // --- ТОГГЛЫ ---
+            function setupToggle(id, key) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    if (key === 'theme') {
+                        appData.settings.theme = this.classList.contains('active') ? 'light' : 'dark';
+                        applyTheme();
+                    } else {
+                        appData.settings[key] = this.classList.contains('active');
+                    }
+                    saveData();
+                });
+            }
+            setupToggle('toggleOnlyOz', 'onlyOz');
+            setupToggle('toggleOnlyValue', 'onlyValue');
+            setupToggle('toggleSound', 'sound');
+            setupToggle('toggleVibration', 'vibration');
+            setupToggle('toggleReminder', 'reminder');
+            setupToggle('toggleTheme', 'theme');
+
+            // --- ФИЛЬТРЫ ---
+            document.querySelectorAll('.filter-bar .tag').forEach(tag => {
+                tag.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-bar .tag').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    renderHistory(this.dataset.filter);
+                });
+            });
+
+            // --- ОБУЧЕНИЕ ---
+            document.getElementById('trainBtn').addEventListener('click', runTraining);
+            document.getElementById('copyStatsBtn').addEventListener('click', copyStats);
+            document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+            // --- СБРОС НАСТРОЕК ---
+            document.getElementById('resetSettingsBtn').addEventListener('click', function() {
+                appData.settings = JSON.parse(JSON.stringify(defaultSettings));
+                saveData();
+                applySettings();
+                applyTheme();
+                updateMainCard();
+            });
+
+            // --- ОБНОВЛЕНИЕ КАРТОЧКИ ПРИ ВВОДЕ ---
+            ['inputHome', 'inputAway', 'inputLeague', 'inputCountry', 'inputXg', 'inputXga', 'inputOz', 'inputOdds', 'inputComment'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', updateMainCard);
+            });
+
+            renderHistory();
+            updateTraining();
             updateMainCard();
+            checkReminders();
         });
-
-        ['inputHome', 'inputAway', 'inputOz', 'inputOdds'].forEach(id => {
-            document.getElementById(id).addEventListener('input', updateMainCard);
-        });
-
-        renderHistory();
-        updateTraining();
-        updateMainCard();
-    });
+    })();
 </script>
 </body>
 </html>
