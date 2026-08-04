@@ -52,6 +52,7 @@
         body.light .confidence-bar { background: #e0e0e0 !important; }  
         body.light .weather-section { background: #e8f0fa !important; border-color: #3498db !important; }  
         body.light .weather-header { color: #1a1a1a !important; }  
+        body.light .weather-card { background: #f5f8fc !important; border-color: #3498db !important; }  
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px 6px; background: #0b0e14; border-bottom: 1px solid #2a3140; flex-shrink: 0; z-index: 10; padding-top: env(safe-area-inset-top, 10px); }  
         .header h1 { font-size: 17px; color: #f7931a; display: flex; align-items: center; gap: 6px; }  
         .header h1 span { font-size: 8px; color: #555; font-weight: 400; }  
@@ -232,6 +233,73 @@
         .bottom-nav .nav-btn .nav-label { font-size: 9px; }  
         .bottom-nav .nav-btn.active { color: #f7931a; }  
         .bottom-nav .nav-btn .badge { background: #e74c3c; color: #fff; font-size: 8px; padding: 1px 6px; border-radius: 10px; margin-left: 2px; }  
+
+        /* ===== КАРТОЧКА ПОГОДЫ ===== */
+        .weather-card {
+            background: #1a2a3a;
+            border: 1px solid #3498db;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin: 4px 0;
+        }
+        .weather-card .card-title {
+            color: #3498db;
+        }
+        .weather-card .weather-main {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 4px 0;
+        }
+        .weather-card .weather-main .big-icon {
+            font-size: 42px;
+        }
+        .weather-card .weather-main .temp-big {
+            font-size: 32px;
+            font-weight: 700;
+            color: #f7931a;
+        }
+        .weather-card .weather-main .desc-big {
+            font-size: 14px;
+            color: #aaa;
+        }
+        .weather-card .weather-details {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+            font-size: 12px;
+            color: #888;
+        }
+        .weather-card .weather-details span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .weather-card .weather-impact {
+            margin-top: 6px;
+            padding: 4px 10px;
+            background: #0b0e14;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #aaa;
+        }
+        .weather-card .weather-error-text {
+            color: #e74c3c;
+            text-align: center;
+            padding: 8px 0;
+        }
+        .weather-card .weather-loading-text {
+            color: #888;
+            text-align: center;
+            padding: 8px 0;
+            animation: pulse 1s infinite;
+        }
+        .weather-card .weather-city {
+            font-size: 11px;
+            color: #555;
+            margin-top: 2px;
+        }
     </style>  
 </head>  
 <body>  
@@ -321,24 +389,16 @@
                     </div>  
                 </div>  
             </div>  
-            <div class="card">  
-                <div class="card-title">📊 Букмекерские линии</div>  
-                <div class="bk-row">  
-                    <label>Букмекер:</label>  
-                    <select id="bookieSelect" onchange="loadOdds()">  
-                        <option value="">Авто-выбор</option>  
-                        <option value="bet365">Bet365</option>  
-                        <option value="pinnacle">Pinnacle</option>  
-                        <option value="1xbet">1xBet</option>  
-                    </select>  
-                </div>  
-                <div class="odds-row" id="oddsDisplay"><span style="font-size:11px;color:#888;">⏳ Загрузка...</span></div>  
-                <div class="bk-row">  
-                    <label>📈 Линия БК:</label>  
-                    <input type="number" id="bkLine" value="0" step="0.05" readonly/>  
-                    <span id="bkComment" style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:12px;">—</span>  
-                </div>  
-            </div>  
+
+            <!-- ====== КАРТОЧКА ПОГОДЫ ====== -->
+            <div class="weather-card" id="weatherCard">
+                <div class="card-title">🌤️ Погода на стадионе</div>
+                <div id="weatherCardContent">
+                    <div class="weather-loading-text">⏳ Загрузка погоды...</div>
+                </div>
+            </div>
+            <!-- ====== КОНЕЦ КАРТОЧКИ ПОГОДЫ ====== -->
+
         </div>  
         <!-- ====== ПОИСК ====== -->  
         <div class="screen" id="searchScreen">  
@@ -701,6 +761,9 @@
                 // Обновляем отображение  
                 updateHeaderWeatherDisplay();  
                   
+                // Обновляем карточку погоды  
+                updateWeatherCard();  
+                  
                 console.log('🌤️ Погода в Москве:', data.weather[0].description, Math.round(data.main.temp) + '°C');  
                   
             } catch(e) {  
@@ -709,6 +772,7 @@
                 tempEl.textContent = '--°C';  
                 descEl.textContent = 'Ошибка';  
                 descEl.className = 'weather-error';  
+                updateWeatherCardError();  
             }  
         }  
   
@@ -746,6 +810,65 @@
         function refreshWeather() {  
             loadHeaderWeather();  
             showToast('🔄 Обновление погоды...', 'info');  
+        }  
+  
+        // ===== КАРТОЧКА ПОГОДЫ =====  
+        function updateWeatherCard() {  
+            const container = document.getElementById('weatherCardContent');  
+            if (!container) return;  
+              
+            if (!state.headerWeather) {  
+                container.innerHTML = `<div class="weather-loading-text">⏳ Загрузка погоды...</div>`;  
+                return;  
+            }  
+              
+            const w = state.headerWeather;  
+            const emoji = getWeatherEmojiFromData(w);  
+            const impact = getWeatherImpactText(w);  
+              
+            container.innerHTML = `  
+                <div class="weather-main">  
+                    <span class="big-icon">${emoji}</span>  
+                    <div>  
+                        <div class="temp-big">${w.temp}°C</div>  
+                        <div class="desc-big">${w.description}</div>  
+                    </div>  
+                </div>  
+                <div class="weather-details">  
+                    <span>💨 ${Math.round(w.wind_speed)} км/ч</span>  
+                    <span>💧 ${w.humidity}%</span>  
+                    <span>🌡️ Ощущается ${w.feels_like}°C</span>  
+                </div>  
+                <div class="weather-city">📍 Москва, Россия</div>  
+                <div class="weather-impact">📊 ${impact}</div>  
+            `;  
+        }  
+  
+        function updateWeatherCardError() {  
+            const container = document.getElementById('weatherCardContent');  
+            if (!container) return;  
+            container.innerHTML = `<div class="weather-error-text">❌ Ошибка загрузки погоды. Проверьте ключ API.</div>`;  
+        }  
+  
+        function getWeatherImpactText(weather) {  
+            if (!weather) return 'Нет данных';  
+            const condition = weather.weather.toLowerCase();  
+            if (condition.includes('rain') || condition.includes('drizzle')) {  
+                return '⚠️ Дождь: -15% голов, -20% ОЗ';  
+            } else if (condition.includes('snow')) {  
+                return '❄️ Снег: -25% голов, -30% ОЗ';  
+            } else if (weather.temp > 30) {  
+                return '🌡️ Жара: -20% голов во 2-м тайме';  
+            } else if (weather.temp < 0) {  
+                return '🥶 Холод: -10% голов';  
+            } else if (weather.wind_speed > 20) {  
+                return '💨 Ветер: -10% голов, меньше точных ударов';  
+            } else if (condition.includes('clear')) {  
+                return '☀️ Отличная погода для футбола';  
+            } else if (condition.includes('cloud')) {  
+                return '☁️ Облачно, условия нормальные';  
+            }  
+            return '✅ Погода нейтральна';  
         }  
   
         // ================================================================  
@@ -2029,8 +2152,6 @@
             state.weatherData = null;  
             const aiResult = $('aiResult');  
             if (aiResult) aiResult.style.display = 'none';  
-            const bkComment = $('bkComment');  
-            if (bkComment) { bkComment.textContent = '—'; bkComment.style.background = 'transparent'; }  
             const searchBadge = $('searchBadgeNav');  
             if (searchBadge) searchBadge.style.display = 'none';  
             showToast('🗑️ Очищено', 'info');  
@@ -2251,28 +2372,6 @@
         }  
   
         // ================================================================  
-        // ЗАГЛУШКИ ДЛЯ ОДДС  
-        // ================================================================  
-        async function loadOdds() {  
-            const select = document.getElementById('bookieSelect');  
-            const display = document.getElementById('oddsDisplay');  
-            const line = document.getElementById('bkLine');  
-            const comment = document.getElementById('bkComment');  
-              
-            if (select && display && line && comment) {  
-                const bookie = select.value || 'bet365';  
-                display.innerHTML = `<span class="odds-book"><span class="name">${bookie}</span><span class="line">${(Math.random() * 3 + 1.5).toFixed(1)}</span></span>`;  
-                const randomLine = (Math.random() * 3 + 1.5).toFixed(1);  
-                line.value = randomLine;  
-                line.disabled = false;  
-                comment.textContent = '✅ Загружено';  
-                comment.style.background = '#2ecc71';  
-                comment.style.color = '#000';  
-                calculate();  
-            }  
-        }  
-  
-        // ================================================================  
         // ИНИЦИАЛИЗАЦИЯ  
         // ================================================================  
         document.addEventListener('DOMContentLoaded', async function() {  
@@ -2328,7 +2427,7 @@
         console.log('📊 Функции: 200+ лиг, Live матчи, xG данные, история 5 сезонов, ПОГОДА');  
         console.log('✅ 3 режима: Тотал, ОЗ, Фора');  
         console.log('📱 Навигация внизу, как в нативном приложении');  
-        console.log('🌤️ Погода в шапке (Москва)');  
+        console.log('🌤️ Погода в шапке и в карточке на главном экране');  
         console.log('🚀 Готов к работе!');  
     </script>  
 </body>  
