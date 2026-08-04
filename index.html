@@ -759,89 +759,59 @@
   
         const MOSCOW_COORDS = { lat: 55.7558, lon: 37.6173 };  
   
-        async function loadHeaderWeather() {  
-            const weatherEl = document.getElementById('headerWeather');  
-            const iconEl = document.getElementById('weatherIconHeader');  
-            const tempEl = document.getElementById('weatherTempHeader');  
-            const descEl = document.getElementById('weatherDescHeader');  
-              
-            if (!weatherEl) return;  
-              
-            iconEl.textContent = '⏳';  
-            tempEl.textContent = '--°C';  
-            descEl.textContent = 'Загрузка...';  
-            descEl.className = 'weather-loading';  
-              
-            const key = localStorage.getItem('quantum_weather_key');  
-            if (!key || key === '') {  
-                iconEl.textContent = '❌';  
-                tempEl.textContent = '--°C';  
-                descEl.textContent = 'Нет ключа';  
-                descEl.className = 'weather-error';  
-                return;  
-            }  
-  
-            try {  
-                const url = `${PROXY_BASE}weather?lat=${MOSCOW_COORDS.lat}&lon=${MOSCOW_COORDS.lon}&appid=${key}`;  
-                const response = await fetchWithRetry(url);  
-                if (!response.ok) throw new Error('Погода не найдена');  
-                const data = await response.json();  
-                  
-                state.headerWeather = {  
-                    temp: Math.round(data.main.temp - 273.15),  
-                    feels_like: Math.round(data.main.feels_like - 273.15),  
-                    humidity: data.main.humidity,  
-                    wind_speed: data.wind.speed,  
-                    weather: data.weather[0].main,  
-                    description: data.weather[0].description,  
-                    icon: data.weather[0].icon  
-                };  
-                  
-                updateHeaderWeatherDisplay();  
-                  
-                console.log('🌤️ Погода в Москве:', data.weather[0].description, Math.round(data.main.temp - 273.15) + '°C');  
-                  
-            } catch(e) {  
-                console.log('⚠️ Ошибка загрузки погоды в шапке:', e);  
-                iconEl.textContent = '❌';  
-                tempEl.textContent = '--°C';  
-                descEl.textContent = 'Ошибка';  
-                descEl.className = 'weather-error';  
-            }  
-        }  
-  
-        function updateHeaderWeatherDisplay() {  
-            const iconEl = document.getElementById('weatherIconHeader');  
-            const tempEl = document.getElementById('weatherTempHeader');  
-            const descEl = document.getElementById('weatherDescHeader');  
-              
-            if (!state.headerWeather) return;  
-              
-            const w = state.headerWeather;  
-            const emoji = getWeatherEmojiFromData(w);  
-              
-            iconEl.textContent = emoji;  
-            tempEl.textContent = w.temp + '°C';  
-            descEl.textContent = w.description;  
-            descEl.className = 'weather-desc';  
-        }  
-  
-        function getWeatherEmojiFromData(weather) {  
-            if (!weather) return '🌤️';  
-            const condition = weather.weather.toLowerCase();  
-            if (condition.includes('rain') || condition.includes('drizzle')) return '🌧️';  
-            if (condition.includes('snow')) return '❄️';  
-            if (condition.includes('cloud')) return '☁️';  
-            if (condition.includes('clear')) return '☀️';  
-            if (condition.includes('thunder')) return '⛈️';  
-            if (condition.includes('mist') || condition.includes('fog')) return '🌫️';  
-            return '🌤️';  
-        }  
-  
-        function refreshWeather() {  
-            loadHeaderWeather();  
-            showToast('🔄 Обновление погоды...', 'info');  
-        }  
+        async function loadHeaderWeather() {
+    const weatherEl = document.getElementById('headerWeather');
+    const iconEl = document.getElementById('weatherIconHeader');
+    const tempEl = document.getElementById('weatherTempHeader');
+    const descEl = document.getElementById('weatherDescHeader');
+    
+    if (!weatherEl) return;
+    
+    iconEl.textContent = '⏳';
+    tempEl.textContent = '--°C';
+    descEl.textContent = 'Загрузка...';
+    descEl.className = 'weather-loading';
+    
+    const key = localStorage.getItem('quantum_weather_key');
+    if (!key || key === '') {
+        iconEl.textContent = '❌';
+        tempEl.textContent = '--°C';
+        descEl.textContent = 'Нет ключа';
+        descEl.className = 'weather-error';
+        return;
+    }
+
+    try {
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=55.7558&lon=37.6173&appid=${key}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        
+        if (!data || !data.main || typeof data.main.temp === 'undefined') {
+            throw new Error('Некорректные данные');
+        }
+        
+        state.headerWeather = {
+            temp: Math.round(data.main.temp - 273.15),
+            feels_like: Math.round(data.main.feels_like - 273.15),
+            humidity: data.main.humidity,
+            wind_speed: data.wind.speed,
+            weather: data.weather[0].main,
+            description: data.weather[0].description,
+            icon: data.weather[0].icon
+        };
+        
+        updateHeaderWeatherDisplay();
+        console.log('🌤️ Погода в Москве:', data.weather[0].description, Math.round(data.main.temp - 273.15) + '°C');
+        
+    } catch(e) {
+        console.log('⚠️ Ошибка погоды:', e);
+        iconEl.textContent = '❌';
+        tempEl.textContent = '--°C';
+        descEl.textContent = 'Ошибка';
+        descEl.className = 'weather-error';
+    }
+}  
   
         // ================================================================  
         // ПОГОДА ДЛЯ МАТЧА (С КНОПКОЙ)  
@@ -866,7 +836,7 @@
     btn.textContent = '⏳ Загрузка...';
     
     card.style.display = 'block';
-    container.innerHTML = `<div class="weather-loading-text">⏳ Загрузка погоды для стадиона "${sanitizeHTML(homeTeamName)}"...</div>`;
+    container.innerHTML = `<div class="weather-loading-text">⏳ Загрузка погоды для стадиона...</div>`;
 
     try {
         const coords = await getStadiumCoords(homeTeamName);
@@ -883,23 +853,14 @@
             return;
         }
 
-        const url = `${PROXY_BASE}weather?lat=${coords.lat}&lon=${coords.lon}&appid=${key}`;
-        const response = await fetchWithRetry(url);
-        
-        // ===== ПРОВЕРКА ОТВЕТА =====
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-        
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${coords.lat}&lon=${coords.lon}&appid=${key}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         
-        // ===== ПРОВЕРКА НАЛИЧИЯ ДАННЫХ =====
         if (!data || !data.main || typeof data.main.temp === 'undefined') {
-            console.log('⚠️ Ответ API:', data);
-            throw new Error('API вернул некорректные данные. Проверьте ключ погоды.');
+            throw new Error('API вернул некорректные данные');
         }
-        // ================================
         
         state.matchWeather = {
             temp: Math.round(data.main.temp - 273.15),
@@ -914,21 +875,16 @@
         };
         
         state.weatherFactor = calculateWeatherFactor(state.matchWeather);
-        
         updateMatchWeatherDisplay();
-        
         showToast(`✅ Погода загружена: ${state.matchWeather.temp}°C, ${state.matchWeather.description}`, 'success');
         
-        console.log('🌤️ Погода для матча:', data.weather[0].description, Math.round(data.main.temp - 273.15) + '°C', 'в', coords.city, 'Фактор:', state.weatherFactor);
-        
     } catch(e) {
-        console.log('⚠️ Ошибка загрузки погоды для матча:', e);
-        container.innerHTML = `<div class="weather-error-text">❌ Ошибка загрузки погоды: ${e.message}</div>`;
+        console.log('⚠️ Ошибка погоды:', e);
+        container.innerHTML = `<div class="weather-error-text">❌ Ошибка: ${e.message}</div>`;
     } finally {
         if (btn) { btn.disabled = false; btn.textContent = '🔄 Загрузить погоду'; }
     }
 }  
-  
         // ================================================================  
         // ПОГОДА ДЛЯ ПРОГНОЗА  
         // ================================================================  
