@@ -1492,12 +1492,39 @@
     
             let result = { value: 0, prob: 50, advice: '', className: 'info' };    
     
-            if (mode === 'oz') {    
-                const prob = Math.min(100, Math.max(0, Math.round((home > 0 && away > 0 ? 75 : 25 + (league.oz || 60)) / 2)));    
-                result.value = home > 0 && away > 0 ? '✅ Да' : '❌ Нет';    
-                result.prob = prob;    
-                result.advice = prob > 70 ? `✅ Высокая ${prob}%` : (prob > 40 ? `🟡 Средняя ${prob}%` : `🔴 Низкая ${prob}%`);    
-                result.className = prob > 70 ? 'good' : (prob > 40 ? 'warn' : 'bad');    
+            } else if (mode === 'oz') {
+    // Базовые вероятности
+    let baseProb = (home > 0 && away > 0) ? 75 : 25;
+    let leagueFactor = league.oz || 60;
+    
+    // H2H статистика
+    let h2hOz = 50;
+    if (state.h2hData && state.h2hData.length > 0) {
+        const ozMatches = state.h2hData.filter(m => m.oz).length;
+        h2hOz = Math.round((ozMatches / state.h2hData.length) * 100);
+    }
+    
+    // Погодный фактор (если есть)
+    let weatherFactor = 0;
+    if (state.weatherData) {
+        const condition = state.weatherData.weather.toLowerCase();
+        if (condition.includes('rain') || condition.includes('drizzle')) {
+            weatherFactor = -10;
+        } else if (condition.includes('snow')) {
+            weatherFactor = -15;
+        } else if (condition.includes('clear')) {
+            weatherFactor = +5;
+        }
+    }
+    
+    // Итоговая вероятность
+    let prob = Math.round((baseProb + leagueFactor + h2hOz + weatherFactor) / (3 + (weatherFactor !== 0 ? 1 : 0)));
+    prob = Math.min(100, Math.max(0, prob));
+    
+    result.value = home > 0 && away > 0 ? '✅ Да' : '❌ Нет';
+    result.prob = prob;
+    result.advice = prob > 70 ? `✅ Высокая ${prob}%` : (prob > 40 ? `🟡 Средняя ${prob}%` : `🔴 Низкая ${prob}%`);
+    result.className = prob > 70 ? 'good' : (prob > 40 ? 'warn' : 'bad');    
             } else if (mode === 'total') {    
                 let expected = total || Math.round(league.avgGoals || 2.5);    
                 if (state.h2hData && state.h2hData.length > 0) {    
