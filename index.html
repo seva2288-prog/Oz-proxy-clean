@@ -425,10 +425,7 @@
             <div class="card">  
                 <div class="card-title">⚙️ Настройки</div>  
                 <div class="settings-item"><span class="label">🎨 Тема</span><button class="toggle-btn" id="themeToggle" onclick="toggleTheme()">🌙 Тёмная</button></div>  
-                <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;">  
-                    <span class="label">🏆 Лига по умолчанию</span>  
-                    <select id="settingsLeagueSelect" onchange="changeDefaultLeague(this.value)"></select>  
-                </div>  
+                <!-- УБРАНО: Лига по умолчанию -->  
                 <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;">  
                     <span class="label">🔑 API ключ (платный)</span>  
                     <input type="password" id="apiKeyInput" placeholder="Вставьте ваш платный API ключ" style="padding:8px;border-radius:8px;border:1px solid #2a3140;background:#0b0e14;color:#e0e0e0;outline:0;">  
@@ -656,6 +653,33 @@
         // ПОГОДА (OpenWeatherMap)  
         // ================================================================  
   
+        // Ручные координаты для популярных стадионов  
+        const MANUAL_COORDS = {  
+            'Real Madrid': { lat: 40.4531, lon: -3.6883 },  
+            'Barcelona': { lat: 41.3809, lon: 2.1228 },  
+            'Atletico Madrid': { lat: 40.4362, lon: -3.5995 },  
+            'Sevilla': { lat: 37.3840, lon: -5.9705 },  
+            'Valencia': { lat: 39.4746, lon: -0.3582 },  
+            'Spartak Moscow': { lat: 55.817, lon: 37.436 },  
+            'CSKA Moscow': { lat: 55.792, lon: 37.516 },  
+            'Zenit': { lat: 59.972, lon: 30.220 },  
+            'Lokomotiv Moscow': { lat: 55.783, lon: 37.517 },  
+            'Dynamo Moscow': { lat: 55.779, lon: 37.559 },  
+            'Orenburg': { lat: 51.768, lon: 55.097 },  
+            'Liverpool': { lat: 53.4308, lon: -2.9608 },  
+            'Manchester United': { lat: 53.4631, lon: -2.2913 },  
+            'Manchester City': { lat: 53.4831, lon: -2.2004 },  
+            'Chelsea': { lat: 51.4816, lon: -0.1910 },  
+            'Arsenal': { lat: 51.5550, lon: -0.1084 },  
+            'Tottenham': { lat: 51.6033, lon: -0.0656 },  
+            'Bayern Munich': { lat: 48.2188, lon: 11.6247 },  
+            'Borussia Dortmund': { lat: 51.4926, lon: 7.4519 },  
+            'Paris Saint-Germain': { lat: 48.8414, lon: 2.2530 },  
+            'Juventus': { lat: 45.1096, lon: 7.6413 },  
+            'AC Milan': { lat: 45.4780, lon: 9.1240 },  
+            'Inter Milan': { lat: 45.4780, lon: 9.1240 }  
+        };  
+  
         function saveWeatherKey() {  
             const key = document.getElementById('weatherKeyInput').value.trim();  
             if (!key) {  
@@ -692,6 +716,17 @@
         }  
   
         async function getStadiumCoords(teamName) {  
+            // Сначала проверяем ручные координаты  
+            if (MANUAL_COORDS[teamName]) {  
+                return {  
+                    lat: MANUAL_COORDS[teamName].lat,  
+                    lon: MANUAL_COORDS[teamName].lon,  
+                    name: 'Стадион',  
+                    city: teamName  
+                };  
+            }  
+  
+            // Если нет в ручных - пробуем через API  
             const apiKey = localStorage.getItem('quantum_api_key');  
             if (!apiKey || apiKey === 'ваш_платный_ключ') return null;  
             try {  
@@ -1113,23 +1148,7 @@
         }  
   
         function renderSettingsLeagues() {  
-            const select = $('settingsLeagueSelect');  
-            if (!select) return;  
-            select.innerHTML = '';  
-            if (Object.keys(LEAGUES).length === 0) {  
-                const option = document.createElement('option');  
-                option.value = '39';  
-                option.textContent = '🏴 АПЛ';  
-                select.appendChild(option);  
-                return;  
-            }  
-            Object.keys(LEAGUES).forEach(key => {  
-                const option = document.createElement('option');  
-                option.value = key;  
-                option.textContent = LEAGUES[key].name;  
-                if (key === state.currentLeague) option.selected = true;  
-                select.appendChild(option);  
-            });  
+            // Функция больше не нужна, так как убрали лигу из настроек  
         }  
   
         function changeDefaultLeague(value) {  
@@ -1531,6 +1550,7 @@
             }  
   
             // ====== ПОГОДА ======  
+            // Берем название команды из поля поиска  
             const homeTeamName = document.getElementById('homeTeamH2H')?.value || '';  
               
             if (homeTeamName && homeTeamName.length > 2) {  
@@ -1540,8 +1560,8 @@
                         const weather = await getWeatherByCoords(coords.lat, coords.lon);  
                         if (weather) {  
                             state.weatherData = weather;  
-                            state.weatherData.stadium = coords.name;  
-                            state.weatherData.city = coords.city;  
+                            state.weatherData.stadium = coords.name || 'Стадион';  
+                            state.weatherData.city = coords.city || '';  
                               
                             let weatherFactor = 1.0;  
                             const condition = weather.weather.toLowerCase();  
@@ -1571,10 +1591,14 @@
                               
                             console.log('🌤️ Погода:', weather.description, weather.temp + '°C', 'Фактор:', weatherFactor);  
                         }  
+                    } else {  
+                        console.log('⚠️ Стадион не найден для:', homeTeamName);  
                     }  
                 } catch(e) {  
                     console.log('⚠️ Ошибка загрузки погоды:', e);  
                 }  
+            } else {  
+                console.log('⚠️ Не введено название команды хозяев в поиске');  
             }  
             // ====== КОНЕЦ ПОГОДЫ ======  
   
@@ -2181,7 +2205,6 @@
             renderMonthlyChart();  
             renderInsights();  
             updateSum();  
-            renderSettingsLeagues();  
               
             const savedKey = localStorage.getItem('quantum_api_key');  
             if (savedKey && savedKey !== 'ваш_платный_ключ') {  
