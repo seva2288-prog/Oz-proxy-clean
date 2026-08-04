@@ -54,6 +54,7 @@
         body.light .weather-header { color: #1a1a1a !important; }  
         body.light .weather-card { background: #f5f8fc !important; border-color: #3498db !important; }  
         body.light .league-info-card { background: #fff !important; border-color: #d0d5dd !important; }  
+        body.light .insights-card { background: #f8f0fc !important; border-color: #9b59b6 !important; }  
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px 6px; background: #0b0e14; border-bottom: 1px solid #2a3140; flex-shrink: 0; z-index: 10; padding-top: env(safe-area-inset-top, 10px); }  
         .header h1 { font-size: 17px; color: #f7931a; display: flex; align-items: center; gap: 6px; }  
         .header h1 span { font-size: 8px; color: #555; font-weight: 400; }  
@@ -298,6 +299,57 @@
             font-weight: 700;  
         }  
   
+        /* ===== УМНЫЕ ВЫВОДЫ ===== */  
+        .insights-card {  
+            background: #1a1f2a;  
+            border: 1px solid #9b59b6;  
+            border-radius: 12px;  
+            padding: 10px 12px;  
+            margin: 4px 0;  
+            border-left: 4px solid #9b59b6;  
+        }  
+        .insights-card .card-title {  
+            color: #9b59b6;  
+            font-size: 12px;  
+            font-weight: 700;  
+            margin-bottom: 4px;  
+        }  
+        .insights-card .insight-summary {  
+            font-size: 15px;  
+            font-weight: 700;  
+            margin-bottom: 4px;  
+        }  
+        .insights-card .insight-details {  
+            font-size: 12px;  
+            color: #888;  
+            line-height: 1.5;  
+        }  
+        .insights-card .insight-details li {  
+            list-style: none;  
+            padding: 2px 0;  
+        }  
+        .insights-card .insight-recommendation {  
+            margin-top: 6px;  
+            padding: 6px 10px;  
+            border-radius: 6px;  
+            background: #0b0e14;  
+            font-size: 13px;  
+        }  
+        .insights-card .insight-warnings {  
+            margin-top: 4px;  
+            font-size: 11px;  
+            color: #e74c3c;  
+        }  
+        .insights-card .insight-score {  
+            font-size: 11px;  
+            color: #888;  
+            margin-top: 2px;  
+        }  
+        .insights-card .insight-score .num {  
+            font-weight: 700;  
+            color: #f7931a;  
+        }  
+  
         /* ===== НИЖНЯЯ НАВИГАЦИЯ ===== */  
         .bottom-nav {   
             display: flex;   
@@ -434,6 +486,17 @@
                 </div>  
             </div>  
             <!-- ====== КОНЕЦ КАРТОЧКИ ПОГОДЫ ====== -->  
+
+            <!-- ====== УМНЫЕ ВЫВОДЫ ====== -->  
+            <div class="insights-card" id="smartInsightsCard" style="display:none;">  
+                <div class="card-title">🧠 Умные выводы</div>  
+                <div class="insight-summary" id="smartSummary">—</div>  
+                <ul class="insight-details" id="smartDetails"></ul>  
+                <div class="insight-recommendation" id="smartRecommendation">—</div>  
+                <div class="insight-warnings" id="smartWarnings"></div>  
+                <div class="insight-score" id="smartScore">📊 Оценка: <span class="num">0</span>%</div>  
+            </div>  
+            <!-- ====== КОНЕЦ УМНЫХ ВЫВОДОВ ====== -->  
   
         </div>    
         <!-- ====== ПОИСК ====== -->    
@@ -1444,7 +1507,7 @@
         }    
     
         // ================================================================    
-        // РАСЧЁТ (ИСПРАВЛЕН)    
+        // РАСЧЁТ (С УМНЫМИ ВЫВОДАМИ)    
         // ================================================================    
         const calculateDebounced = debounce(() => calculate(), 200);    
     
@@ -1563,6 +1626,10 @@
             const confidence = Math.min(100, Math.max(0, Math.round(result.prob)));    
             if ($('confidenceLabel')) $('confidenceLabel').textContent = confidence + '%';    
             if ($('confidenceFill')) $('confidenceFill').style.width = confidence + '%';    
+            
+            // ===== УМНЫЕ ВЫВОДЫ =====    
+            generateSmartInsights(home, away, total, mode, league, confidence);    
+            // =========================    
                 
             state.isCalculating = false;    
         }    
@@ -1575,6 +1642,211 @@
                 const sumDisplay = $('sumDisplay');    
                 if (sumDisplay) sumDisplay.textContent = total;    
             }    
+        }    
+    
+        // ================================================================    
+        // УМНЫЕ ВЫВОДЫ    
+        // ================================================================    
+    
+        function generateSmartInsights(home, away, total, mode, league, confidence) {    
+            const card = document.getElementById('smartInsightsCard');    
+            if (!card) return;    
+            
+            // Если нет данных — скрываем    
+            if (!home && !away && !state.h2hData && confidence < 30) {    
+                card.style.display = 'none';    
+                return;    
+            }    
+            
+            card.style.display = 'block';    
+            
+            let h2hCount = 0;    
+            let homeForm = 50;    
+            let awayForm = 50;    
+            let ozPercent = 50;    
+            let avgTotalH2H = 2.5;    
+            let homeWins = 0, awayWins = 0, draws = 0;    
+            
+            if (state.h2hData && state.h2hData.length > 0) {    
+                const matches = state.h2hData;    
+                h2hCount = matches.length;    
+                homeWins = matches.filter(m => m.homeScore > m.awayScore).length;    
+                awayWins = matches.filter(m => m.awayScore > m.homeScore).length;    
+                draws = h2hCount - homeWins - awayWins;    
+                homeForm = Math.round((homeWins / h2hCount) * 100);    
+                awayForm = Math.round((awayWins / h2hCount) * 100);    
+                const ozMatches = matches.filter(m => m.oz).length;    
+                ozPercent = Math.round((ozMatches / h2hCount) * 100);    
+                avgTotalH2H = matches.reduce((s, m) => s + m.total, 0) / h2hCount;    
+            }    
+            
+            // Погода    
+            let weatherImpact = 'нейтральна';    
+            let weatherScore = 0;    
+            if (state.weatherData) {    
+                const condition = state.weatherData.weather.toLowerCase();    
+                if (condition.includes('rain') || condition.includes('drizzle')) {    
+                    weatherImpact = 'неблагоприятная (дождь)';    
+                    weatherScore = -10;    
+                } else if (condition.includes('snow')) {    
+                    weatherImpact = 'неблагоприятная (снег)';    
+                    weatherScore = -15;    
+                } else if (condition.includes('clear')) {    
+                    weatherImpact = 'отличная (ясно)';    
+                    weatherScore = +5;    
+                } else if (condition.includes('cloud')) {    
+                    weatherImpact = 'нейтральная (облачно)';    
+                    weatherScore = 0;    
+                }    
+            }    
+            
+            // Анализ    
+            let score = 50;    
+            let details = [];    
+            let warnings = [];    
+            let recommendation = '';    
+            
+            // Форма команд    
+            if (homeForm > 60) {    
+                score += 10;    
+                details.push(`🏠 Хозяева в хорошей форме (${homeForm}% побед в H2H)`);    
+            } else if (homeForm < 40) {    
+                score -= 10;    
+                details.push(`🏠 Хозяева в плохой форме (${homeForm}% побед в H2H)`);    
+            }    
+            
+            if (awayForm > 60) {    
+                score += 5;    
+                details.push(`✈️ Гости в хорошей форме (${awayForm}% побед в H2H)`);    
+            } else if (awayForm < 40) {    
+                score -= 10;    
+                details.push(`✈️ Гости в плохой форме (${awayForm}% побед в H2H)`);    
+            }    
+            
+            // H2H    
+            if (h2hCount >= 5) {    
+                score += 5;    
+                details.push(`📊 Проанализировано ${h2hCount} встреч (достаточно данных)`);    
+            } else if (h2hCount > 0 && h2hCount < 5) {    
+                score -= 5;    
+                details.push(`📊 Проанализировано всего ${h2hCount} встреч (мало данных)`);    
+            } else {    
+                details.push(`📊 Нет истории встреч`);    
+            }    
+            
+            // ОЗ    
+            if (ozPercent > 60) {    
+                score += 5;    
+                details.push(`⚽ В ${ozPercent}% встреч обе команды забивали`);    
+            } else if (ozPercent < 40) {    
+                score -= 5;    
+                details.push(`⚽ Только в ${ozPercent}% встреч обе команды забивали`);    
+            }    
+            
+            // Погода    
+            if (weatherScore > 0) {    
+                score += 5;    
+                details.push(`🌤️ Погода ${weatherImpact} — способствует голам`);    
+            } else if (weatherScore < 0) {    
+                score -= 10;    
+                details.push(`🌧️ Погода ${weatherImpact} — снижает результативность`);    
+                warnings.push('⚠️ Погода неблагоприятная для голов');    
+            }    
+            
+            // Тотал    
+            const leagueAvg = league.avgGoals || 2.5;    
+            if (total > 0) {    
+                if (total > leagueAvg + 0.5) {    
+                    score += 5;    
+                    details.push(`📈 Ожидаемый тотал (${total}) выше среднего по лиге (${leagueAvg})`);    
+                } else if (total < leagueAvg - 0.5) {    
+                    score -= 5;    
+                    details.push(`📉 Ожидаемый тотал (${total}) ниже среднего по лиге (${leagueAvg})`);    
+                }    
+            }    
+            
+            // Доверие    
+            if (confidence > 60) {    
+                score += 5;    
+                details.push(`📊 Индекс доверия ${confidence}% — хороший уровень`);    
+            } else if (confidence < 40) {    
+                score -= 5;    
+                details.push(`📊 Индекс доверия ${confidence}% — низкий уровень`);    
+            }    
+            
+            // Ограничиваем score    
+            score = Math.min(100, Math.max(0, score));    
+            
+            // Сводка    
+            let summary = '';    
+            if (score >= 70) {    
+                summary = `✅ Отличный прогноз! Уверенность ${score}%`;    
+            } else if (score >= 55) {    
+                summary = `🟡 Хороший прогноз. Уверенность ${score}%`;    
+            } else if (score >= 40) {    
+                summary = `🟠 Средний прогноз. Уверенность ${score}%`;    
+            } else {    
+                summary = `🔴 Слабый прогноз. Уверенность ${score}%`;    
+            }    
+            
+            // Рекомендация    
+            if (mode === 'oz') {    
+                const ozProb = 1 - Math.exp(-home) * Math.exp(-away);    
+                if (ozProb > 0.65 && score > 55) {    
+                    recommendation = `✅ Рекомендуется: ОЗ – ДА (вероятность ${Math.round(ozProb * 100)}%)`;    
+                } else if (ozProb < 0.35 && score > 55) {    
+                    recommendation = `✅ Рекомендуется: ОЗ – НЕТ (вероятность ${Math.round((1 - ozProb) * 100)}%)`;    
+                } else {    
+                    recommendation = `⚖️ Прогноз 50/50, лучше пропустить ставку`;    
+                }    
+            } else if (mode === 'total') {    
+                const expectedTotal = total || Math.round(league.avgGoals || 2.5);    
+                if (expectedTotal > 2.5 && score > 55) {    
+                    recommendation = `✅ Рекомендуется: Тотал БОЛЬШЕ 2.5 (ожидаемый тотал ${expectedTotal})`;    
+                } else if (expectedTotal < 2.5 && score > 55) {    
+                    recommendation = `✅ Рекомендуется: Тотал МЕНЬШЕ 2.5 (ожидаемый тотал ${expectedTotal})`;    
+                } else {    
+                    recommendation = `⚖️ Тотал около 2.5, лучше пропустить ставку`;    
+                }    
+            } else if (mode === 'fora') {    
+                const diff = home - away;    
+                if (diff > 0.5 && score > 55) {    
+                    recommendation = `✅ Рекомендуется: Фора Хозяева (${diff.toFixed(1)})`;    
+                } else if (diff < -0.5 && score > 55) {    
+                    recommendation = `✅ Рекомендуется: Фора Гости (${diff.toFixed(1)})`;    
+                } else {    
+                    recommendation = `⚖️ Фора около 0, лучше пропустить ставку`;    
+                }    
+            }    
+            
+            // Предупреждения    
+            if (h2hCount < 3 && h2hCount > 0) {    
+                warnings.push('⚠️ Мало данных для уверенного прогноза');    
+            }    
+            if (confidence < 40) {    
+                warnings.push('⚠️ Низкое доверие к прогнозу');    
+            }    
+            if (weatherScore < 0) {    
+                warnings.push('⚠️ Погода может снизить результативность');    
+            }    
+            
+            // Отображение    
+            document.getElementById('smartSummary').textContent = summary;    
+            
+            const detailsContainer = document.getElementById('smartDetails');    
+            detailsContainer.innerHTML = details.map(d => `<li>${d}</li>`).join('');    
+            
+            document.getElementById('smartRecommendation').textContent = recommendation;    
+            
+            const warningsContainer = document.getElementById('smartWarnings');    
+            if (warnings.length > 0) {    
+                warningsContainer.innerHTML = warnings.map(w => `<div>${w}</div>`).join('');    
+                warningsContainer.style.display = 'block';    
+            } else {    
+                warningsContainer.style.display = 'none';    
+            }    
+            
+            document.getElementById('smartScore').innerHTML = `📊 Оценка: <span class="num">${score}</span>%`;    
         }    
     
         // ================================================================    
@@ -2235,6 +2507,7 @@
             const searchBadge = $('searchBadgeNav');    
             if (searchBadge) searchBadge.style.display = 'none';    
             document.getElementById('leagueInfoCard').style.display = 'none';    
+            document.getElementById('smartInsightsCard').style.display = 'none';    
             showToast('🗑️ Очищено', 'info');    
         }    
     
@@ -2501,11 +2774,11 @@
             if (state.currentTab === 'stats') renderChartCanvas();    
         });    
     
-        console.log('⚛️ КВАНТУМ PRO v3.0 — ИСПРАВЛЕННАЯ ВЕРСИЯ');    
+        console.log('⚛️ КВАНТУМ PRO v3.0 — С УМНЫМИ ВЫВОДАМИ');    
         console.log('✅ Кнопка "Сгенерировать AI прогноз" работает');    
         console.log('🏆 Автоматическое определение лиги и страны из H2H');    
         console.log('🌤️ Погода в шапке и в карточке на главном экране');    
-        console.log('🔥 Исправлен расчет ОЗ (теперь учитывает H2H и погоду)');    
+        console.log('🧠 Умные выводы с рекомендациями');    
         console.log('🚀 Готов к работе!');    
     </script>    
 </body>    
