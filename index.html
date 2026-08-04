@@ -51,11 +51,20 @@
         body.light .ai-result .recommendation { background: #e8f5e8 !important; }  
         body.light .confidence-bar { background: #e0e0e0 !important; }  
         body.light .weather-section { background: #e8f0fa !important; border-color: #3498db !important; }  
+        body.light .weather-header { color: #1a1a1a !important; }  
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px 6px; background: #0b0e14; border-bottom: 1px solid #2a3140; flex-shrink: 0; z-index: 10; padding-top: env(safe-area-inset-top, 10px); }  
-        .header h1 { font-size: 17px; color: #f7931a; }  
+        .header h1 { font-size: 17px; color: #f7931a; display: flex; align-items: center; gap: 6px; }  
         .header h1 span { font-size: 8px; color: #555; font-weight: 400; }  
-        .header-actions { display: flex; gap: 4px; }  
+        .header-actions { display: flex; align-items: center; gap: 2px; }  
         .header-actions button { background: 0; border: 0; color: #aaa; font-size: 16px; cursor: pointer; padding: 4px 6px; border-radius: 6px; }  
+        .header-weather { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #aaa; cursor: pointer; padding: 2px 8px; border-radius: 12px; background: rgba(255,255,255,0.05); transition: background 0.3s; white-space: nowrap; }  
+        .header-weather:hover { background: rgba(255,255,255,0.1); }  
+        .header-weather .weather-icon { font-size: 16px; }  
+        .header-weather .weather-temp { font-weight: 600; color: #f7931a; }  
+        .header-weather .weather-desc { color: #888; font-size: 10px; }  
+        .header-weather .weather-loading { color: #555; font-size: 10px; animation: pulse 1s infinite; }  
+        .header-weather .weather-error { color: #e74c3c; font-size: 10px; }  
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }  
         .main-content { flex: 1; overflow-y: auto; padding: 8px 14px 16px; position: relative; -webkit-overflow-scrolling: touch; padding-bottom: 70px; }  
         .main-content::-webkit-scrollbar { width: 3px; }  
         .main-content::-webkit-scrollbar-thumb { background: #2a3140; border-radius: 3px; }  
@@ -138,7 +147,6 @@
         .ai-training-status .status-dot.trained { background: #2ecc71; }  
         .ai-training-status .status-dot.training { background: #f1c40f; animation: pulse 0.8s infinite; }  
         .ai-training-status .status-dot.untrained { background: #888; }  
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }  
         .btn-ai-train { background: #9b59b6; color: #fff; padding: 6px 16px; border-radius: 8px; border: 0; font-size: 11px; cursor: pointer; }  
         .btn-ai-train:disabled { opacity: 0.5; cursor: not-allowed; }  
         .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #e74c3c; display: inline-block; animation: pulse 1s infinite; margin-right: 6px; }  
@@ -230,6 +238,13 @@
     <header class="header">  
         <h1>⚛️ Квантум <span>PRO v3.0</span></h1>  
         <div class="header-actions">  
+            <!-- ===== ПОГОДА В ШАПКЕ ===== -->
+            <div class="header-weather" id="headerWeather" onclick="refreshWeather()" title="Нажмите для обновления погоды">
+                <span class="weather-icon" id="weatherIconHeader">⏳</span>
+                <span class="weather-temp" id="weatherTempHeader">--°C</span>
+                <span class="weather-desc" id="weatherDescHeader">Загрузка...</span>
+            </div>
+            <!-- ===== КОНЕЦ ПОГОДЫ ===== -->
             <button onclick="toggleTheme()" id="themeBtn">🌙</button>  
             <button onclick="resetAll()">🔄</button>  
         </div>  
@@ -299,19 +314,6 @@
                     <div class="section"><span class="label">📈 Тренд голов:</span> <span class="value" id="aiTrend">—</span></div>  
                     <div class="section"><span class="label">⚡ Средний тотал:</span> <span class="value" id="aiAvgTotal">—</span></div>  
                     <div class="section"><span class="label">📊 Poisson прогноз:</span> <span class="value" id="aiPoisson">—</span></div>  
-                    <!-- ====== ПОГОДА ====== -->  
-                    <div class="section weather-section" id="weatherDisplay" style="display:none;">  
-                        <span class="label" style="color:#3498db;">🌤️ Погода на стадионе:</span>  
-                        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;font-size:13px;">  
-                            <span id="weatherIcon" style="font-size:20px;">🌤️</span>  
-                            <span id="weatherTemp" style="font-weight:700;">--°C</span>  
-                            <span id="weatherDesc" style="color:#888;">--</span>  
-                            <span id="weatherWind">💨 -- км/ч</span>  
-                        </div>  
-                        <div style="font-size:10px;color:#888;margin-top:2px;" id="weatherStadium">🏟️ Стадион: --</div>  
-                        <div style="font-size:11px;margin-top:4px;padding:4px 8px;background:#0b0e14;border-radius:6px;" id="weatherImpact">📊 Влияние: --</div>  
-                    </div>  
-                    <!-- ====== КОНЕЦ ПОГОДЫ ====== -->  
                     <div class="recommendation">  
                         <div class="label">🎯 РЕКОМЕНДАЦИЯ:</div>  
                         <div class="big" id="aiRecommendation">—</div>  
@@ -425,7 +427,6 @@
             <div class="card">  
                 <div class="card-title">⚙️ Настройки</div>  
                 <div class="settings-item"><span class="label">🎨 Тема</span><button class="toggle-btn" id="themeToggle" onclick="toggleTheme()">🌙 Тёмная</button></div>  
-                <!-- УБРАНО: Лига по умолчанию -->  
                 <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;">  
                     <span class="label">🔑 API ключ (платный)</span>  
                     <input type="password" id="apiKeyInput" placeholder="Вставьте ваш платный API ключ" style="padding:8px;border-radius:8px;border:1px solid #2a3140;background:#0b0e14;color:#e0e0e0;outline:0;">  
@@ -643,14 +644,112 @@
             injuries: {},  
             xgData: {},  
             isCalculating: false,  
-            weatherData: null  
+            weatherData: null,  
+            headerWeather: null  
         };  
   
         let LEAGUES = JSON.parse(localStorage.getItem('quantum_leagues') || '{}');  
         let ALL_LEAGUES_LOADED = false;  
   
         // ================================================================  
-        // ПОГОДА (OpenWeatherMap)  
+        // ПОГОДА В ШАПКЕ  
+        // ================================================================  
+  
+        // Координаты Москвы для демонстрации  
+        const MOSCOW_COORDS = { lat: 55.7558, lon: 37.6173 };  
+  
+        // Загрузка погоды для шапки  
+        async function loadHeaderWeather() {  
+            const weatherEl = document.getElementById('headerWeather');  
+            const iconEl = document.getElementById('weatherIconHeader');  
+            const tempEl = document.getElementById('weatherTempHeader');  
+            const descEl = document.getElementById('weatherDescHeader');  
+              
+            if (!weatherEl) return;  
+              
+            // Показываем загрузку  
+            iconEl.textContent = '⏳';  
+            tempEl.textContent = '--°C';  
+            descEl.textContent = 'Загрузка...';  
+            descEl.className = 'weather-loading';  
+              
+            const key = localStorage.getItem('quantum_weather_key');  
+            if (!key || key === '') {  
+                iconEl.textContent = '❌';  
+                tempEl.textContent = '--°C';  
+                descEl.textContent = 'Нет ключа';  
+                descEl.className = 'weather-error';  
+                return;  
+            }  
+  
+            try {  
+                const url = `https://api.openweathermap.org/data/2.5/weather?lat=${MOSCOW_COORDS.lat}&lon=${MOSCOW_COORDS.lon}&units=metric&appid=${key}`;  
+                const response = await fetch(url);  
+                if (!response.ok) throw new Error('Погода не найдена');  
+                const data = await response.json();  
+                  
+                state.headerWeather = {  
+                    temp: Math.round(data.main.temp),  
+                    feels_like: Math.round(data.main.feels_like),  
+                    humidity: data.main.humidity,  
+                    wind_speed: data.wind.speed,  
+                    weather: data.weather[0].main,  
+                    description: data.weather[0].description,  
+                    icon: data.weather[0].icon  
+                };  
+                  
+                // Обновляем отображение  
+                updateHeaderWeatherDisplay();  
+                  
+                console.log('🌤️ Погода в Москве:', data.weather[0].description, Math.round(data.main.temp) + '°C');  
+                  
+            } catch(e) {  
+                console.log('⚠️ Ошибка загрузки погоды в шапке:', e);  
+                iconEl.textContent = '❌';  
+                tempEl.textContent = '--°C';  
+                descEl.textContent = 'Ошибка';  
+                descEl.className = 'weather-error';  
+            }  
+        }  
+  
+        // Обновление отображения погоды в шапке  
+        function updateHeaderWeatherDisplay() {  
+            const iconEl = document.getElementById('weatherIconHeader');  
+            const tempEl = document.getElementById('weatherTempHeader');  
+            const descEl = document.getElementById('weatherDescHeader');  
+              
+            if (!state.headerWeather) return;  
+              
+            const w = state.headerWeather;  
+            const emoji = getWeatherEmojiFromData(w);  
+              
+            iconEl.textContent = emoji;  
+            tempEl.textContent = w.temp + '°C';  
+            descEl.textContent = w.description;  
+            descEl.className = 'weather-desc';  
+        }  
+  
+        // Получение эмодзи погоды из данных  
+        function getWeatherEmojiFromData(weather) {  
+            if (!weather) return '🌤️';  
+            const condition = weather.weather.toLowerCase();  
+            if (condition.includes('rain') || condition.includes('drizzle')) return '🌧️';  
+            if (condition.includes('snow')) return '❄️';  
+            if (condition.includes('cloud')) return '☁️';  
+            if (condition.includes('clear')) return '☀️';  
+            if (condition.includes('thunder')) return '⛈️';  
+            if (condition.includes('mist') || condition.includes('fog')) return '🌫️';  
+            return '🌤️';  
+        }  
+  
+        // Обновить погоду в шапке (по клику)  
+        function refreshWeather() {  
+            loadHeaderWeather();  
+            showToast('🔄 Обновление погоды...', 'info');  
+        }  
+  
+        // ================================================================  
+        // ПОГОДА (OpenWeatherMap) ДЛЯ ПРОГНОЗА  
         // ================================================================  
   
         // Ручные координаты для популярных стадионов  
@@ -690,6 +789,8 @@
             document.getElementById('weatherStatus').textContent = '✅ Ключ погоды сохранен';  
             document.getElementById('weatherStatus').style.color = '#2ecc71';  
             showToast('✅ Ключ погоды сохранен', 'success');  
+            // Обновляем погоду в шапке  
+            loadHeaderWeather();  
         }  
   
         async function getWeatherByCoords(lat, lon) {  
@@ -1549,8 +1650,7 @@
                 lambdaAway = (lambdaAway + away) / 2;  
             }  
   
-            // ====== ПОГОДА ======  
-            // Берем название команды из поля поиска  
+            // ====== ПОГОДА ДЛЯ ПРОГНОЗА ======  
             const homeTeamName = document.getElementById('homeTeamH2H')?.value || '';  
               
             if (homeTeamName && homeTeamName.length > 2) {  
@@ -1589,13 +1689,13 @@
                             lambdaHome *= weatherFactor;  
                             lambdaAway *= weatherFactor;  
                               
-                            console.log('🌤️ Погода:', weather.description, weather.temp + '°C', 'Фактор:', weatherFactor);  
+                            console.log('🌤️ Погода для прогноза:', weather.description, weather.temp + '°C', 'Фактор:', weatherFactor);  
                         }  
                     } else {  
                         console.log('⚠️ Стадион не найден для:', homeTeamName);  
                     }  
                 } catch(e) {  
-                    console.log('⚠️ Ошибка загрузки погоды:', e);  
+                    console.log('⚠️ Ошибка загрузки погоды для прогноза:', e);  
                 }  
             } else {  
                 console.log('⚠️ Не введено название команды хозяев в поиске');  
@@ -1662,24 +1762,6 @@
             if (aiPoisson) aiPoisson.textContent = `П1: ${Math.round(probHomeWin * 100)}% | X: ${Math.round(probDraw * 100)}% | П2: ${Math.round(probAwayWin * 100)}%`;  
             if (aiRecommendation) aiRecommendation.textContent = rec;  
             if (aiAdvice) aiAdvice.textContent = `На основе ${state.h2hData ? state.h2hData.length : 0} матчей`;  
-  
-            // ====== ОТОБРАЖЕНИЕ ПОГОДЫ ======  
-            if (state.weatherData) {  
-                const weatherDisplay = document.getElementById('weatherDisplay');  
-                if (weatherDisplay) {  
-                    weatherDisplay.style.display = 'block';  
-                    document.getElementById('weatherIcon').textContent = getWeatherEmoji(state.weatherData);  
-                    document.getElementById('weatherTemp').textContent = Math.round(state.weatherData.temp) + '°C';  
-                    document.getElementById('weatherDesc').textContent = state.weatherData.description;  
-                    document.getElementById('weatherWind').textContent = '💨 ' + Math.round(state.weatherData.wind_speed) + ' км/ч';  
-                    document.getElementById('weatherStadium').textContent = `🏟️ ${state.weatherData.stadium || 'Стадион'}, ${state.weatherData.city || ''}`;  
-                    document.getElementById('weatherImpact').textContent = '📊 ' + getWeatherImpact(state.weatherData);  
-                }  
-            } else {  
-                const weatherDisplay = document.getElementById('weatherDisplay');  
-                if (weatherDisplay) weatherDisplay.style.display = 'none';  
-            }  
-            // ====== КОНЕЦ ОТОБРАЖЕНИЯ ПОГОДЫ ======  
   
             if (btn) {  
                 btn.disabled = false;  
@@ -1951,8 +2033,6 @@
             if (bkComment) { bkComment.textContent = '—'; bkComment.style.background = 'transparent'; }  
             const searchBadge = $('searchBadgeNav');  
             if (searchBadge) searchBadge.style.display = 'none';  
-            const weatherDisplay = document.getElementById('weatherDisplay');  
-            if (weatherDisplay) weatherDisplay.style.display = 'none';  
             showToast('🗑️ Очищено', 'info');  
         }  
   
@@ -2219,6 +2299,9 @@
               
             updateAIStatus();  
   
+            // Загружаем погоду для шапки  
+            await loadHeaderWeather();  
+  
             document.querySelectorAll('.btn, .btn-api, .btn-ai').forEach(btn => {  
                 btn.addEventListener('click', function(e) {  
                     if (this.dataset.clicked) {  
@@ -2245,6 +2328,7 @@
         console.log('📊 Функции: 200+ лиг, Live матчи, xG данные, история 5 сезонов, ПОГОДА');  
         console.log('✅ 3 режима: Тотал, ОЗ, Фора');  
         console.log('📱 Навигация внизу, как в нативном приложении');  
+        console.log('🌤️ Погода в шапке (Москва)');  
         console.log('🚀 Готов к работе!');  
     </script>  
 </body>  
