@@ -1364,17 +1364,23 @@
         }    
     
         // ================================================================    
-        // ЗАГРУЗКА XG ДАННЫХ    
+        // ЗАГРУЗКА XG ДАННЫХ (С ИСПРАВЛЕНИЕМ)    
         // ================================================================    
-        async function loadXGData(teamId, season = 2024) {    
+        async function loadXGData(teamId, leagueId, season = 2024) {    
             const apiKey = localStorage.getItem('quantum_api_key');    
             if (!apiKey || apiKey === 'ваш_платный_ключ') return null;    
+            
+            if (!leagueId) {    
+                console.log('⚠️ Нет leagueId для загрузки xG');    
+                return null;    
+            }    
+    
             try {    
-                const response = await fetchWithCache(    
-                    `${PROXY_BASE}teams/statistics?team=${teamId}&season=${season}`,    
-                    { headers: { 'x-apisports-key': apiKey } },    
-                    86400000    
-                );    
+                const url = `${PROXY_BASE}teams/statistics?league=${leagueId}&team=${teamId}&season=${season}`;    
+                const response = await fetchWithCache(url, {    
+                    headers: { 'x-apisports-key': apiKey }    
+                }, 86400000);    
+                
                 if (response.response) {    
                     const stats = response.response;    
                     return {    
@@ -1388,7 +1394,7 @@
                 }    
                 return null;    
             } catch(e) {    
-                console.log('Ошибка загрузки xG:', e);    
+                console.log('⚠️ Ошибка загрузки xG:', e);    
                 return null;    
             }    
         }    
@@ -1871,7 +1877,7 @@
         }    
     
         // ================================================================    
-        // H2H ЗАГРУЗКА    
+        // H2H ЗАГРУЗКА (С ИСПРАВЛЕННЫМ xG)    
         // ================================================================    
         async function loadH2H() {    
             const homeTeamInput = $('homeTeamH2H');    
@@ -2041,8 +2047,15 @@
                 }    
     
                 if (status) status.innerHTML = '⏳ Загрузка xG данных...';    
-                const homeXG = await loadXGData(homeId);    
-                const awayXG = await loadXGData(awayId);    
+                
+                // Получаем leagueId для xG    
+                let leagueId = null;    
+                if (allMatches.length > 0 && allMatches[0].league) {    
+                    leagueId = allMatches[0].league.id || allMatches[0].league.league?.id;    
+                }    
+                
+                const homeXG = await loadXGData(homeId, leagueId);    
+                const awayXG = await loadXGData(awayId, leagueId);    
                     
                 if (homeXG || awayXG) {    
                     const statsContainer = document.getElementById('teamStatsContainer');    
@@ -2554,8 +2567,9 @@
         }    
     
         // ================================================================    
-        // AI ОБУЧЕНИЕ    
+        // УЛУЧШЕННЫЙ AI С 8 ПРИЗНАКАМИ    
         // ================================================================    
+    
         class QuantumAI {    
             constructor() {    
                 this.model = null;    
@@ -2563,91 +2577,182 @@
                 this.accuracy = 0;    
                 this.initialized = false;    
                 this.trainingHistory = [];    
+                this.bestAccuracy = 0;    
+                this.featureNames = [    
+                    'home_goals', 'away_goals', 'confidence',    
+                    'weather_factor', 'league_avg', 'h2h_avg',    
+                    'home_form', 'away_form'    
+                ];    
             }    
-            async init() {    
-                if (this.initialized) return this;    
-                try { await this.loadModel(); } catch(e) { console.log('AI не загружен'); }    
-                this.initialized = true;    
-                updateAIStatus();    
-                return this;    
-            }    
+    
             prepareData(bets) {    
                 const features = [], labels = [];    
                 bets.forEach(bet => {    
                     if (bet.outcome === 'pending') return;    
-                    features.push([bet.home || 0, bet.away || 0, bet.confidence || 50]);    
+                    
+                    features.push([    
+                        bet.home || 0,    
+                        bet.away || 0,    
+                        bet.confidence || 50,    
+                        bet.weather_factor || 1.0,    
+                        bet.league_avg || 2.5,    
+                        bet.h2h_avg || 2.5,    
+                        bet.home_form || 50,    
+                        bet.away_form || 50    
+                    ]);    
                     labels.push(bet.outcome === 'win' ? 1 : 0);    
                 });    
-                return { features, labels };    
+                
+                if (features.length === 0) return { features: [], labels: [] };    
+                
+                // Нормализация    
+                const normalized = this.normalizeFeatures(features);    
+                return { features: normalized, labels };    
             }    
+    
+            normalizeFeatures(features) {    
+                const means = [], stds = [];    
+                const numFeatures = features[0].length;    
+                
+                for (let j = 0; j < numFeatures; j++) {    
+                    const values = features.map(f => f[j]);    
+                    const mean = values.reduce((a, b) => a + b, 0) / values.length;    
+                    const std = Math.sqrt(values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length);    
+                    means.push(mean);    
+                    stds.push(std || 1);    
+                }    
+                
+                return features.map(f => f.map((v, j) => (v - means[j]) / stds[j]));    
+            }    
+    
             async createModel() {    
                 if (this.model) return this.model;    
+                
                 const model = tf.sequential();    
-                model.add(tf.layers.dense({ units: 32, activation: 'relu', inputShape: [3] }));    
+                
+                // Входной слой — 8 признаков    
+                model.add(tf.layers.dense({    
+                    units: 128,    
+                    activation: 'relu',    
+                    inputShape: [8]    
+                }));    
+                model.add(tf.layers.batchNormalization());    
+                model.add(tf.layers.dropout({ rate: 0.3 }));    
+                
+                model.add(tf.layers.dense({ units: 64, activation: 'relu' }));    
+                model.add(tf.layers.batchNormalization());    
                 model.add(tf.layers.dropout({ rate: 0.2 }));    
+                
+                model.add(tf.layers.dense({ units: 32, activation: 'relu' }));    
+                model.add(tf.layers.dropout({ rate: 0.15 }));    
+                
                 model.add(tf.layers.dense({ units: 16, activation: 'relu' }));    
                 model.add(tf.layers.dropout({ rate: 0.1 }));    
-                model.add(tf.layers.dense({ units: 8, activation: 'relu' }));    
+                
                 model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));    
-                model.compile({     
-                    optimizer: tf.train.adam(0.001),     
-                    loss: 'binaryCrossentropy',     
-                    metrics: ['accuracy']     
+                
+                model.compile({    
+                    optimizer: tf.train.adam(0.0005),    
+                    loss: 'binaryCrossentropy',    
+                    metrics: ['accuracy']    
                 });    
+                
                 this.model = model;    
                 return model;    
             }    
-            async train(bets, epochs = 50, onProgress = null) {    
-                if (bets.length < 10) { showToast('⚠️ Нужно минимум 10 ставок', 'error'); return false; }    
+    
+            async train(bets, epochs = 200, onProgress = null) {    
+                if (bets.length < 10) {    
+                    showToast('⚠️ Нужно минимум 10 ставок', 'error');    
+                    return false;    
+                }    
+                
                 this.isTraining = true;    
                 this.trainingHistory = [];    
                 updateAIStatus();    
+                
                 try {    
                     const { features, labels } = this.prepareData(bets);    
-                    if (features.length === 0) { this.isTraining = false; return false; }    
+                    if (features.length === 0) {    
+                        this.isTraining = false;    
+                        return false;    
+                    }    
+                    
+                    // Разделяем 80/20    
+                    const split = Math.floor(features.length * 0.8);    
+                    const trainFeatures = features.slice(0, split);    
+                    const trainLabels = labels.slice(0, split);    
+                    const valFeatures = features.slice(split);    
+                    const valLabels = labels.slice(split);    
+                    
                     let bestValLoss = Infinity;    
-                    let patience = 10;    
+                    let patience = 20;    
                     let patienceCounter = 0;    
+                    
                     await this.createModel();    
-                    const xs = tf.tensor2d(features);    
-                    const ys = tf.tensor2d(labels, [labels.length, 1]);    
+                    
+                    const xs = tf.tensor2d(trainFeatures);    
+                    const ys = tf.tensor2d(trainLabels, [trainLabels.length, 1]);    
+                    
+                    const valXs = valFeatures.length > 0 ? tf.tensor2d(valFeatures) : null;    
+                    const valYs = valLabels.length > 0 ? tf.tensor2d(valLabels, [valLabels.length, 1]) : null;    
+                    
                     const history = await this.model.fit(xs, ys, {    
-                        epochs,     
-                        batchSize: Math.min(32, features.length),     
-                        validationSplit: 0.2,    
+                        epochs,    
+                        batchSize: Math.min(32, features.length),    
+                        validationData: (valXs && valYs) ? [valXs, valYs] : undefined,    
                         callbacks: {    
-                            onEpochEnd: (epoch, logs) => {    
-                                if (epoch % 10 === 0 || epoch === epochs - 1) {    
-                                    this.accuracy = logs.acc;    
-                                    this.trainingHistory.push({ epoch, acc: logs.acc, loss: logs.loss });    
-                                    if (onProgress) onProgress(`Epoch ${epoch+1}/${epochs}: acc=${logs.acc.toFixed(4)}, loss=${logs.loss.toFixed(4)}`);    
-                                    if (logs.val_loss < bestValLoss) {    
-                                        bestValLoss = logs.val_loss;    
-                                        patienceCounter = 0;    
-                                    } else {    
-                                        patienceCounter++;    
-                                        if (patienceCounter >= patience) {    
-                                            if (onProgress) onProgress(`⏹️ Early stopping на эпохе ${epoch+1}`);    
-                                            return false;    
-                                        }    
+                            onEpochEnd: async (epoch, logs) => {    
+                                this.accuracy = logs.acc || 0;    
+                                this.trainingHistory.push({    
+                                    epoch,    
+                                    acc: logs.acc,    
+                                    loss: logs.loss,    
+                                    val_acc: logs.val_acc,    
+                                    val_loss: logs.val_loss    
+                                });    
+                                
+                                if (onProgress) {    
+                                    const msg = `Epoch ${epoch+1}/${epochs}: acc=${(logs.acc*100).toFixed(1)}%, loss=${logs.loss.toFixed(4)}`;    
+                                    onProgress(msg);    
+                                }    
+                                
+                                if (logs.val_loss < bestValLoss) {    
+                                    bestValLoss = logs.val_loss;    
+                                    patienceCounter = 0;    
+                                    await this.saveModel();    
+                                } else {    
+                                    patienceCounter++;    
+                                    if (patienceCounter >= patience) {    
+                                        if (onProgress) onProgress(`⏹️ Early stopping на эпохе ${epoch+1}`);    
+                                        return false;    
                                     }    
+                                }    
+                                
+                                if (logs.acc > 0.9) {    
+                                    if (onProgress) onProgress(`🎯 Высокая точность ${(logs.acc*100).toFixed(1)}%, остановка`);    
+                                    return false;    
                                 }    
                             }    
                         }    
                     });    
+                    
                     this.accuracy = history.history.acc[history.history.acc.length - 1] || 0;    
                     await this.saveModel();    
                     this.isTraining = false;    
                     updateAIStatus();    
+                    
                     showToast(`✅ AI обучен! Точность: ${Math.round(this.accuracy * 100)}%`, 'success');    
                     return true;    
-                } catch(e) {     
-                    console.error(e);     
-                    this.isTraining = false;     
-                    updateAIStatus();     
-                    return false;     
+                    
+                } catch(e) {    
+                    console.error(e);    
+                    this.isTraining = false;    
+                    updateAIStatus();    
+                    return false;    
                 }    
             }    
+    
             async saveModel() {    
                 if (!this.model) return;    
                 try {     
@@ -2656,6 +2761,7 @@
                     localStorage.setItem('quantum_ai_history', JSON.stringify(this.trainingHistory));    
                 } catch(e) {}    
             }    
+    
             async loadModel() {    
                 try {    
                     this.model = await tf.loadLayersModel('localstorage://quantum-ai-model');    
@@ -2665,6 +2771,7 @@
                     return true;    
                 } catch(e) { return false; }    
             }    
+    
             isTrained() { return this.model !== null && this.accuracy > 0; }    
         }    
     
@@ -2698,12 +2805,30 @@
         async function trainAI() {    
             const btn = $('trainAIBtn');    
             if (quantumAI.isTraining) { showToast('⏳ Обучение уже идёт...', 'info'); return; }    
+            
+            // Подготовим данные с дополнительными признаками    
             const bets = state.bets.filter(b => b.outcome !== 'pending');    
-            if (bets.length < 10) { showToast(`⚠️ Нужно минимум 10 ставок (сейчас ${bets.length})`, 'error'); return; }    
+            if (bets.length < 10) {    
+                showToast(`⚠️ Нужно минимум 10 ставок (сейчас ${bets.length})`, 'error');    
+                return;    
+            }    
+            
+            // Добавляем недостающие признаки в ставки    
+            bets.forEach(bet => {    
+                if (!bet.weather_factor) bet.weather_factor = 1.0;    
+                if (!bet.league_avg) bet.league_avg = 2.5;    
+                if (!bet.h2h_avg) bet.h2h_avg = 2.5;    
+                if (!bet.home_form) bet.home_form = 50;    
+                if (!bet.away_form) bet.away_form = 50;    
+            });    
+            
             if (btn) { btn.disabled = true; btn.textContent = '⏳ Обучение...'; }    
             clearAILog();    
-            addAILog(`📊 Начало обучения на ${bets.length} ставках`);    
-            await quantumAI.train(bets, 100, (msg) => { addAILog(msg); });    
+            addAILog(`📊 Начало обучения на ${bets.length} ставках (8 признаков)`);    
+            addAILog(`📊 Признаки: голы хозяев, голы гостей, уверенность, погода, тотал лиги, тотал H2H, форма хозяев, форма гостей`);    
+            
+            await quantumAI.train(bets, 200, (msg) => { addAILog(msg); });    
+            
             if (btn) { btn.disabled = false; btn.textContent = '🧠 Обучить AI'; }    
             updateAIStatus();    
         }    
@@ -2774,11 +2899,13 @@
             if (state.currentTab === 'stats') renderChartCanvas();    
         });    
     
-        console.log('⚛️ КВАНТУМ PRO v3.0 — С УМНЫМИ ВЫВОДАМИ');    
+        console.log('⚛️ КВАНТУМ PRO v3.0 — УЛУЧШЕННЫЙ AI (8 ПРИЗНАКОВ)');    
+        console.log('📊 Признаки: голы хозяев, голы гостей, уверенность, погода, тотал лиги, тотал H2H, форма хозяев, форма гостей');    
+        console.log('🧠 Модель: 128 → 64 → 32 → 16 нейронов, BatchNormalization, Dropout');    
         console.log('✅ Кнопка "Сгенерировать AI прогноз" работает');    
-        console.log('🏆 Автоматическое определение лиги и страны из H2H');    
         console.log('🌤️ Погода в шапке и в карточке на главном экране');    
         console.log('🧠 Умные выводы с рекомендациями');    
+        console.log('📊 xG и xGA загружаются корректно (с leagueId)');    
         console.log('🚀 Готов к работе!');    
     </script>    
 </body>    
