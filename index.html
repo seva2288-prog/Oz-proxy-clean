@@ -156,3 +156,249 @@
 
 <!-- ====== БЛОК УВЕДОМЛЕНИЙ ====== -->
 <div id="notificationContainer"></div>
+// ================================================================
+// ЧАСТЬ 2/5: НОВЫЕ ПЕРЕМЕННЫЕ, ФИЛЬТРЫ, СТАТУСЫ, ПРИОРИТЕТ (v5.2)
+// ================================================================
+
+// --- РАСШИРЯЕМ СТЕЙТ ---
+state.filters = {
+    time: 'all',        // all, 6h, today, tomorrow, week
+    confidence: 0,      // 0, 70, 80, 90
+    total: 'all'        // all, over15, over25, over35
+};
+state.notifications = [];
+state.refreshTimer = null;
+state.refreshCountdown = 300; // 5 минут в секундах
+state.matchStatuses = {};
+
+// --- ФУНКЦИЯ СТАТУСА МАТЧА ---
+function getMatchStatus(matchDate, matchGoals) {
+    const now = new Date();
+    const matchTime = new Date(matchDate);
+    const diffMs = matchTime - now;
+    const diffMin = Math.floor(diffMs / 60000);
+    
+    // Если есть счет — матч завершен
+    if (matchGoals && matchGoals.home !== undefined && matchGoals.away !== undefined) {
+        return {
+            status: 'finished',
+            label: `✅ Завершён ${matchGoals.home}:${matchGoals.away}`,
+            emoji: '✅',
+            color: '#555'
+        };
+    }
+    
+    // Если матч уже начался (от -5 до 0 минут)
+    if (diffMin <= 0 && diffMin > -5) {
+        return {
+            status: 'live',
+            label: '🔴 Идёт',
+            emoji: '🔴',
+            color: '#e74c3c'
+        };
+    }
+    
+    // Если матч уже начался (больше -5 минут)
+    if (diffMin < -5) {
+        return {
+            status: 'finished',
+            label: '⏳ Завершён (результат неизвестен)',
+            emoji: '⏳',
+            color: '#555'
+        };
+    }
+    
+    // Будущий матч — показываем сколько осталось
+    const hours = Math.floor(diffMin / 60);
+    const minutes = diffMin % 60;
+    
+    let label = '';
+    if (hours > 24) {
+        const days = Math.floor(hours / 24);
+        label = `📅 через ${days} дн ${hours % 24} ч`;
+    } else if (hours > 0) {
+        label = `🟢 через ${hours} ч ${minutes} мин`;
+    } else {
+        label = `🟢 через ${minutes} мин`;
+    }
+    
+    return {
+        status: 'future',
+        label: label,
+        emoji: '🟢',
+        color: '#2ecc71',
+        hoursUntil: hours,
+        minutesUntil: minutes
+    };
+}
+
+// --- РАСЧЁТ ПРИОРИТЕТА ---
+function calculatePriority(confidence, hoursUntil) {
+    // Приоритет = Уверенность × (1 / (часы_до_матча + 1)) × 100
+    // Чем ближе матч и выше уверенность — тем выше приоритет
+    const timeFactor = 1 / (Math.max(hoursUntil, 0.1) + 1);
+    const priority = (confidence / 100) * timeFactor * 100;
+    return Math.round(priority * 100) / 100;
+}
+
+// --- ФУНКЦИЯ ФИЛЬТРАЦИИ ---
+function filterMatches(matches, filters) {
+    const now = new Date();
+    
+    return matches.filter(m => {
+        // --- Фильтр по времени ---
+        const matchDate = new Date(m.date);
+        const diffMs = matchDate - now;
+        const diffHours = diffMs / 3600000;
+        
+        if (filters.time === '6h' && (diffHours < 0 || diffHours > 6)) return false;
+        if (filters.time === 'today' && matchDate.getDate() !== now.getDate()) return false;
+        if (filters.time === 'tomorrow') {
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            if (matchDate.getDate() !== tomorrow.getDate()) return false;
+        }
+        if (filters.time === 'week') {
+            const weekLater = new Date(now);
+            weekLater.setDate(weekLater.getDate() + 7);
+            if (matchDate > weekLater || matchDate < now) return false;
+        }
+        
+        // --- Фильтр по уверенности ---
+        if (m.confidence < filters.confidence) return false;
+        
+        // --- Фильтр по тоталу ---
+        if (filters.total !== 'all') {
+            const total = m.total || 0;
+            if (filters.total === 'over15' && total <= 1.5) return false;
+            if (filters.total === 'over25' && total <= 2.5) return false;
+            if (filters.total === 'over35' && total <= 3.5) return false;
+        }
+        
+        return true;
+    });
+}
+
+// --- ФУНКЦИЯ СОРТИРОВКИ (по приоритету) ---
+function sortMatchesByPriority(matches) {
+    return [...matches].sort((a, b) => {
+        // Сначала сортируем по статусу (live > future > finished)
+        const statusOrder = { live: 0, future: 1, finished: 2 };
+        const statusA = a.statusData?.status || 'future';
+        const statusB = b.statusData?.status || 'future';
+        if (statusOrder[statusA] !== statusOrder[statusB]) {
+            return statusOrder[statusA] - statusOrder[statusB];
+        }
+        
+        // Потом по приоритету (чем выше — тем лучше)
+        return (b.priority || 0) - (a.priority || 0);
+    });
+}
+
+// --- ФУНКЦИЯ ОБНОВЛЕНИЯ ТАЙМЕРА ---
+function startRefreshTimer() {
+    if (state.refreshTimer) {
+        clearInterval(state.refreshTimer);
+    }
+    
+    state.refreshCountdown = 300; // 5 минут
+    
+    state.refreshTimer = setInterval(() => {
+        state.refreshCountdown--;
+        
+        const timerEl = document.getElementById('refreshTimer');
+        if (timerEl) {
+            const mins = Math.floor(state.refreshCountdown / 60);
+            const secs = state.refreshCountdown % 60;
+            timerEl.textContent = `🔄 ${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        if (state.refreshCountdown <= 0) {
+            state.refreshCountdown = 300;
+            loadFutureMatches(); // Автообновление
+        }
+    }, 1000);
+}
+
+// --- ФУНКЦИЯ УВЕДОМЛЕНИЙ ---
+function checkAndShowNotifications(matches) {
+    const now = new Date();
+    const shownNotifications = JSON.parse(localStorage.getItem('quantum_notifications_shown') || '[]');
+    
+    matches.forEach(m => {
+        const matchDate = new Date(m.date);
+        const diffMs = matchDate - now;
+        const diffMin = Math.floor(diffMs / 60000);
+        
+        // Уведомление за 30 минут до матча
+        if (diffMin === 30 && m.confidence >= 70) {
+            const key = `notif_${m.home}_${m.away}_${m.date}`;
+            if (!shownNotifications.includes(key)) {
+                showNotification(
+                    `🔔 Через 30 минут матч ${m.home} vs ${m.away}`,
+                    `Уверенность: ${m.confidence}% | Прогноз: ОЗ ${m.oz ? '✅ Да' : '❌ Нет'}`
+                );
+                shownNotifications.push(key);
+                localStorage.setItem('quantum_notifications_shown', JSON.stringify(shownNotifications));
+            }
+        }
+        
+        // Уведомление за 5 минут до матча
+        if (diffMin === 5 && m.confidence >= 80) {
+            const key = `notif_5min_${m.home}_${m.away}_${m.date}`;
+            if (!shownNotifications.includes(key)) {
+                showNotification(
+                    `🔥 Матч через 5 минут! ${m.home} vs ${m.away}`,
+                    `Уверенность: ${m.confidence}% — отличный момент для ставки!`
+                );
+                shownNotifications.push(key);
+                localStorage.setItem('quantum_notifications_shown', JSON.stringify(shownNotifications));
+            }
+        }
+    });
+}
+
+// --- ПОКАЗ УВЕДОМЛЕНИЯ ---
+function showNotification(title, message) {
+    const container = document.getElementById('notificationContainer');
+    if (!container) return;
+    
+    const notif = document.createElement('div');
+    notif.className = 'notification-banner';
+    notif.innerHTML = `
+        <span class="icon">🔔</span>
+        <div>
+            <div style="font-weight:600;">${title}</div>
+            <div style="font-size:10px;color:#888;">${message}</div>
+        </div>
+        <button class="close-btn" onclick="this.parentElement.remove()">✕</button>
+    `;
+    
+    container.prepend(notif);
+    
+    // Автоматическое удаление через 30 секунд
+    setTimeout(() => {
+        if (notif.parentElement) notif.remove();
+    }, 30000);
+}
+
+// --- ФИЛЬТРЫ: ОБРАБОТЧИК КЛИКОВ ---
+function setFilter(filterType, value) {
+    // Обновляем стейт
+    state.filters[filterType] = value;
+    
+    // Обновляем кнопки
+    document.querySelectorAll(`[data-filter="${filterType}"]`).forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === value);
+    });
+    
+    // Перерисовываем матчи
+    if (state.futureMatches.length > 0) {
+        renderFutureMatches(state.futureMatches);
+    }
+}
+
+// ================================================================
+// КОНЕЦ ЧАСТИ 2/5
+// ДАЛЕЕ СЛЕДУЕТ ЧАСТЬ 3/5: ОБНОВЛЁННАЯ ЗАГРУЗКА МАТЧЕЙ
+// ================================================================
