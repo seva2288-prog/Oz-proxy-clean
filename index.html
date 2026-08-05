@@ -1203,3 +1203,291 @@ async function loadWeatherByCity() {
 // КОНЕЦ ЧАСТИ 2/5
 // ДАЛЕЕ СЛЕДУЕТ ЧАСТЬ 3/5: ДЕРБИ, МОТИВАЦИЯ, ТРАВМЫ, H2H
 // ================================================================
+// ================================================================
+// ЧАСТЬ 3/5: ДЕРБИ, МОТИВАЦИЯ, ТРАВМЫ, H2H (v5.2)
+// ================================================================
+
+// --- ДЕРБИ И МОТИВАЦИЯ ---
+const DERBY_PAIRS = [
+    ['Real Madrid', 'Barcelona'],
+    ['Liverpool', 'Manchester United'],
+    ['Manchester City', 'Manchester United'],
+    ['Chelsea', 'Arsenal'],
+    ['Spartak Moscow', 'CSKA Moscow'],
+    ['AC Milan', 'Inter Milan'],
+    ['Juventus', 'Torino'],
+    ['Bayern Munich', 'Borussia Dortmund'],
+    ['Paris Saint-Germain', 'Marseille'],
+    ['Sevilla', 'Real Betis'],
+    ['Boca Juniors', 'River Plate'],
+    ['Flamengo', 'Fluminense']
+];
+
+function isDerby(homeTeam, awayTeam) {
+    if (!homeTeam || !awayTeam) return false;
+    const h = homeTeam.toLowerCase().trim();
+    const a = awayTeam.toLowerCase().trim();
+    return DERBY_PAIRS.some(pair => {
+        const p1 = pair[0].toLowerCase();
+        const p2 = pair[1].toLowerCase();
+        return (p1 === h && p2 === a) || (p2 === h && p1 === a);
+    });
+}
+
+function calculateMotivation(homeTeam, awayTeam, league, matches) {
+    let homePos = 10, awayPos = 10;
+    if (matches && matches.length > 0) {
+        const homeWins = matches.filter(m => m.homeScore > m.awayScore).length;
+        const awayWins = matches.filter(m => m.awayScore > m.homeScore).length;
+        const total = matches.length;
+        if (total > 0) {
+            homePos = Math.round(20 - (homeWins / total) * 20) + 1;
+            awayPos = Math.round(20 - (awayWins / total) * 20) + 1;
+        }
+    }
+    let motivation = 1.0;
+    let reason = 'Средняя мотивация';
+    if (homePos <= 3) { motivation = 1.25; reason = '🔥 Борьба за чемпионство'; }
+    else if (awayPos <= 3) { motivation = 1.2; reason = '🔥 Борьба за чемпионство (гости)'; }
+    if (homePos >= 17) { motivation = 1.3; reason = '🔥 Борьба за выживание'; }
+    else if (awayPos >= 17) { motivation = 1.25; reason = '🔥 Борьба за выживание (гости)'; }
+    if (isDerby(homeTeam, awayTeam)) { motivation = 1.35; reason = '⚔️ Дерби! Максимальная мотивация'; }
+    return { factor: motivation, reason: reason, homePos: homePos, awayPos: awayPos };
+}
+
+function calculateUnpredictability(team, matches) {
+    if (!matches || matches.length < 5) {
+        return { level: 'low', factor: 1.0, advice: '✅ Недостаточно данных', anomalies: 0 };
+    }
+    let anomalies = 0;
+    const avgTotal = matches.reduce((s, m) => s + m.total, 0) / matches.length;
+    const teamMatches = matches.filter(m => m.home === team || m.away === team);
+    if (teamMatches.length === 0) return { level: 'low', factor: 1.0, advice: '✅ Нет данных', anomalies: 0 };
+    const teamAvg = teamMatches.reduce((s, m) => s + (m.home === team ? m.homeScore : m.awayScore), 0) / teamMatches.length;
+    teamMatches.forEach(m => {
+        const total = m.total;
+        const scored = m.home === team ? m.homeScore : m.awayScore;
+        const conceded = m.home === team ? m.awayScore : m.homeScore;
+        if (Math.abs(total - avgTotal) > 2) anomalies++;
+        if (Math.abs(scored - teamAvg) > 1.5) anomalies++;
+        if ((m.home === team && scored < conceded && m.homeScore > 0) || (m.away === team && scored > conceded)) anomalies++;
+    });
+    const anomalyRate = anomalies / teamMatches.length;
+    if (anomalyRate > 0.3) {
+        return { level: 'high', factor: 0.65, advice: '⚠️ Команда крайне непредсказуема', anomalies: Math.round(anomalyRate * 100) };
+    } else if (anomalyRate > 0.15) {
+        return { level: 'medium', factor: 0.85, advice: '🟡 Команда слегка непредсказуема', anomalies: Math.round(anomalyRate * 100) };
+    } else {
+        return { level: 'low', factor: 1.0, advice: '✅ Команда стабильна', anomalies: Math.round(anomalyRate * 100) };
+    }
+}
+
+function getLeague() {
+    if (LEAGUES[state.currentLeague]) return LEAGUES[state.currentLeague];
+    return { name: 'Лига', oz: 60, avgGoals: 2.6, country: 'Мир' };
+}
+
+// --- ТРАВМЫ ---
+const INJURY_PENALTY = {
+    'forward': -0.2,
+    'midfielder': -0.1,
+    'defender': 0.15,
+    'goalkeeper': 0.1
+};
+
+async function loadInjuries(teamId) {
+    const apiKey = localStorage.getItem('quantum_api_key');
+    if (!apiKey || !teamId) return null;
+    try {
+        const url = `${PROXY_BASE}injuries?team=${teamId}&season=2024`;
+        const response = await fetchWithCache(url, { headers: { 'x-apisports-key': apiKey } }, 3600000);
+        if (response.response) {
+            const injuries = response.response.filter(i => i.player && i.player.injury);
+            return injuries.map(i => ({
+                player: i.player.name,
+                position: i.player.position || 'unknown',
+                importance: i.player.importance || 'medium',
+                injury: i.player.injury
+            }));
+        }
+        return null;
+    } catch(e) { return null; }
+}
+
+function applyInjuryPenalty(injuries, xg) {
+    if (!injuries || injuries.length === 0) return xg;
+    let penalty = 0;
+    injuries.forEach(i => {
+        const pos = i.position.toLowerCase();
+        if (i.importance === 'high') {
+            penalty += INJURY_PENALTY[pos] || -0.05;
+        }
+    });
+    return Math.max(0, xg + penalty);
+}
+
+// --- H2H ЗАГРУЗКА ---
+async function loadH2H() {
+    const homeTeamInput = $('homeTeamH2H');
+    const awayTeamInput = $('awayTeamH2H');
+    if (!homeTeamInput || !awayTeamInput) return;
+    const homeTeam = homeTeamInput.value?.trim() || '';
+    const awayTeam = awayTeamInput.value?.trim() || '';
+    if (!homeTeam || !awayTeam) { showToast('⚠️ Введите обе команды!', 'error'); return; }
+    if (state.isLoading) return;
+    state.isLoading = true;
+    const btn = $('loadH2HBtn');
+    const btnText = $('loadBtnText');
+    const spinner = $('loadSpinner');
+    const status = $('h2hStatus');
+    const results = $('h2hResults');
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.textContent = '⏳ Загрузка...';
+    if (spinner) spinner.style.display = 'inline-block';
+    if (status) status.innerHTML = '⏳ Поиск команд...';
+    if (results) results.innerHTML = '';
+    try {
+        const apiKey = localStorage.getItem('quantum_api_key');
+        if (!apiKey || apiKey === '') throw new Error('Введите API ключ в настройках');
+        const url1 = `${PROXY_BASE}teams?search=${encodeURIComponent(homeTeam)}`;
+        const data1 = await fetchWithCache(url1, { headers: { 'x-apisports-key': apiKey } }, 3600000);
+        if (!data1.response || data1.response.length === 0) {
+            if (status) status.innerHTML = `❌ Команда "${sanitizeHTML(homeTeam)}" не найдена`;
+            state.isLoading = false;
+            resetButtons(btn, btnText, spinner); return;
+        }
+        const homeId = data1.response[0].team.id;
+        const homeTeamFull = data1.response[0].team.name;
+        const url2 = `${PROXY_BASE}teams?search=${encodeURIComponent(awayTeam)}`;
+        const data2 = await fetchWithCache(url2, { headers: { 'x-apisports-key': apiKey } }, 3600000);
+        if (!data2.response || data2.response.length === 0) {
+            if (status) status.innerHTML = `❌ Команда "${sanitizeHTML(awayTeam)}" не найдена`;
+            state.isLoading = false;
+            resetButtons(btn, btnText, spinner); return;
+        }
+        const awayId = data2.response[0].team.id;
+        const awayTeamFull = data2.response[0].team.name;
+        if (status) status.innerHTML = '⏳ Загрузка истории матчей (5 сезонов)...';
+        const allMatches = [];
+        const currentYear = new Date().getFullYear();
+        for (let i = 0; i < 5; i++) {
+            const year = currentYear - i;
+            const h2hUrl = `${PROXY_BASE}fixtures/headtohead?h2h=${homeId}-${awayId}&season=${year}`;
+            try {
+                const h2hResp = await fetchWithRetry(h2hUrl, { headers: { 'x-apisports-key': apiKey } }, 2, 1000);
+                const h2hData = await h2hResp.json();
+                if (h2hData.response) allMatches.push(...h2hData.response);
+            } catch(e) { console.log(`⚠️ Ошибка сезона ${year}:`, e); }
+            await delay(300);
+        }
+        if (allMatches.length === 0) {
+            if (status) status.innerHTML = `❌ Нет встреч между командами`;
+            state.isLoading = false;
+            resetButtons(btn, btnText, spinner); return;
+        }
+        const matches = allMatches.map(m => ({
+            home: m.teams.home.name,
+            away: m.teams.away.name,
+            homeScore: m.goals.home || 0,
+            awayScore: m.goals.away || 0,
+            oz: (m.goals.home || 0) > 0 && (m.goals.away || 0) > 0,
+            total: (m.goals.home || 0) + (m.goals.away || 0),
+            date: m.fixture.date,
+            league: m.league || null
+        }));
+        state.h2hData = matches;
+        const total = matches.length;
+        const ozCount = matches.filter(m => m.oz).length;
+        const avgTotal = (matches.reduce((s, m) => s + m.total, 0) / total).toFixed(1);
+        const homeWins = matches.filter(m => m.homeScore > m.awayScore).length;
+        const awayWins = matches.filter(m => m.awayScore > m.homeScore).length;
+        const draws = total - homeWins - awayWins;
+        let leagueInfo = null;
+        if (allMatches.length > 0 && allMatches[0].league) {
+            const league = allMatches[0].league;
+            const leagueId = league.id || league.league?.id;
+            if (leagueId && LEAGUES[leagueId]) {
+                leagueInfo = {
+                    name: LEAGUES[leagueId].name || league.name,
+                    country: LEAGUES[leagueId].country || '--',
+                    season: LEAGUES[leagueId].season || currentYear,
+                    avgGoals: LEAGUES[leagueId].avgGoals || avgTotal,
+                    oz: LEAGUES[leagueId].oz || Math.round((ozCount/total)*100),
+                    matches: total
+                };
+            } else {
+                leagueInfo = {
+                    name: league.name || 'Лига',
+                    country: '--',
+                    season: currentYear,
+                    avgGoals: parseFloat(avgTotal),
+                    oz: Math.round((ozCount/total)*100),
+                    matches: total
+                };
+            }
+        } else {
+            leagueInfo = {
+                name: 'Лига',
+                country: '--',
+                season: currentYear,
+                avgGoals: parseFloat(avgTotal),
+                oz: Math.round((ozCount/total)*100),
+                matches: total
+            };
+        }
+        state.currentLeagueData = leagueInfo;
+        updateLeagueInfoDisplay(leagueInfo);
+        if (status) status.innerHTML = `✅ Найдено ${total} встреч за 5 сезонов!`;
+        if (results) {
+            results.innerHTML = `
+                <div class="h2h-summary">
+                    <span class="item">📊 Всего: <span class="num">${total}</span></span>
+                    <span class="item">⚽ ОЗ: <span class="num">${Math.round((ozCount/total)*100)}%</span></span>
+                    <span class="item">📈 Тотал: <span class="num">${avgTotal}</span></span>
+                    <span class="item">🏠 ${homeWins} | ✈️ ${awayWins} | 🤝 ${draws}</span>
+                    <span class="item">🔥 Форма хозяев: ${Math.round((homeWins/total)*100)}%</span>
+                </div>
+                ${matches.slice(0, 15).map(m => `
+                    <div class="h2h-item">
+                        ${sanitizeHTML(m.home)} ${m.homeScore}:${m.awayScore} ${sanitizeHTML(m.away)}
+                        ${m.oz ? '✅' : '❌'}
+                        <span style="color:#555;font-size:9px;">${new Date(m.date).toLocaleDateString()}</span>
+                    </div>
+                `).join('')}
+                ${total > 15 ? `<div style="color:#888;font-size:10px;text-align:center;margin-top:4px;">и еще ${total - 15} матчей...</div>` : ''}
+            `;
+        }
+        if (status) status.innerHTML = '⏳ Загрузка травм...';
+        const homeInjuries = await loadInjuries(homeId);
+        const awayInjuries = await loadInjuries(awayId);
+        if (homeInjuries || awayInjuries) {
+            const injHtml = (injuries, team) => {
+                if (!injuries || injuries.length === 0) return '✅ Нет травм';
+                return injuries.map(i => `🤕 ${i.player} (${i.position}) - ${i.injury}`).join(' | ');
+            };
+            document.getElementById('aiInjuries').textContent = `${injHtml(homeInjuries, 'home')} | ${injHtml(awayInjuries, 'away')}`;
+            state.injuries = { home: homeInjuries, away: awayInjuries };
+        }
+        const badge = $('searchBadgeNav');
+        if (badge) { badge.style.display = 'block'; badge.textContent = total; }
+        calculate();
+        showToast(`✅ Загружено ${total} матчей!`, 'success');
+    } catch(error) {
+        handleError(error, '⚠️ Ошибка загрузки. Проверьте интернет.');
+        if (status) status.innerHTML = `❌ ${error.message}`;
+    } finally {
+        state.isLoading = false;
+        resetButtons(btn, btnText, spinner);
+    }
+}
+
+function resetButtons(btn, btnText, spinner) {
+    if (btn) btn.disabled = false;
+    if (btnText) btnText.textContent = '📊 Загрузить H2H';
+    if (spinner) spinner.style.display = 'none';
+}
+
+// ================================================================
+// КОНЕЦ ЧАСТИ 3/5
+// ДАЛЕЕ СЛЕДУЕТ ЧАСТЬ 4/5: КАЛИБРОВКА, ФИЛЬТР, ULTIMATE AI
+// ================================================================
