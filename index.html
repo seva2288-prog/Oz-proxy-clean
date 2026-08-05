@@ -720,17 +720,73 @@
         </div>
         
         <!-- ====== LIVE (НОВАЯ ВЕРСИЯ С ФИЛЬТРАМИ) ====== -->
-        <div class="screen" id="liveScreen">
-            <!-- БЛОК АКТУАЛЬНЫХ ПРОГНОЗОВ -->
-            <div class="card" id="futureMatchesCard">
-                <div class="card-title">
-                    📊 Актуальные прогнозы
-                    <span class="refresh-with-timer">
-                        <span id="futureUpdateTime" style="font-size:9px;color:#888;font-weight:400;">⏳</span>
-                        <button class="btn-refresh-future" onclick="loadFutureMatches()" id="refreshFutureBtn">🔄</button>
-                        <span class="timer" id="refreshTimer" style="font-size:9px;color:#555;"></span>
-                    </span>
-                </div>
+<div class="screen" id="liveScreen">
+    <!-- БЛОК АКТУАЛЬНЫХ ПРОГНОЗОВ -->
+    <div class="card" id="futureMatchesCard">
+        <div class="card-title">
+            📊 Актуальные прогнозы (будущие матчи)
+            <span class="refresh-with-timer">
+                <span id="futureUpdateTime" style="font-size:9px;color:#888;font-weight:400;">⏳</span>
+                <button class="btn-refresh-future" onclick="loadFutureMatches()" id="refreshFutureBtn">🔄</button>
+                <span class="timer" id="refreshTimer" style="font-size:9px;color:#555;"></span>
+            </span>
+        </div>
+        
+        <!-- ФИЛЬТР ВРЕМЕНИ -->
+        <div class="filters-row" id="filterRow">
+            <button class="filter-btn active" data-filter="time" data-value="all" onclick="setFilter('time','all')">⏰ Все</button>
+            <button class="filter-btn" data-filter="time" data-value="6h" onclick="setFilter('time','6h')">6 ч</button>
+            <button class="filter-btn" data-filter="time" data-value="today" onclick="setFilter('time','today')">Сегодня</button>
+            <button class="filter-btn" data-filter="time" data-value="tomorrow" onclick="setFilter('time','tomorrow')">Завтра</button>
+            <button class="filter-btn" data-filter="time" data-value="week" onclick="setFilter('time','week')">Неделя</button>
+        </div>
+        
+        <!-- ФИЛЬТР УВЕРЕННОСТИ -->
+        <div class="filters-row" id="filterRow2">
+            <button class="filter-btn active" data-filter="confidence" data-value="0" onclick="setFilter('confidence','0')">📊 Все</button>
+            <button class="filter-btn" data-filter="confidence" data-value="70" onclick="setFilter('confidence','70')">≥ 70%</button>
+            <button class="filter-btn" data-filter="confidence" data-value="80" onclick="setFilter('confidence','80')">≥ 80%</button>
+            <button class="filter-btn" data-filter="confidence" data-value="90" onclick="setFilter('confidence','90')">≥ 90%</button>
+        </div>
+        
+        <!-- ФИЛЬТР ТОТАЛА -->
+        <div class="filters-row" id="filterRow3">
+            <button class="filter-btn active" data-filter="total" data-value="all" onclick="setFilter('total','all')">⚽ Все</button>
+            <button class="filter-btn" data-filter="total" data-value="over15" onclick="setFilter('total','over15')">O 1.5</button>
+            <button class="filter-btn" data-filter="total" data-value="over25" onclick="setFilter('total','over25')">O 2.5</button>
+            <button class="filter-btn" data-filter="total" data-value="over35" onclick="setFilter('total','over35')">O 3.5</button>
+        </div>
+        
+        <div id="futureMatchesList">
+            <div class="text-muted text-center" style="padding:20px 0;">⏳ Загрузка будущих матчей...</div>
+        </div>
+    </div>
+    
+    <!-- БЛОК ИСТОРИИ / ТОЧНОСТИ -->
+    <div class="card" id="historyAccuracyCard">
+        <div class="card-title">📈 История прогнозов / Точность</div>
+        <div id="historyAccuracyContent">
+            <div class="text-muted text-center" style="padding:10px 0;">Нет данных для отображения</div>
+        </div>
+    </div>
+    
+    <!-- КОНТЕЙНЕР УВЕДОМЛЕНИЙ -->
+    <div id="notificationContainer"></div>
+    
+    <!-- СТАРЫЕ БЛОКИ ДЛЯ СОВМЕСТИМОСТИ -->
+    <div class="card">
+        <div class="card-title">🔴 LIVE матчи <span id="liveCount" style="font-size:10px;color:#888;"></span></div>
+        <div id="liveMatches">
+            <div class="text-muted text-center" style="padding:20px 0;">⏳ Загрузка live матчей...</div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-title">📊 Тренды и прогнозы (старые)</div>
+        <div id="trendsContainer">
+            <div class="text-muted text-center" style="padding:10px 0;">Анализ трендов...</div>
+        </div>
+    </div>
+</div>
                 
                 <!-- ФИЛЬТР ВРЕМЕНИ -->
                 <div class="filters-row" id="filterRow">
