@@ -124,7 +124,7 @@
         .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #fff; border-radius: 50%; border-top-color: transparent; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .h2h-results { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
-        .h2h-item { background: #1a1f2a; border: 1px solid #2a3140; border-radius: 6px; padding: 4px 8px; font-size: 11px; display: flex; align-items: center; gap: 4px; }
+        .h2h-item { background: #1a1f2a; border: 1px solid #2a3140; border-radius: 6px; padding: 4px 8px; font-size: 11px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
         .h2h-item .score { font-weight: 600; }
         .h2h-summary { background: #1a2a3a; border-radius: 8px; padding: 6px 10px; margin: 4px 0; font-size: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
         .h2h-summary .item { background: #0b0e14; padding: 4px 10px; border-radius: 12px; border: 1px solid #2a3140; }
@@ -142,7 +142,8 @@
         .dashboard-item { background: #1a2a3a; padding: 6px; border-radius: 8px; text-align: center; }
         .dashboard-item .num { font-size: 16px; font-weight: 700; color: #f7931a; }
         .dashboard-item .label { font-size: 8px; color: #888; }
-        .history-item { background: #1a1f2a; padding: 6px 10px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 12px; margin: 2px 0; cursor: pointer; }
+        .history-item { background: #1a1f2a; padding: 6px 10px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 12px; margin: 2px 0; cursor: pointer; transition: background 0.2s; }
+        .history-item:hover { background: #2a3140; }
         .history-item .win { color: #2ecc71; }
         .history-item .loss { color: #e74c3c; }
         .history-item .pending { color: #f1c40f; }
@@ -209,332 +210,67 @@
         canvas { max-width: 100%; height: auto; }
         .weather-section { background: #1a2a3a; border: 1px solid #3498db; border-radius: 8px; padding: 8px 10px; margin: 4px 0; }
         .weather-section .label { color: #3498db; font-weight: 600; }
-          
-        /* ===== КАРТОЧКА ПОГОДЫ ===== */  
-        .weather-card {  
-            background: #1a2a3a;  
-            border: 1px solid #3498db;  
-            border-radius: 12px;  
-            padding: 12px 14px;  
-            margin: 4px 0;  
-        }  
-        .weather-card .card-title {  
-            color: #3498db;  
-        }  
-        .weather-card .weather-main {  
-            display: flex;  
-            align-items: center;  
-            gap: 16px;  
-            padding: 4px 0;  
-        }  
-        .weather-card .weather-main .big-icon {  
-            font-size: 42px;  
-        }  
-        .weather-card .weather-main .temp-big {  
-            font-size: 32px;  
-            font-weight: 700;  
-            color: #f7931a;  
-        }  
-        .weather-card .weather-main .desc-big {  
-            font-size: 14px;  
-            color: #aaa;  
-        }  
-        .weather-card .weather-details {  
-            display: flex;  
-            gap: 16px;  
-            flex-wrap: wrap;  
-            margin-top: 6px;  
-            font-size: 12px;  
-            color: #888;  
-        }  
-        .weather-card .weather-details span {  
-            display: flex;  
-            align-items: center;  
-            gap: 4px;  
-        }  
-        .weather-card .weather-impact {  
-            margin-top: 6px;  
-            padding: 4px 10px;  
-            background: #0b0e14;  
-            border-radius: 6px;  
-            font-size: 12px;  
-            color: #aaa;  
-        }  
-        .weather-card .weather-error-text {  
-            color: #e74c3c;  
-            text-align: center;  
-            padding: 8px 0;  
-        }  
-        .weather-card .weather-loading-text {  
-            color: #888;  
-            text-align: center;  
-            padding: 8px 0;  
-            animation: pulse 1s infinite;  
-        }  
-        .weather-card .weather-city {  
-            font-size: 11px;  
-            color: #555;  
-            margin-top: 2px;  
-        }  
-        .weather-card .weather-input-row {  
-            display: flex;  
-            gap: 6px;  
-            margin-bottom: 8px;  
-        }  
-        .weather-card .weather-input-row input {  
-            flex: 1;  
-            padding: 8px 10px;  
-            border-radius: 8px;  
-            border: 1px solid #2a3140;  
-            background: #0b0e14;  
-            color: #e0e0e0;  
-            font-size: 13px;  
-            outline: 0;  
-        }  
-        .weather-card .weather-input-row input:focus {  
-            border-color: #3498db;  
-        }  
-        .weather-card .weather-input-row button {  
-            padding: 8px 14px;  
-            border-radius: 8px;  
-            border: none;  
-            background: #3498db;  
-            color: #fff;  
-            font-weight: 600;  
-            font-size: 13px;  
-            cursor: pointer;  
-        }  
-        .weather-card .weather-input-row button:active {  
-            transform: scale(0.95);  
-        }  
-  
-        /* ===== КАРТОЧКА ИНФОРМАЦИИ О ЛИГЕ ===== */  
-        .league-info-card {  
-            background: #1a2a3a;  
-            border: 1px solid #f7931a;  
-            border-radius: 12px;  
-            padding: 10px 14px;  
-            margin: 4px 0;  
-        }  
-        .league-info-card .league-name {  
-            font-size: 14px;  
-            font-weight: 700;  
-            color: #f7931a;  
-        }  
-        .league-info-card .league-details {  
-            display: flex;  
-            flex-wrap: wrap;  
-            gap: 12px;  
-            font-size: 11px;  
-            color: #888;  
-            margin-top: 4px;  
-        }  
-        .league-info-card .league-details span {  
-            display: flex;  
-            align-items: center;  
-            gap: 4px;  
-        }  
-        .league-info-card .league-details .num {  
-            color: #f7931a;  
-            font-weight: 700;  
-        }  
-  
-        /* ===== УМНЫЕ ВЫВОДЫ ===== */  
-        .insights-card {  
-            background: #1a1f2a;  
-            border: 1px solid #9b59b6;  
-            border-radius: 12px;  
-            padding: 10px 12px;  
-            margin: 4px 0;  
-            border-left: 4px solid #9b59b6;  
-        }  
-        .insights-card .card-title {  
-            color: #9b59b6;  
-            font-size: 12px;  
-            font-weight: 700;  
-            margin-bottom: 4px;  
-        }  
-        .insights-card .insight-summary {  
-            font-size: 15px;  
-            font-weight: 700;  
-            margin-bottom: 4px;  
-        }  
-        .insights-card .insight-details {  
-            font-size: 12px;  
-            color: #888;  
-            line-height: 1.5;  
-        }  
-        .insights-card .insight-details li {  
-            list-style: none;  
-            padding: 2px 0;  
-        }  
-        .insights-card .insight-recommendation {  
-            margin-top: 6px;  
-            padding: 6px 10px;  
-            border-radius: 6px;  
-            background: #0b0e14;  
-            font-size: 13px;  
-        }  
-        .insights-card .insight-warnings {  
-            margin-top: 4px;  
-            font-size: 11px;  
-            color: #e74c3c;  
-        }  
-        .insights-card .insight-score {  
-            font-size: 11px;  
-            color: #888;  
-            margin-top: 2px;  
-        }  
-        .insights-card .insight-score .num {  
-            font-weight: 700;  
-            color: #f7931a;  
-        }  
-
-        /* ===== ИИ-АССИСТЕНТ ===== */  
-        .assistant-card {  
-            background: #1a2a3a;  
-            border: 1px solid #2ecc71;  
-            border-radius: 12px;  
-            padding: 10px 12px;  
-            margin: 4px 0;  
-        }  
-        .assistant-card .card-title {  
-            color: #2ecc71;  
-        }  
-        .assistant-message {  
-            padding: 8px 12px;  
-            border-radius: 10px;  
-            margin: 4px 0;  
-            max-width: 90%;  
-            font-size: 13px;  
-            line-height: 1.5;  
-        }  
-        .assistant-message.user {  
-            background: #2a3140;  
-            margin-left: auto;  
-            border-bottom-right-radius: 4px;  
-        }  
-        .assistant-message.ai {  
-            background: #1a3a1a;  
-            margin-right: auto;  
-            border-bottom-left-radius: 4px;  
-            border-left: 3px solid #2ecc71;  
-        }  
-        .assistant-message .time {  
-            font-size: 9px;  
-            color: #555;  
-            margin-top: 2px;  
-        }  
-        .assistant-input-row {  
-            display: flex;  
-            gap: 8px;  
-            margin-top: 8px;  
-        }  
-        .assistant-input-row input {  
-            flex: 1;  
-            padding: 10px 12px;  
-            border-radius: 8px;  
-            border: 1px solid #2a3140;  
-            background: #0b0e14;  
-            color: #e0e0e0;  
-            font-size: 14px;  
-            outline: 0;  
-        }  
-        .assistant-input-row input:focus {  
-            border-color: #2ecc71;  
-        }  
-        .assistant-input-row button {  
-            padding: 10px 16px;  
-            border-radius: 8px;  
-            border: none;  
-            background: #2ecc71;  
-            color: #000;  
-            font-weight: 700;  
-            font-size: 14px;  
-            cursor: pointer;  
-        }  
-        .assistant-input-row button:active {  
-            transform: scale(0.95);  
-        }  
-        .assistant-input-row button:disabled {  
-            opacity: 0.5;  
-            cursor: not-allowed;  
-        }  
-        .assistant-chat {  
-            max-height: 350px;  
-            overflow-y: auto;  
-            margin-bottom: 8px;  
-        }  
-        .assistant-chat::-webkit-scrollbar {  
-            width: 3px;  
-        }  
-        .assistant-chat::-webkit-scrollbar-thumb {  
-            background: #2a3140;  
-            border-radius: 3px;  
-        }  
-
-        /* ===== ИИ-ДЕТЕКТИВ ===== */  
-        .detective-card {  
-            background: #1a2a3a;  
-            border: 1px solid #e74c3c;  
-            border-radius: 12px;  
-            padding: 10px 12px;  
-            margin: 4px 0;  
-        }  
-        .detective-card .card-title {  
-            color: #e74c3c;  
-        }  
-        .detective-badge {  
-            display: inline-block;  
-            padding: 2px 10px;  
-            border-radius: 12px;  
-            font-size: 10px;  
-            font-weight: 600;  
-            margin: 2px;  
-        }  
-        .detective-badge.high { background: #e74c3c; color: #fff; }  
-        .detective-badge.medium { background: #f1c40f; color: #000; }  
-        .detective-badge.low { background: #2ecc71; color: #000; }  
-        .detective-badge.derby { background: #9b59b6; color: #fff; }  
-        .detective-badge.motivation { background: #f7931a; color: #000; }  
-
-        /* ===== НИЖНЯЯ НАВИГАЦИЯ ===== */  
-        .bottom-nav {   
-            display: flex;   
-            background: #0b0e14;   
-            border-top: 1px solid #2a3140;   
-            flex-shrink: 0;   
-            padding: 4px 0 env(safe-area-inset-bottom, 4px);   
-            position: sticky;   
-            bottom: 0;   
-            z-index: 20;   
-            justify-content: space-around;  
-            padding-bottom: env(safe-area-inset-bottom, 8px);  
-            overflow-x: auto;  
-        }    
-        .bottom-nav .nav-btn {   
-            flex: 0 0 auto;   
-            padding: 6px 10px 4px;   
-            font-size: 9px;   
-            font-weight: 500;   
-            color: #666;   
-            cursor: pointer;   
-            background: 0;   
-            border: none;   
-            text-align: center;   
-            display: flex;   
-            flex-direction: column;   
-            align-items: center;   
-            gap: 1px;   
-            transition: color 0.2s;  
-            -webkit-tap-highlight-color: transparent;  
-            min-width: 50px;  
-        }    
-        .bottom-nav .nav-btn .nav-icon { font-size: 20px; line-height: 1.2; }    
-        .bottom-nav .nav-btn .nav-label { font-size: 8px; }    
-        .bottom-nav .nav-btn.active { color: #f7931a; }    
-        .bottom-nav .nav-btn .badge { background: #e74c3c; color: #fff; font-size: 7px; padding: 1px 5px; border-radius: 10px; margin-left: 2px; }  
-        .bottom-nav::-webkit-scrollbar { display: none; }  
+        .weather-card { background: #1a2a3a; border: 1px solid #3498db; border-radius: 12px; padding: 12px 14px; margin: 4px 0; }
+        .weather-card .card-title { color: #3498db; }
+        .weather-card .weather-main { display: flex; align-items: center; gap: 16px; padding: 4px 0; }
+        .weather-card .weather-main .big-icon { font-size: 42px; }
+        .weather-card .weather-main .temp-big { font-size: 32px; font-weight: 700; color: #f7931a; }
+        .weather-card .weather-main .desc-big { font-size: 14px; color: #aaa; }
+        .weather-card .weather-details { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 6px; font-size: 12px; color: #888; }
+        .weather-card .weather-details span { display: flex; align-items: center; gap: 4px; }
+        .weather-card .weather-impact { margin-top: 6px; padding: 4px 10px; background: #0b0e14; border-radius: 6px; font-size: 12px; color: #aaa; }
+        .weather-card .weather-error-text { color: #e74c3c; text-align: center; padding: 8px 0; }
+        .weather-card .weather-loading-text { color: #888; text-align: center; padding: 8px 0; animation: pulse 1s infinite; }
+        .weather-card .weather-city { font-size: 11px; color: #555; margin-top: 2px; }
+        .weather-card .weather-input-row { display: flex; gap: 6px; margin-bottom: 8px; }
+        .weather-card .weather-input-row input { flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid #2a3140; background: #0b0e14; color: #e0e0e0; font-size: 13px; outline: 0; }
+        .weather-card .weather-input-row input:focus { border-color: #3498db; }
+        .weather-card .weather-input-row button { padding: 8px 14px; border-radius: 8px; border: none; background: #3498db; color: #fff; font-weight: 600; font-size: 13px; cursor: pointer; }
+        .weather-card .weather-input-row button:active { transform: scale(0.95); }
+        .league-info-card { background: #1a2a3a; border: 1px solid #f7931a; border-radius: 12px; padding: 10px 14px; margin: 4px 0; }
+        .league-info-card .league-name { font-size: 14px; font-weight: 700; color: #f7931a; }
+        .league-info-card .league-details { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11px; color: #888; margin-top: 4px; }
+        .league-info-card .league-details span { display: flex; align-items: center; gap: 4px; }
+        .league-info-card .league-details .num { color: #f7931a; font-weight: 700; }
+        .insights-card { background: #1a1f2a; border: 1px solid #9b59b6; border-radius: 12px; padding: 10px 12px; margin: 4px 0; border-left: 4px solid #9b59b6; }
+        .insights-card .card-title { color: #9b59b6; font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+        .insights-card .insight-summary { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+        .insights-card .insight-details { font-size: 12px; color: #888; line-height: 1.5; }
+        .insights-card .insight-details li { list-style: none; padding: 2px 0; }
+        .insights-card .insight-recommendation { margin-top: 6px; padding: 6px 10px; border-radius: 6px; background: #0b0e14; font-size: 13px; }
+        .insights-card .insight-warnings { margin-top: 4px; font-size: 11px; color: #e74c3c; }
+        .insights-card .insight-score { font-size: 11px; color: #888; margin-top: 2px; }
+        .insights-card .insight-score .num { font-weight: 700; color: #f7931a; }
+        .assistant-card { background: #1a2a3a; border: 1px solid #2ecc71; border-radius: 12px; padding: 10px 12px; margin: 4px 0; }
+        .assistant-card .card-title { color: #2ecc71; }
+        .assistant-message { padding: 8px 12px; border-radius: 10px; margin: 4px 0; max-width: 90%; font-size: 13px; line-height: 1.5; }
+        .assistant-message.user { background: #2a3140; margin-left: auto; border-bottom-right-radius: 4px; }
+        .assistant-message.ai { background: #1a3a1a; margin-right: auto; border-bottom-left-radius: 4px; border-left: 3px solid #2ecc71; }
+        .assistant-message .time { font-size: 9px; color: #555; margin-top: 2px; }
+        .assistant-input-row { display: flex; gap: 8px; margin-top: 8px; }
+        .assistant-input-row input { flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid #2a3140; background: #0b0e14; color: #e0e0e0; font-size: 14px; outline: 0; }
+        .assistant-input-row input:focus { border-color: #2ecc71; }
+        .assistant-input-row button { padding: 10px 16px; border-radius: 8px; border: none; background: #2ecc71; color: #000; font-weight: 700; font-size: 14px; cursor: pointer; }
+        .assistant-input-row button:active { transform: scale(0.95); }
+        .assistant-input-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .assistant-chat { max-height: 350px; overflow-y: auto; margin-bottom: 8px; }
+        .assistant-chat::-webkit-scrollbar { width: 3px; }
+        .assistant-chat::-webkit-scrollbar-thumb { background: #2a3140; border-radius: 3px; }
+        .detective-card { background: #1a2a3a; border: 1px solid #e74c3c; border-radius: 12px; padding: 10px 12px; margin: 4px 0; }
+        .detective-card .card-title { color: #e74c3c; }
+        .detective-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 600; margin: 2px; }
+        .detective-badge.high { background: #e74c3c; color: #fff; }
+        .detective-badge.medium { background: #f1c40f; color: #000; }
+        .detective-badge.low { background: #2ecc71; color: #000; }
+        .detective-badge.derby { background: #9b59b6; color: #fff; }
+        .detective-badge.motivation { background: #f7931a; color: #000; }
+        .bottom-nav { display: flex; background: #0b0e14; border-top: 1px solid #2a3140; flex-shrink: 0; padding: 4px 0 env(safe-area-inset-bottom, 4px); position: sticky; bottom: 0; z-index: 20; justify-content: space-around; padding-bottom: env(safe-area-inset-bottom, 8px); overflow-x: auto; }
+        .bottom-nav .nav-btn { flex: 0 0 auto; padding: 6px 10px 4px; font-size: 9px; font-weight: 500; color: #666; cursor: pointer; background: 0; border: none; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1px; transition: color 0.2s; -webkit-tap-highlight-color: transparent; min-width: 50px; }
+        .bottom-nav .nav-btn .nav-icon { font-size: 20px; line-height: 1.2; }
+        .bottom-nav .nav-btn .nav-label { font-size: 8px; }
+        .bottom-nav .nav-btn.active { color: #f7931a; }
+        .bottom-nav .nav-btn .badge { background: #e74c3c; color: #fff; font-size: 7px; padding: 1px 5px; border-radius: 10px; margin-left: 2px; }
+        .bottom-nav::-webkit-scrollbar { display: none; }
     </style>    
 </head>    
 <body>    
@@ -563,7 +299,6 @@
                     <span>📊 Матчей: <span class="num" id="leagueMatches">--</span></span>    
                 </div>    
             </div>    
-  
             <div class="mode-wrap" id="modeTabs">    
                 <button class="mode-btn active" data-mode="total" onclick="switchMode('total',this)">⚽ Тотал</button>    
                 <button class="mode-btn" data-mode="oz" onclick="switchMode('oz',this)">⚽ ОЗ</button>    
@@ -571,8 +306,8 @@
             </div>    
             <div id="inputArea">    
                 <div class="input-row">    
-                    <div class="field"><label>🏠 Хозяева</label><input type="number" id="homeGoals" value="0" min="0" /></div>    
-                    <div class="field"><label>✈️ Гости</label><input type="number" id="awayGoals" value="0" min="0" /></div>    
+                    <div class="field"><label>🏠 Хозяева</label><input type="number" id="homeGoals" value="0" min="0" oninput="updateSum(); calculateDebounced();" /></div>    
+                    <div class="field"><label>✈️ Гости</label><input type="number" id="awayGoals" value="0" min="0" oninput="updateSum(); calculateDebounced();" /></div>    
                 </div>    
             </div>    
             <div class="total-display">    
@@ -600,7 +335,7 @@
             <div class="ai-card">    
                 <div class="card-title">🧠 AI Прогноз PRO</div>    
                 <button class="btn-ai" id="aiBtn" onclick="generateAIPrediction()"><span>🤖</span> Сгенерировать AI прогноз</button>    
-                <div class="ai-result" id="aiResult">    
+                <div class="ai-result" id="aiResult" style="display:none;">    
                     <div class="ai-score-box">    
                         <div class="score-item"><div class="num" id="aiHomeScore">0</div><div class="label">🏠 AI Хозяева</div></div>    
                         <div class="score-item"><div class="num" id="aiAwayScore">0</div><div class="label">✈️ AI Гости</div></div>    
@@ -620,14 +355,10 @@
                     <div class="section"><span class="label">📈 Тренд голов:</span> <span class="value" id="aiTrend">—</span></div>    
                     <div class="section"><span class="label">⚡ Средний тотал:</span> <span class="value" id="aiAvgTotal">—</span></div>    
                     <div class="section"><span class="label">📊 Poisson прогноз:</span> <span class="value" id="aiPoisson">—</span></div>    
-                    
-                    <!-- ===== ИИ-ДЕТЕКТИВ ===== -->  
                     <div class="detective-card" id="detectiveCard" style="display:none;">  
                         <div class="card-title">🕵️ ИИ-Детектив</div>  
                         <div id="detectiveContent"></div>  
                     </div>  
-                    <!-- ===== КОНЕЦ ИИ-ДЕТЕКТИВА ===== -->  
-                    
                     <div class="recommendation">    
                         <div class="label">🎯 РЕКОМЕНДАЦИЯ:</div>    
                         <div class="big" id="aiRecommendation">—</div>    
@@ -635,8 +366,6 @@
                     </div>    
                 </div>    
             </div>    
-  
-            <!-- ====== КАРТОЧКА ПОГОДЫ С ПОЛЕМ ВВОДА ГОРОДА ====== -->  
             <div class="weather-card" id="weatherCard">  
                 <div class="card-title">🌤️ Погода на стадионе</div>  
                 <div class="weather-input-row">  
@@ -647,9 +376,6 @@
                     <div class="weather-loading-text">⏳ Загрузка погоды...</div>  
                 </div>  
             </div>  
-            <!-- ====== КОНЕЦ КАРТОЧКИ ПОГОДЫ ====== -->  
-
-            <!-- ====== УМНЫЕ ВЫВОДЫ ====== -->  
             <div class="insights-card" id="smartInsightsCard" style="display:none;">  
                 <div class="card-title">🧠 Умные выводы</div>  
                 <div class="insight-summary" id="smartSummary">—</div>  
@@ -658,8 +384,6 @@
                 <div class="insight-warnings" id="smartWarnings"></div>  
                 <div class="insight-score" id="smartScore">📊 Оценка: <span class="num">0</span>%</div>  
             </div>  
-            <!-- ====== КОНЕЦ УМНЫХ ВЫВОДОВ ====== -->  
-  
         </div>    
         <!-- ====== ПОИСК ====== -->    
         <div class="screen" id="searchScreen">    
@@ -2603,7 +2327,7 @@
         }    
     
         // ================================================================    
-        // СТАТИСТИКА    
+        // СТАТИСТИКА (ИСПРАВЛЕННАЯ ФУНКЦИЯ)    
         // ================================================================    
     
         function renderHistory() {    
@@ -2614,16 +2338,20 @@
                 return;    
             }    
             const modeNames = { 'total': 'Тотал', 'fora': 'Фора', 'oz': 'ОЗ' };    
-            const visibleBets = state.bets.slice(-100);    
-            list.innerHTML = visibleBets.slice().reverse().map((b, i) => {    
-                const idx = state.bets.length - 1 - (visibleBets.length - 1 - i);    
+            // Показываем последние 100, начиная с новых    
+            const visibleBets = state.bets.slice(-100).reverse();    
+            list.innerHTML = visibleBets.map((b, i) => {    
+                // Вычисляем реальный индекс в массиве state.bets    
+                const realIdx = state.bets.length - 1 - i;    
+                const idx = realIdx >= 0 ? realIdx : i;    
                 const cls = b.outcome === 'win' ? 'win' : (b.outcome === 'loss' ? 'loss' : 'pending');    
                 const emoji = b.outcome === 'win' ? '✅' : (b.outcome === 'loss' ? '❌' : '⏳');    
                 const weatherInfo = b.weather ? ` 🌤️ ${b.weather}` : '';    
                 return `<div class="history-item" onclick="editBet(${idx})">    
                     <div>    
                         <b>${modeNames[b.mode] || b.mode}</b>: ${b.value}    
-                        <div class="weather-info">${weatherInfo}</div>    
+                        <div style="font-size:9px;color:#555;">${b.match || ''}</div>    
+                        ${weatherInfo ? `<div style="font-size:8px;color:#555;">${weatherInfo}</div>` : ''}    
                     </div>    
                     <div><span class="${cls}">${emoji} ${b.resultText || '⏳'}</span></div>    
                 </div>`;    
@@ -2791,18 +2519,24 @@
     
         function editBet(idx) {    
             const b = state.bets[idx];    
-            if (!b) return;    
-            const choice = prompt(`Исход для ${b.match}:\n1 - Выиграла\n2 - Проиграла\n3 - Неизвестно`, '3');    
+            if (!b) {    
+                showToast('⚠️ Ставка не найдена', 'error');    
+                return;    
+            }    
+            const choice = prompt(`Исход для "${b.match || 'Матч'}":\n1 - Выиграла ✅\n2 - Проиграла ❌\n3 - Неизвестно ⏳\n\nТекущий статус: ${b.resultText || '⏳'}`, '3');    
             if (choice === null) return;    
             if (choice === '1') {     
                 b.outcome = 'win';     
                 b.resultText = '✅ Выигрыш';     
+                showToast('✅ Отмечено как выигрыш!', 'success');    
             } else if (choice === '2') {     
                 b.outcome = 'loss';     
                 b.resultText = '❌ Проигрыш';     
+                showToast('❌ Отмечено как проигрыш', 'info');    
             } else {     
                 b.outcome = 'pending';     
                 b.resultText = '⏳ Ожидание';     
+                showToast('⏳ Статус сброшен', 'info');    
             }    
             localStorage.setItem('quantum_bets', JSON.stringify(state.bets));    
             renderHistory();     
@@ -2812,7 +2546,6 @@
             renderMonthlyChart();     
             renderInsights();    
             updateAIStatus();    
-            showToast('✅ Обновлено', 'success');    
         }    
     
         function clearHistory() {    
