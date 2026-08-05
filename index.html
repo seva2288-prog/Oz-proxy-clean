@@ -58,6 +58,8 @@
         body.light .assistant-card { background: #f0f8f0 !important; border-color: #2ecc71 !important; }
         body.light .assistant-message.user { background: #f0f2f5 !important; }
         body.light .assistant-message.ai { background: #f0f8f0 !important; }
+        body.light .weather-input { background: #fff !important; border-color: #d0d5dd !important; color: #1a1a1a !important; }
+        body.light .weather-input-btn { background: #3498db !important; color: #fff !important; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px 6px; background: #0b0e14; border-bottom: 1px solid #2a3140; flex-shrink: 0; z-index: 10; padding-top: env(safe-area-inset-top, 10px); }
         .header h1 { font-size: 17px; color: #f7931a; display: flex; align-items: center; gap: 6px; }
         .header h1 span { font-size: 8px; color: #555; font-weight: 400; }
@@ -97,6 +99,10 @@
         .input-row .field label { font-size: 10px; color: #888; display: block; }
         .input-row .field input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #2a3140; background: #0b0e14; color: #e0e0e0; text-align: center; font-size: 16px; outline: 0; }
         .input-row .field input:focus { border-color: #f7931a; }
+        .weather-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #2a3140; background: #0b0e14; color: #e0e0e0; text-align: center; font-size: 14px; outline: 0; }
+        .weather-input:focus { border-color: #3498db; }
+        .weather-input-btn { background: #3498db; color: #fff; padding: 10px 16px; border-radius: 8px; border: 0; font-weight: 700; font-size: 14px; cursor: pointer; }
+        .weather-input-btn:active { transform: scale(0.95); }
         select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #2a3140; background: #0b0e14; color: #e0e0e0; font-size: 13px; outline: 0; }
         select:focus { border-color: #f7931a; }
         .mode-wrap { display: flex; gap: 4px; margin: 6px 0; flex-wrap: wrap; }
@@ -270,6 +276,37 @@
             color: #555;  
             margin-top: 2px;  
         }  
+        .weather-card .weather-input-row {  
+            display: flex;  
+            gap: 6px;  
+            margin-bottom: 8px;  
+        }  
+        .weather-card .weather-input-row input {  
+            flex: 1;  
+            padding: 8px 10px;  
+            border-radius: 8px;  
+            border: 1px solid #2a3140;  
+            background: #0b0e14;  
+            color: #e0e0e0;  
+            font-size: 13px;  
+            outline: 0;  
+        }  
+        .weather-card .weather-input-row input:focus {  
+            border-color: #3498db;  
+        }  
+        .weather-card .weather-input-row button {  
+            padding: 8px 14px;  
+            border-radius: 8px;  
+            border: none;  
+            background: #3498db;  
+            color: #fff;  
+            font-weight: 600;  
+            font-size: 13px;  
+            cursor: pointer;  
+        }  
+        .weather-card .weather-input-row button:active {  
+            transform: scale(0.95);  
+        }  
   
         /* ===== КАРТОЧКА ИНФОРМАЦИИ О ЛИГЕ ===== */  
         .league-info-card {  
@@ -424,7 +461,7 @@
             cursor: not-allowed;  
         }  
         .assistant-chat {  
-            max-height: 400px;  
+            max-height: 350px;  
             overflow-y: auto;  
             margin-bottom: 8px;  
         }  
@@ -599,9 +636,13 @@
                 </div>    
             </div>    
   
-            <!-- ====== КАРТОЧКА ПОГОДЫ ====== -->  
+            <!-- ====== КАРТОЧКА ПОГОДЫ С ПОЛЕМ ВВОДА ГОРОДА ====== -->  
             <div class="weather-card" id="weatherCard">  
                 <div class="card-title">🌤️ Погода на стадионе</div>  
+                <div class="weather-input-row">  
+                    <input type="text" id="cityWeatherInput" placeholder="Введите город (например: London)" class="weather-input">  
+                    <button onclick="loadWeatherByCity()" class="weather-input-btn">🔍</button>  
+                </div>  
                 <div id="weatherCardContent">  
                     <div class="weather-loading-text">⏳ Загрузка погоды...</div>  
                 </div>  
@@ -755,9 +796,9 @@
                 <div class="card-title">🧠 ИИ-Ассистент</div>    
                 <div class="assistant-chat" id="assistantChat">    
                     <div class="assistant-message ai">    
-                        👋 Привет! Я ИИ-ассистент Квантум PRO.<br>  
+                        👋 Привет! Я ИИ-ассистент Квантум PRO.<br>    
                         Задай вопрос о ставках, прогнозах или анализе матчей.  
-                        <div class="time">🤖 ИИ-ассистент</div>  
+                        <div class="time">🤖 ИИ-ассистент</div>    
                     </div>    
                 </div>    
                 <div class="assistant-input-row">    
@@ -816,7 +857,6 @@
         const API_KEY = localStorage.getItem('quantum_api_key') || 'ваш_платный_ключ';    
         const PROXY_BASE = 'https://oz-proxy-clean.onrender.com/api/';    
             
-        // Кэш API с ограничением размера    
         const API_CACHE = {};    
         const MAX_CACHE_SIZE = 100;    
     
@@ -855,12 +895,10 @@
             }    
             const response = await fetchWithRetry(url, options);    
             const data = await response.json();    
-                
             const keys = Object.keys(API_CACHE);    
             if (keys.length >= MAX_CACHE_SIZE) {    
                 delete API_CACHE[keys[0]];    
             }    
-                
             API_CACHE[key] = { data, time: Date.now() };    
             return data;    
         }    
@@ -887,9 +925,6 @@
             return { distribution: dist, cumulative };    
         }    
     
-        // ================================================================    
-        // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ    
-        // ================================================================    
         function $(id) { return document.getElementById(id); }    
         function safeNum(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }    
         function getLeague() {     
@@ -973,14 +1008,11 @@
             const iconEl = document.getElementById('weatherIconHeader');    
             const tempEl = document.getElementById('weatherTempHeader');    
             const descEl = document.getElementById('weatherDescHeader');    
-                
             if (!weatherEl) return;    
-                
             iconEl.textContent = '⏳';    
             tempEl.textContent = '--°C';    
             descEl.textContent = 'Загрузка...';    
             descEl.className = 'weather-loading';    
-                
             const key = localStorage.getItem('quantum_weather_key');    
             if (!key || key === '') {    
                 iconEl.textContent = '❌';    
@@ -989,13 +1021,11 @@
                 descEl.className = 'weather-error';    
                 return;    
             }    
-    
             try {    
                 const url = `https://api.openweathermap.org/data/2.5/weather?lat=${MOSCOW_COORDS.lat}&lon=${MOSCOW_COORDS.lon}&units=metric&appid=${key}`;    
                 const response = await fetch(url);    
                 if (!response.ok) throw new Error('Погода не найдена');    
                 const data = await response.json();    
-                    
                 state.headerWeather = {    
                     temp: Math.round(data.main.temp),    
                     feels_like: Math.round(data.main.feels_like),    
@@ -1003,14 +1033,13 @@
                     wind_speed: data.wind.speed,    
                     weather: data.weather[0].main,    
                     description: data.weather[0].description,    
-                    icon: data.weather[0].icon    
+                    icon: data.weather[0].icon,    
+                    city: data.name,    
+                    country: data.sys.country    
                 };    
-                    
                 updateHeaderWeatherDisplay();    
                 updateWeatherCard();    
-                    
                 console.log('🌤️ Погода в Москве:', data.weather[0].description, Math.round(data.main.temp) + '°C');    
-                    
             } catch(e) {    
                 console.log('⚠️ Ошибка загрузки погоды в шапке:', e);    
                 iconEl.textContent = '❌';    
@@ -1025,12 +1054,9 @@
             const iconEl = document.getElementById('weatherIconHeader');    
             const tempEl = document.getElementById('weatherTempHeader');    
             const descEl = document.getElementById('weatherDescHeader');    
-                
             if (!state.headerWeather) return;    
-                
             const w = state.headerWeather;    
             const emoji = getWeatherEmojiFromData(w);    
-                
             iconEl.textContent = emoji;    
             tempEl.textContent = w.temp + '°C';    
             descEl.textContent = w.description;    
@@ -1058,16 +1084,14 @@
         function updateWeatherCard() {    
             const container = document.getElementById('weatherCardContent');    
             if (!container) return;    
-                
             if (!state.headerWeather) {    
                 container.innerHTML = `<div class="weather-loading-text">⏳ Загрузка погоды...</div>`;    
                 return;    
             }    
-                
             const w = state.headerWeather;    
             const emoji = getWeatherEmojiFromData(w);    
             const impact = getWeatherImpactText(w);    
-                
+            const location = w.city && w.country ? `${w.city}, ${w.country}` : 'Москва, Россия';    
             container.innerHTML = `    
                 <div class="weather-main">    
                     <span class="big-icon">${emoji}</span>    
@@ -1081,7 +1105,7 @@
                     <span>💧 ${w.humidity}%</span>    
                     <span>🌡️ Ощущается ${w.feels_like}°C</span>    
                 </div>    
-                <div class="weather-city">📍 Москва, Россия</div>    
+                <div class="weather-city">📍 ${location}</div>    
                 <div class="weather-impact">📊 ${impact}</div>    
             `;    
         }    
@@ -1111,6 +1135,43 @@
                 return '☁️ Облачно, условия нормальные';    
             }    
             return '✅ Погода нейтральна';    
+        }    
+    
+        // ===== ПОГОДА ПО ГОРОДУ (НОВОЕ!) =====    
+        async function loadWeatherByCity() {    
+            const cityInput = document.getElementById('cityWeatherInput');    
+            const city = cityInput.value.trim();    
+            if (!city) {    
+                showToast('⚠️ Введите город', 'error');    
+                return;    
+            }    
+            const key = localStorage.getItem('quantum_weather_key');    
+            if (!key) {    
+                showToast('⚠️ Введите ключ погоды в настройках', 'error');    
+                return;    
+            }    
+            try {    
+                const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=metric&appid=${key}`;    
+                const response = await fetch(url);    
+                if (!response.ok) throw new Error('Город не найден');    
+                const data = await response.json();    
+                state.headerWeather = {    
+                    temp: Math.round(data.main.temp),    
+                    feels_like: Math.round(data.main.feels_like),    
+                    humidity: data.main.humidity,    
+                    wind_speed: data.wind.speed,    
+                    weather: data.weather[0].main,    
+                    description: data.weather[0].description,    
+                    icon: data.weather[0].icon,    
+                    city: data.name,    
+                    country: data.sys.country    
+                };    
+                updateHeaderWeatherDisplay();    
+                updateWeatherCard();    
+                showToast(`✅ Погода в ${data.name}, ${data.sys.country}`, 'success');    
+            } catch(e) {    
+                showToast(`❌ Город "${city}" не найден`, 'error');    
+            }    
         }    
     
         // ================================================================    
@@ -1143,9 +1204,6 @@
             'Inter Milan': { lat: 45.4780, lon: 9.1240 }    
         };    
     
-        // ================================================================    
-        // ДЕРБИ    
-        // ================================================================    
         const DERBY_PAIRS = [    
             ['Real Madrid', 'Barcelona'],    
             ['Liverpool', 'Manchester United'],    
@@ -1172,16 +1230,8 @@
             });    
         }    
     
-        // ================================================================    
-        // МОТИВАЦИЯ    
-        // ================================================================    
         function calculateMotivation(homeTeam, awayTeam, league, matches) {    
-            // Определяем позиции команд (упрощенно)    
             let homePos = 10, awayPos = 10;    
-            let homeGames = 30, awayGames = 30;    
-            let homePoints = 40, awayPoints = 40;    
-    
-            // Если есть данные, пытаемся определить позицию из матчей    
             if (matches && matches.length > 0) {    
                 const homeWins = matches.filter(m => m.homeScore > m.awayScore).length;    
                 const awayWins = matches.filter(m => m.awayScore > m.homeScore).length;    
@@ -1191,11 +1241,8 @@
                     awayPos = Math.round(20 - (awayWins / total) * 20) + 1;    
                 }    
             }    
-                
             let motivation = 1.0;    
             let reason = 'Средняя мотивация';    
-                
-            // Борьба за чемпионство (топ-3)    
             if (homePos <= 3) {    
                 motivation = 1.25;    
                 reason = '🔥 Борьба за чемпионство';    
@@ -1203,8 +1250,6 @@
                 motivation = 1.2;    
                 reason = '🔥 Борьба за чемпионство (гости)';    
             }    
-                
-            // Борьба за выживание (зона вылета)    
             if (homePos >= 17) {    
                 motivation = 1.3;    
                 reason = '🔥 Борьба за выживание';    
@@ -1212,75 +1257,41 @@
                 motivation = 1.25;    
                 reason = '🔥 Борьба за выживание (гости)';    
             }    
-                
-            // Дерби — максимальная мотивация    
             if (isDerby(homeTeam, awayTeam)) {    
                 motivation = 1.35;    
                 reason = '⚔️ Дерби! Максимальная мотивация';    
             }    
-                
             return { factor: motivation, reason: reason, homePos: homePos, awayPos: awayPos };    
         }    
     
-        // ================================================================    
-        // НЕПРЕДСКАЗУЕМОСТЬ    
-        // ================================================================    
         function calculateUnpredictability(team, matches) {    
             if (!matches || matches.length < 5) {    
                 return { level: 'low', factor: 1.0, advice: '✅ Недостаточно данных', anomalies: 0 };    
             }    
-                
             let anomalies = 0;    
             const avgTotal = matches.reduce((s, m) => s + m.total, 0) / matches.length;    
             const teamMatches = matches.filter(m => m.home === team || m.away === team);    
-                
             if (teamMatches.length === 0) return { level: 'low', factor: 1.0, advice: '✅ Нет данных', anomalies: 0 };    
-                
             const teamAvg = teamMatches.reduce((s, m) => s + (m.home === team ? m.homeScore : m.awayScore), 0) / teamMatches.length;    
-                
             teamMatches.forEach(m => {    
                 const total = m.total;    
                 const isHome = m.home === team;    
                 const scored = isHome ? m.homeScore : m.awayScore;    
                 const conceded = isHome ? m.awayScore : m.homeScore;    
-                    
-                // Аномалия по тоталу    
                 if (Math.abs(total - avgTotal) > 2) anomalies++;    
-                // Аномалия по забитым    
                 if (Math.abs(scored - teamAvg) > 1.5) anomalies++;    
-                // Неожиданный результат    
                 if ((isHome && scored < conceded && m.homeScore > 0) || (!isHome && scored > conceded)) anomalies++;    
             });    
-                
             const anomalyRate = anomalies / teamMatches.length;    
-                
             if (anomalyRate > 0.3) {    
-                return {    
-                    level: 'high',    
-                    factor: 0.65,    
-                    advice: '⚠️ Команда крайне непредсказуема, лучше пропустить',    
-                    anomalies: Math.round(anomalyRate * 100)    
-                };    
+                return { level: 'high', factor: 0.65, advice: '⚠️ Команда крайне непредсказуема, лучше пропустить', anomalies: Math.round(anomalyRate * 100) };    
             } else if (anomalyRate > 0.15) {    
-                return {    
-                    level: 'medium',    
-                    factor: 0.85,    
-                    advice: '🟡 Команда слегка непредсказуема, будьте осторожны',    
-                    anomalies: Math.round(anomalyRate * 100)    
-                };    
+                return { level: 'medium', factor: 0.85, advice: '🟡 Команда слегка непредсказуема, будьте осторожны', anomalies: Math.round(anomalyRate * 100) };    
             } else {    
-                return {    
-                    level: 'low',    
-                    factor: 1.0,    
-                    advice: '✅ Команда стабильна, прогнозу можно доверять',    
-                    anomalies: Math.round(anomalyRate * 100)    
-                };    
+                return { level: 'low', factor: 1.0, advice: '✅ Команда стабильна, прогнозу можно доверять', anomalies: Math.round(anomalyRate * 100) };    
             }    
         }    
     
-        // ================================================================    
-        // ИИ-ДЕТЕКТИВ    
-        // ================================================================    
         function runAIDetective(homeTeam, awayTeam, homeForm, awayForm, h2hData, weatherData) {    
             const result = {    
                 homeUnpredictability: null,    
@@ -1288,13 +1299,10 @@
                 derby: false,    
                 motivation: null,    
                 overall: 'neutral',    
-                summary: ''    
+                summary: '',    
+                confidenceModifier: 100    
             };    
-                
-            // 1. Проверка дерби    
             result.derby = isDerby(homeTeam, awayTeam);    
-                
-            // 2. Непредсказуемость    
             if (h2hData && h2hData.length > 0) {    
                 result.homeUnpredictability = calculateUnpredictability(homeTeam, h2hData);    
                 result.awayUnpredictability = calculateUnpredictability(awayTeam, h2hData);    
@@ -1302,11 +1310,7 @@
                 result.homeUnpredictability = { level: 'low', factor: 1.0, advice: '✅ Недостаточно данных', anomalies: 0 };    
                 result.awayUnpredictability = { level: 'low', factor: 1.0, advice: '✅ Недостаточно данных', anomalies: 0 };    
             }    
-                
-            // 3. Мотивация    
             result.motivation = calculateMotivation(homeTeam, awayTeam, getLeague(), h2hData);    
-                
-            // 4. Анализ формы    
             let formAnalysis = '';    
             if (homeForm > 60 && awayForm < 40) {    
                 formAnalysis = '🏠 Хозяева в отличной форме, гости слабы';    
@@ -1319,21 +1323,16 @@
             } else {    
                 formAnalysis = '📊 Форма команд примерно равна';    
             }    
-                
-            // 5. Общий вывод    
             let summary = '';    
             let confidenceModifier = 1.0;    
-                
             if (result.derby) {    
                 summary += '⚔️ ДЕРБИ! Ожидайте неожиданности. ';    
                 confidenceModifier *= 0.8;    
             }    
-                
             if (result.motivation.factor > 1.2) {    
                 summary += result.motivation.reason + '. ';    
                 confidenceModifier *= 1.1;    
             }    
-                
             if (result.homeUnpredictability.level === 'high' || result.awayUnpredictability.level === 'high') {    
                 summary += '⚠️ Одна из команд крайне непредсказуема. ';    
                 confidenceModifier *= 0.8;    
@@ -1341,13 +1340,10 @@
                 summary += '🟡 Есть риск неожиданного результата. ';    
                 confidenceModifier *= 0.9;    
             }    
-                
             if (result.homeUnpredictability.level === 'low' && result.awayUnpredictability.level === 'low' && !result.derby) {    
                 summary += '✅ Обе команды стабильны, прогнозу можно доверять. ';    
                 confidenceModifier *= 1.05;    
             }    
-                
-            // Погодный фактор    
             if (weatherData) {    
                 const condition = weatherData.weather.toLowerCase();    
                 if (condition.includes('rain') || condition.includes('snow')) {    
@@ -1358,12 +1354,10 @@
                     confidenceModifier *= 1.05;    
                 }    
             }    
-                
             result.overall = confidenceModifier >= 1.0 ? 'good' : (confidenceModifier >= 0.85 ? 'medium' : 'bad');    
             result.summary = summary || '📊 Прогноз нейтральный, можно рассматривать';    
             result.confidenceModifier = Math.round(confidenceModifier * 100);    
             result.formAnalysis = formAnalysis;    
-                
             return result;    
         }    
     
@@ -1382,11 +1376,9 @@
                 'assistant': 'assistantScreen'    
             };    
             if ($(map[tab])) $(map[tab]).classList.add('active');    
-                
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));    
             const target = document.querySelector(`.nav-btn[data-tab="${tab}"]`);    
             if (target) target.classList.add('active');    
-                
             if (tab === 'stats') {     
                 renderHistory();     
                 renderStats();     
@@ -1426,58 +1418,47 @@
         // ================================================================    
         async function loadAllLeagues() {    
             if (ALL_LEAGUES_LOADED && Object.keys(LEAGUES).length > 0) return;    
-                
             const apiKey = localStorage.getItem('quantum_api_key');    
             if (!apiKey || apiKey === 'ваш_платный_ключ') {    
                 showToast('⚠️ Введите платный API ключ в настройках', 'error');    
                 return;    
             }    
-    
             try {    
                 showToast('📡 Загрузка всех лиг...', 'info');    
-                    
                 const response = await fetchWithCache(`${PROXY_BASE}leagues`, {    
                     headers: { 'x-apisports-key': apiKey }    
                 });    
-                    
                 if (!response.response) {    
                     throw new Error('Не удалось загрузить лиги');    
                 }    
-    
                 const leagues = {};    
                 let count = 0;    
                 const leaguesToProcess = response.response.filter(l =>     
                     l.league.type === 'League' && l.seasons && l.seasons.length > 0    
                 ).slice(0, 50);    
-    
                 for (const league of leaguesToProcess) {    
                     const id = league.league.id;    
                     const season = league.seasons[0].year;    
-                        
                     try {    
                         const statsRes = await fetchWithCache(    
                             `${PROXY_BASE}leagues/statistics?league=${id}&season=${season}`,    
                             { headers: { 'x-apisports-key': apiKey } },    
                             86400000    
                         );    
-                            
                         if (statsRes.response) {    
                             const stats = statsRes.response;    
                             let avgGoals = 2.5;    
                             let ozPercent = 55;    
-                                
                             if (stats.goals && stats.goals.total) {    
                                 const totalGoals = stats.goals.total.total || 0;    
                                 const matches = stats.fixtures.total || 1;    
                                 avgGoals = parseFloat((totalGoals / matches).toFixed(2));    
                             }    
-                                
                             if (stats.goals && stats.goals.both) {    
                                 const ozMatches = stats.goals.both.total || 0;    
                                 const matches = stats.fixtures.total || 1;    
                                 ozPercent = Math.round((ozMatches / matches) * 100);    
                             }    
-                                
                             leagues[id] = {    
                                 name: `${getFlag(league.country.name)} ${league.league.name}`,    
                                 oz: ozPercent,    
@@ -1487,24 +1468,18 @@
                             };    
                             count++;    
                         }    
-                            
                         await delay(500);    
-                            
                     } catch(e) {    
                         console.log(`⚠️ Ошибка с лигой ${league.league.name}:`, e);    
                     }    
                 }    
-    
                 LEAGUES = leagues;    
                 localStorage.setItem('quantum_leagues', JSON.stringify(leagues));    
                 ALL_LEAGUES_LOADED = true;    
-                    
                 renderLeagues();    
                 renderSettingsLeagues();    
                 updateLeagueInfo();    
-                    
                 showToast(`✅ Загружено ${count} лиг!`, 'success');    
-                    
             } catch(error) {    
                 handleError(error, '⚠️ Ошибка загрузки лиг');    
                 if (Object.keys(LEAGUES).length === 0) {    
@@ -1734,7 +1709,7 @@
         }    
     
         function renderSettingsLeagues() {    
-            // Функция больше не нужна, так как убрали лигу из настроек    
+            // Функция больше не нужна    
         }    
     
         function changeDefaultLeague(value) {    
@@ -1894,30 +1869,23 @@
         function calculate() {    
             if (state.isCalculating) return;    
             state.isCalculating = true;    
-    
             const homeInput = $('homeGoals');    
             const awayInput = $('awayGoals');    
-                
             if (!homeInput || !awayInput) {    
                 state.isCalculating = false;    
                 return;    
             }    
-    
             const home = safeNum(homeInput.value);    
             const away = safeNum(awayInput.value);    
-                
             if (!validateInput(home, away)) {    
                 state.isCalculating = false;    
                 return;    
             }    
-    
             const total = home + away;    
             const league = getLeague();    
             const mode = state.currentMode;    
-    
             const sumDisplay = $('sumDisplay');    
             if (sumDisplay) sumDisplay.textContent = total;    
-    
             if (total === 0 && (!state.h2hData || state.h2hData.length === 0)) {    
                 const res1 = $('resValue1');    
                 const res2 = $('resValue2');    
@@ -1932,9 +1900,7 @@
                 state.isCalculating = false;    
                 return;    
             }    
-    
             let result = { value: 0, prob: 50, advice: '', className: 'info' };    
-    
             if (mode === 'oz') {    
                 let baseProb = (home > 0 && away > 0) ? 75 : 25;    
                 let leagueFactor = league.oz || 60;    
@@ -1980,7 +1946,6 @@
                 result.advice = `📊 Ожидаемая фора: ${result.value}`;    
                 result.className = 'info';    
             }    
-    
             const res1 = $('resValue1');    
             const res2 = $('resValue2');    
             const res3 = $('resValue3');    
@@ -1989,13 +1954,10 @@
             if (res3) res3.textContent = '--';    
             const adv = $('resAdvice');    
             if (adv) { adv.textContent = result.advice; adv.className = 'advice ' + result.className; }    
-    
             const confidence = Math.min(100, Math.max(0, Math.round(result.prob)));    
             if ($('confidenceLabel')) $('confidenceLabel').textContent = confidence + '%';    
             if ($('confidenceFill')) $('confidenceFill').style.width = confidence + '%';    
-            
             generateSmartInsights(home, away, total, mode, league, confidence);    
-                
             state.isCalculating = false;    
         }    
     
@@ -2021,14 +1983,12 @@
                 return;    
             }    
             card.style.display = 'block';    
-            
             let h2hCount = 0;    
             let homeForm = 50;    
             let awayForm = 50;    
             let ozPercent = 50;    
             let avgTotalH2H = 2.5;    
             let homeWins = 0, awayWins = 0, draws = 0;    
-            
             if (state.h2hData && state.h2hData.length > 0) {    
                 const matches = state.h2hData;    
                 h2hCount = matches.length;    
@@ -2041,7 +2001,6 @@
                 ozPercent = Math.round((ozMatches / h2hCount) * 100);    
                 avgTotalH2H = matches.reduce((s, m) => s + m.total, 0) / h2hCount;    
             }    
-            
             let weatherImpact = 'нейтральна';    
             let weatherScore = 0;    
             if (state.weatherData) {    
@@ -2060,12 +2019,10 @@
                     weatherScore = 0;    
                 }    
             }    
-            
             let score = 50;    
             let details = [];    
             let warnings = [];    
             let recommendation = '';    
-            
             if (homeForm > 60) {    
                 score += 10;    
                 details.push(`🏠 Хозяева в хорошей форме (${homeForm}% побед в H2H)`);    
@@ -2122,13 +2079,11 @@
                 details.push(`📊 Индекс доверия ${confidence}% — низкий уровень`);    
             }    
             score = Math.min(100, Math.max(0, score));    
-            
             let summary = '';    
             if (score >= 70) summary = `✅ Отличный прогноз! Уверенность ${score}%`;    
             else if (score >= 55) summary = `🟡 Хороший прогноз. Уверенность ${score}%`;    
             else if (score >= 40) summary = `🟠 Средний прогноз. Уверенность ${score}%`;    
             else summary = `🔴 Слабый прогноз. Уверенность ${score}%`;    
-            
             if (mode === 'oz') {    
                 const ozProb = 1 - Math.exp(-home) * Math.exp(-away);    
                 if (ozProb > 0.65 && score > 55) {    
@@ -2157,11 +2112,9 @@
                     recommendation = `⚖️ Фора около 0, лучше пропустить ставку`;    
                 }    
             }    
-            
             if (h2hCount < 3 && h2hCount > 0) warnings.push('⚠️ Мало данных для уверенного прогноза');    
             if (confidence < 40) warnings.push('⚠️ Низкое доверие к прогнозу');    
             if (weatherScore < 0) warnings.push('⚠️ Погода может снизить результативность');    
-            
             document.getElementById('smartSummary').textContent = summary;    
             const detailsContainer = document.getElementById('smartDetails');    
             detailsContainer.innerHTML = details.map(d => `<li>${d}</li>`).join('');    
@@ -2207,7 +2160,6 @@
             if (!homeTeam || !awayTeam) { showToast('⚠️ Введите обе команды!', 'error'); return; }    
             if (state.isLoading) return;    
             state.isLoading = true;    
-    
             const btn = $('loadH2HBtn');    
             const btnText = $('loadBtnText');    
             const spinner = $('loadSpinner');    
@@ -2218,7 +2170,6 @@
             if (spinner) spinner.style.display = 'inline-block';    
             if (status) status.innerHTML = '⏳ Поиск команд...';    
             if (results) results.innerHTML = '';    
-    
             try {    
                 const apiKey = localStorage.getItem('quantum_api_key');    
                 if (!apiKey || apiKey === 'ваш_платный_ключ') {    
@@ -2416,7 +2367,6 @@
                 btn.innerHTML = '⏳ Анализ...';    
             }    
             if (result) result.style.display = 'none';    
-    
             const league = getLeague();    
             const avgGoals = league.avgGoals || 2.5;    
             let lambdaHome = avgGoals / 2;    
@@ -2431,7 +2381,6 @@
                 lambdaHome = (lambdaHome + home) / 2;    
                 lambdaAway = (lambdaAway + away) / 2;    
             }    
-            
             const homeTeamName = document.getElementById('homeTeamH2H')?.value || '';    
             let weatherFactor = 1.0;    
             if (homeTeamName && homeTeamName.length > 2) {    
@@ -2459,7 +2408,6 @@
                     console.log('⚠️ Ошибка загрузки погоды для прогноза:', e);    
                 }    
             }    
-            
             let predictedHome = Math.max(0, Math.round(lambdaHome));    
             let predictedAway = Math.max(0, Math.round(lambdaAway));    
             if (predictedHome === 0 && predictedAway === 0) { predictedHome = 1; predictedAway = 1; }    
@@ -2467,7 +2415,6 @@
             awayInput.value = predictedAway;    
             updateSum();    
             calculate();    
-            
             const probOz = 1 - Math.exp(-lambdaHome) * Math.exp(-lambdaAway);    
             const confidence = Math.min(90, Math.max(10, Math.round(50 + Math.abs((predictedHome + predictedAway) - (lambdaHome + lambdaAway)) * 5)));    
             const poissonHome = calculatePoissonDistribution(lambdaHome);    
@@ -2488,7 +2435,6 @@
                 rec = diff > 0.5 ? `✅ Фора Хозяева (+${diff.toFixed(1)})` :     
                     (diff < -0.5 ? `✅ Фора Гости (${diff.toFixed(1)})` : '⚖️ Фора 0');    
             }    
-            
             const aiHomeScore = $('aiHomeScore');    
             const aiAwayScore = $('aiAwayScore');    
             const aiAvgTotal = $('aiAvgTotal');    
@@ -2500,7 +2446,6 @@
             const aiAdvice = $('aiAdvice');    
             const aiTrend = $('aiTrend');    
             const aiPoisson = $('aiPoisson');    
-            
             if (aiHomeScore) aiHomeScore.textContent = predictedHome;    
             if (aiAwayScore) aiAwayScore.textContent = predictedAway;    
             if (aiAvgTotal) aiAvgTotal.textContent = (lambdaHome + lambdaAway).toFixed(1);    
@@ -2513,7 +2458,7 @@
             if (aiRecommendation) aiRecommendation.textContent = rec;    
             if (aiAdvice) aiAdvice.textContent = `На основе ${state.h2hData ? state.h2hData.length : 0} матчей`;    
             
-            // ===== ИИ-ДЕТЕКТИВ =====    
+            // ИИ-ДЕТЕКТИВ    
             const homeForm = state.h2hData ? Math.round(state.h2hData.filter(m => m.homeScore > m.awayScore).length / state.h2hData.length * 100) : 50;    
             const awayForm = state.h2hData ? Math.round(state.h2hData.filter(m => m.awayScore > m.homeScore).length / state.h2hData.length * 100) : 50;    
             const detectiveResult = runAIDetective(    
@@ -2524,7 +2469,6 @@
                 state.h2hData,    
                 state.weatherData    
             );    
-                
             const detectiveCard = document.getElementById('detectiveCard');    
             const detectiveContent = document.getElementById('detectiveContent');    
             if (detectiveCard && detectiveContent) {    
@@ -2535,10 +2479,8 @@
                     `<span class="detective-badge ${detectiveResult.homeUnpredictability.level}">🏠 ${detectiveResult.homeUnpredictability.advice}</span>` : '';    
                 const awayUnpredictable = detectiveResult.awayUnpredictability ?    
                     `<span class="detective-badge ${detectiveResult.awayUnpredictability.level}">✈️ ${detectiveResult.awayUnpredictability.advice}</span>` : '';    
-                    
                 const confidenceModifier = detectiveResult.confidenceModifier || 100;    
                 const modColor = confidenceModifier >= 100 ? '#2ecc71' : (confidenceModifier >= 85 ? '#f1c40f' : '#e74c3c');    
-                    
                 detectiveContent.innerHTML = `    
                     <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">    
                         ${derbyBadge}    
@@ -2558,7 +2500,6 @@
                     </div>    
                 `;    
             }    
-            // ===== КОНЕЦ ИИ-ДЕТЕКТИВА =====    
             
             if (btn) {    
                 btn.disabled = false;    
@@ -2579,7 +2520,7 @@
                 chat.innerHTML = `    
                     <div class="assistant-message ai">    
                         👋 Привет! Я ИИ-ассистент Квантум PRO.<br>    
-                        Задай вопрос о ставках, прогнозах или анализе матчей.    
+                        Задай вопрос о ставках, прогнозах или анализе матчей.  
                         <div class="time">🤖 ИИ-ассистент</div>    
                     </div>    
                 `;    
@@ -2601,8 +2542,6 @@
             if (!text) return;    
             input.value = '';    
             addAssistantMessage(text, 'user');    
-            
-            // Генерируем ответ AI    
             setTimeout(() => {    
                 const response = generateAssistantResponse(text);    
                 addAssistantMessage(response, 'ai');    
@@ -2626,8 +2565,6 @@
     
         function generateAssistantResponse(text) {    
             const lower = text.toLowerCase();    
-            
-            // Проверяем ключевые слова    
             if (lower.includes('прогноз') || lower.includes('ставк')) {    
                 const bets = state.bets;    
                 const total = bets.length;    
@@ -2635,44 +2572,33 @@
                 const rate = total > 0 ? Math.round((wins / total) * 100) : 0;    
                 return `📊 По вашей статистике:\n• Всего ставок: ${total}\n• Побед: ${wins} (${rate}%)\n• Точность AI: ${quantumAI.isTrained() ? Math.round(quantumAI.accuracy * 100) : 'не обучен'}%\n\n💡 Совет: продолжайте записывать ставки, AI становится умнее с каждым разом!`;    
             }    
-            
             if (lower.includes('погод') || lower.includes('дождь') || lower.includes('солнце')) {    
                 const weather = state.headerWeather;    
                 if (weather) {    
-                    return `🌤️ Текущая погода в Москве:\n• Температура: ${weather.temp}°C\n• ${weather.description}\n• Влажность: ${weather.humidity}%\n• Ветер: ${Math.round(weather.wind_speed)} км/ч\n\n💡 Влияние на футбол: ${getWeatherImpactText(weather)}`;    
+                    return `🌤️ Текущая погода в ${weather.city || 'Москве'}:\n• Температура: ${weather.temp}°C\n• ${weather.description}\n• Влажность: ${weather.humidity}%\n• Ветер: ${Math.round(weather.wind_speed)} км/ч\n\n💡 Влияние на футбол: ${getWeatherImpactText(weather)}`;    
                 }    
                 return '🌤️ Погода пока не загружена. Проверьте ключ API в настройках.';    
             }    
-            
             if (lower.includes('детектив') || lower.includes('расслед') || lower.includes('непредсказ')) {    
                 return `🕵️ ИИ-Детектив анализирует каждую команду:\n\n🔍 Что ищет:\n• Аномалии в игре команды\n• Непредсказуемость (стабильность)\n• Мотивацию (важность матча)\n• Дерби (особые матчи)\n\n💡 Совет: загрузите H2H для детального анализа команды!`;    
             }    
-            
             if (lower.includes('дерби') || lower.includes('el clásico') || lower.includes('спартак') && lower.includes('цска')) {    
                 return `⚔️ Дерби — это особенные матчи:\n\n📊 Что меняется в дерби:\n• Голов на 20% больше\n• Прогнозируемость на 20% ниже\n• Мотивация игроков максимальная\n\n🔍 Известные дерби:\n• El Clásico (Реал — Барселона)\n• Московское дерби (Спартак — ЦСКА)\n• Миланское дерби (Интер — Милан)\n\n💡 В дерби всегда ожидайте неожиданностей!`;    
             }    
-            
             if (lower.includes('мотивац') || lower.includes('важн') || lower.includes('чемпион')) {    
                 return `🏆 Мотивация — ключевой фактор:\n\n🔥 Максимальная мотивация:\n• Борьба за чемпионство (топ-3)\n• Борьба за выживание (зона вылета)\n• Дерби (особые матчи)\n\n🟡 Средняя мотивация:\n• Середина таблицы\n• Кубковые матчи\n\n🔴 Низкая мотивация:\n• Товарищеские матчи\n• Матчи без турнирного значения\n\n💡 Учитывайте мотивацию при прогнозе!`;    
             }    
-            
             if (lower.includes('совет') || lower.includes('как улучшить') || lower.includes('что делать')) {    
                 const bets = state.bets;    
                 const total = bets.length;    
                 const wins = bets.filter(b => b.outcome === 'win').length;    
                 const rate = total > 0 ? Math.round((wins / total) * 100) : 0;    
                 let advice = '';    
-                if (rate > 60) {    
-                    advice = '🔥 Вы на правильном пути! Продолжайте в том же духе.';    
-                } else if (rate > 45) {    
-                    advice = '📈 У вас хороший старт. Добавьте больше данных для точности.';    
-                } else {    
-                    advice = '📊 Используйте ИИ-детектив для анализа непредсказуемых команд.';    
-                }    
+                if (rate > 60) advice = '🔥 Вы на правильном пути! Продолжайте в том же духе.';    
+                else if (rate > 45) advice = '📈 У вас хороший старт. Добавьте больше данных для точности.';    
+                else advice = '📊 Используйте ИИ-детектив для анализа непредсказуемых команд.';    
                 return `💡 Советы по улучшению ставок:\n\n• Записывайте ВСЕ ставки (даже проигрыши)\n• Обучайте AI каждые 10 ставок\n• Учитывайте погоду и мотивацию\n• Используйте ИИ-детектив для анализа\n\n📊 Ваша статистика: ${total} ставок, ${rate}% точности\n\n${advice}`;    
             }    
-            
-            // Если ничего не подошло    
             return `🧠 Я ИИ-ассистент Квантум PRO.\n\nЯ могу помочь с:\n• 📊 Прогнозами и статистикой\n• 🌤️ Погодой и её влиянием\n• 🕵️ ИИ-детективом и анализом команд\n• 🏆 Мотивацией и дерби\n\nЧто вас интересует?`;    
         }    
     
@@ -2826,7 +2752,7 @@
         }    
     
         // ================================================================    
-        // СТАВКИ    
+        // СТАВКИ (ИСПРАВЛЕННАЯ ФУНКЦИЯ editBet)    
         // ================================================================    
     
         function saveBet() {    
@@ -2868,9 +2794,16 @@
             if (!b) return;    
             const choice = prompt(`Исход для ${b.match}:\n1 - Выиграла\n2 - Проиграла\n3 - Неизвестно`, '3');    
             if (choice === null) return;    
-            if (choice === '1') { b.outcome = 'win'; b.resultText = '✅ Выигрыш'; }    
-            else if (choice === '2') { b.outcome = 'loss'; b.resultText = '❌ Проигрыш'; }    
-            else { b.outcome = 'pending'; b.resultText = '⏳ Ожидание'; }    
+            if (choice === '1') {     
+                b.outcome = 'win';     
+                b.resultText = '✅ Выигрыш';     
+            } else if (choice === '2') {     
+                b.outcome = 'loss';     
+                b.resultText = '❌ Проигрыш';     
+            } else {     
+                b.outcome = 'pending';     
+                b.resultText = '⏳ Ожидание';     
+            }    
             localStorage.setItem('quantum_bets', JSON.stringify(state.bets));    
             renderHistory();     
             renderStats();     
@@ -3256,11 +3189,11 @@
             if (state.currentTab === 'stats') renderChartCanvas();    
         });    
     
-        console.log('⚛️ КВАНТУМ PRO v3.0 — С ИИ-АССИСТЕНТОМ И ИИ-ДЕТЕКТИВОМ');    
+        console.log('⚛️ КВАНТУМ PRO v3.0 — ИСПРАВЛЕННАЯ ВЕРСИЯ');    
+        console.log('✅ Исправлено сохранение результатов ставок (editBet)');    
+        console.log('✅ Добавлен ручной ввод города для погоды');    
         console.log('🧠 ИИ-Ассистент — задавай вопросы о ставках');    
         console.log('🕵️ ИИ-Детектив — анализирует непредсказуемость команд');    
-        console.log('⚔️ Эффект дерби — учитывает особые матчи');    
-        console.log('🏆 Мотивация — важность матча влияет на результат');    
         console.log('🚀 Готов к работе!');    
     </script>    
 </body>    
