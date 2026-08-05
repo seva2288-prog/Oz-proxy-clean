@@ -1742,3 +1742,217 @@ function quickLoadH2H(homeTeam, awayTeam) {
 // КОНЕЦ ЧАСТИ 4/5
 // ДАЛЕЕ СЛЕДУЕТ ЧАСТЬ 5/5: ОСТАЛЬНЫЕ ФУНКЦИИ + ИНИЦИАЛИЗАЦИЯ
 // ================================================================
+// ================================================================
+// ЧАСТЬ 5/5: ОСТАЛЬНЫЕ ФУНКЦИИ + ИНИЦИАЛИЗАЦИЯ (v5.2)
+// ================================================================
+
+// --- ТЕМА ---
+function toggleTheme() {
+    const isLight = document.body.classList.toggle('light');
+    const btn = document.getElementById('themeBtn');
+    const toggleBtn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = isLight ? '☀️' : '🌙';
+    if (toggleBtn) {
+        toggleBtn.textContent = isLight ? '☀️ Светлая' : '🌙 Тёмная';
+        toggleBtn.classList.toggle('active');
+    }
+    localStorage.setItem('quantum_theme', isLight ? 'light' : 'dark');
+}
+
+function initTheme() {
+    const theme = localStorage.getItem('quantum_theme') || 'dark';
+    if (theme === 'light') {
+        document.body.classList.add('light');
+        const btn = document.getElementById('themeBtn');
+        const toggleBtn = document.getElementById('themeToggle');
+        if (btn) btn.textContent = '☀️';
+        if (toggleBtn) { toggleBtn.textContent = '☀️ Светлая'; toggleBtn.classList.add('active'); }
+    }
+}
+
+// --- API КЛЮЧИ ---
+function saveApiKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    if (!key) { showToast('⚠️ Введите API ключ', 'error'); return; }
+    localStorage.setItem('quantum_api_key', key);
+    state.apiKey = key;
+    document.getElementById('apiStatus').textContent = '✅ Ключ сохранен';
+    document.getElementById('apiStatus').style.color = '#2ecc71';
+    showToast('✅ API ключ сохранен', 'success');
+    loadAllLeagues();
+}
+
+function saveWeatherKey() {
+    const key = document.getElementById('weatherKeyInput').value.trim();
+    if (!key) { showToast('⚠️ Введите ключ погоды', 'error'); return; }
+    localStorage.setItem('quantum_weather_key', key);
+    document.getElementById('weatherStatus').textContent = '✅ Ключ погоды сохранен';
+    document.getElementById('weatherStatus').style.color = '#2ecc71';
+    showToast('✅ Ключ погоды сохранен', 'success');
+    loadHeaderWeather();
+}
+
+// --- ЛИГИ ---
+function updateLeagueInfoDisplay(leagueData) {
+    const card = document.getElementById('leagueInfoCard');
+    if (!card) return;
+    if (!leagueData) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    document.getElementById('leagueNameDisplay').textContent = leagueData.name || '🏆 Лига';
+    document.getElementById('leagueCountry').textContent = leagueData.country || '--';
+    document.getElementById('leagueSeason').textContent = leagueData.season || '--';
+    document.getElementById('leagueAvgGoals').textContent = leagueData.avgGoals || '--';
+    document.getElementById('leagueOz').textContent = (leagueData.oz || 0) + '%';
+    document.getElementById('leagueMatches').textContent = leagueData.matches || '--';
+}
+
+async function loadAllLeagues() {
+    if (ALL_LEAGUES_LOADED && Object.keys(LEAGUES).length > 0) return;
+    const apiKey = localStorage.getItem('quantum_api_key');
+    if (!apiKey || apiKey === '') { showToast('⚠️ Введите API ключ в настройках', 'error'); return; }
+    try {
+        showToast('📡 Загрузка всех лиг...', 'info');
+        const response = await fetchWithCache(`${PROXY_BASE}leagues`, { headers: { 'x-apisports-key': apiKey } });
+        if (!response.response) throw new Error('Не удалось загрузить лиги');
+        const leagues = {};
+        const leaguesToProcess = response.response.filter(l => l.league.type === 'League' && l.seasons && l.seasons.length > 0).slice(0, 50);
+        for (const league of leaguesToProcess) {
+            const id = league.league.id;
+            const season = league.seasons[0].year;
+            try {
+                const statsRes = await fetchWithCache(
+                    `${PROXY_BASE}leagues/statistics?league=${id}&season=${season}`,
+                    { headers: { 'x-apisports-key': apiKey } },
+                    86400000
+                );
+                if (statsRes.response) {
+                    const stats = statsRes.response;
+                    let avgGoals = 2.5;
+                    let ozPercent = 55;
+                    if (stats.goals && stats.goals.total) {
+                        const totalGoals = stats.goals.total.total || 0;
+                        const matches = stats.fixtures.total || 1;
+                        avgGoals = parseFloat((totalGoals / matches).toFixed(2));
+                    }
+                    if (stats.goals && stats.goals.both) {
+                        const ozMatches = stats.goals.both.total || 0;
+                        const matches = stats.fixtures.total || 1;
+                        ozPercent = Math.round((ozMatches / matches) * 100);
+                    }
+                    const flag = getFlag(league.country.name);
+                    leagues[id] = {
+                        name: `${flag} ${league.league.name}`,
+                        oz: ozPercent,
+                        avgGoals: avgGoals,
+                        country: league.country.name,
+                        season: season
+                    };
+                }
+                await delay(500);
+            } catch(e) { console.log(`⚠️ Ошибка с лигой ${league.league.name}:`, e); }
+        }
+        LEAGUES = leagues;
+        localStorage.setItem('quantum_leagues', JSON.stringify(leagues));
+        ALL_LEAGUES_LOADED = true;
+        showToast(`✅ Загружено ${Object.keys(leagues).length} лиг!`, 'success');
+    } catch(error) {
+        handleError(error, '⚠️ Ошибка загрузки лиг');
+        if (Object.keys(LEAGUES).length === 0) {
+            LEAGUES = {
+                '39': { name: '🏴 АПЛ', oz: 65, avgGoals: 2.8, country: 'Англия' },
+                '140': { name: '🇪🇸 Ла Лига', oz: 60, avgGoals: 2.6, country: 'Испания' },
+                '78': { name: '🇩🇪 Бундеслига', oz: 68, avgGoals: 3.0, country: 'Германия' },
+                '135': { name: '🇮🇹 Серия А', oz: 62, avgGoals: 2.7, country: 'Италия' }
+            };
+        }
+    }
+}
+
+function getFlag(country) {
+    const flags = {
+        'England': '🏴', 'Spain': '🇪🇸', 'Germany': '🇩🇪', 'Italy': '🇮🇹',
+        'France': '🇫🇷', 'Netherlands': '🇳🇱', 'Portugal': '🇵🇹', 'Brazil': '🇧🇷',
+        'Argentina': '🇦🇷', 'USA': '🇺🇸', 'Mexico': '🇲🇽', 'Russia': '🇷🇺'
+    };
+    return flags[country] || '🌍';
+}
+
+// --- ИНИЦИАЛИЗАЦИЯ ---
+document.addEventListener('DOMContentLoaded', async function() {
+    initTheme();
+    renderHistory();
+    renderStats();
+    renderDashboard();
+    renderChartCanvas();
+    renderMonthlyChart();
+    renderInsights();
+    renderUltimateDashboard();
+    updateSum();
+    
+    const savedKey = localStorage.getItem('quantum_api_key');
+    if (savedKey && savedKey !== '') {
+        document.getElementById('apiKeyInput').value = savedKey;
+        await loadAllLeagues();
+    }
+    
+    const savedWeatherKey = localStorage.getItem('quantum_weather_key');
+    if (savedWeatherKey) {
+        document.getElementById('weatherKeyInput').value = savedWeatherKey;
+    }
+    
+    const savedValueBets = localStorage.getItem('quantum_value_bets');
+    if (savedValueBets) {
+        try { state.valueBets = JSON.parse(savedValueBets); } catch(e) { state.valueBets = []; }
+    }
+    
+    const savedCalibration = localStorage.getItem('quantum_calibration');
+    if (savedCalibration) {
+        try { state.calibrationData = JSON.parse(savedCalibration); } catch(e) { state.calibrationData = []; }
+    }
+    
+    updateAIStatus();
+    await loadHeaderWeather();
+    renderAssistantHistory();
+    await ultimateAI.loadModel();
+    updateAIStatus();
+    
+    // ЗАГРУЗКА БУДУЩИХ МАТЧЕЙ ПРИ СТАРТЕ
+    await loadFutureMatches();
+    
+    document.querySelectorAll('.btn, .btn-api, .btn-ai').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            if (this.dataset.clicked) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+            this.dataset.clicked = 'true';
+            setTimeout(() => { this.dataset.clicked = ''; }, 1000);
+        });
+    });
+    
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+    
+    console.log('⚛️ КВАНТУМ ULTIMATE v5.2 — ВСЕ 7 УЛУЧШЕНИЙ ВКЛЮЧЕНЫ');
+    console.log('✅ 1. Жёсткая фильтрация по времени (2–48 ч)');
+    console.log('✅ 2. Сортировка по приоритету (уверенность / время)');
+    console.log('✅ 3. Чёткий статус матча (будущий/live/завершён)');
+    console.log('✅ 4. Фильтры (время, уверенность, тотал)');
+    console.log('✅ 5. Разделение на два блока (прогнозы + история)');
+    console.log('✅ 6. Кнопка обновления + автообновление (5 минут)');
+    console.log('✅ 7. Уведомления за 30 и 5 минут до матча');
+    console.log('🚀 ГОТОВ К РАБОТЕ!');
+});
+
+window.addEventListener('resize', () => {
+    if (state.currentTab === 'stats') renderChartCanvas();
+});
+
+// ================================================================
+// КОНЕЦ ПОЛНОГО КОДА v5.2
+// ================================================================
+</script>
+</body>
+</html>
