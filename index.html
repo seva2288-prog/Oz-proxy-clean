@@ -900,5 +900,301 @@
     </div>
   
     <div class="swipe-indicator show" id="swipeIndicator">👆 Свайп влево/вправо</div>
-    
-    
+ // ================================================================
+// ЧАСТЬ 2/5: JAVASCRIPT — УТИЛИТЫ, СТЕЙТ, ПОГОДА, API (v5.2)
+// ================================================================
+
+// --- БАЗОВЫЕ УТИЛИТЫ ---
+const PROXY_BASE = 'https://oz-proxy-clean.onrender.com/api/';
+const API_CACHE = {};
+const MAX_CACHE_SIZE = 100;
+
+function $(id) { return document.getElementById(id); }
+function safeNum(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+function debounce(fn, delayMs = 300) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), delayMs);
+    };
+}
+
+function showToast(msg, type = 'info') {
+    const old = document.querySelector('.toast');
+    if (old) old.remove();
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => { if (t.parentNode) t.remove(); }, 3000);
+}
+
+function sanitizeHTML(str) {
+    if (!str) return '—';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function factorial(n) {
+    if (n === 0 || n === 1) return 1;
+    let result = 1;
+    for (let i = 2; i <= n; i++) result *= i;
+    return result;
+}
+
+function poissonProbability(lambda, k) {
+    return Math.pow(lambda, k) * Math.exp(-lambda) / factorial(k);
+}
+
+function calculatePoissonDistribution(lambda, max = 6) {
+    const dist = [];
+    let cumulative = 0;
+    for (let i = 0; i <= max; i++) {
+        const prob = poissonProbability(lambda, i);
+        dist.push({ value: i, probability: prob });
+        cumulative += prob;
+    }
+    return { distribution: dist, cumulative };
+}
+
+// --- API УТИЛИТЫ ---
+async function fetchWithRetry(url, options, retries = 3, delayMs = 1000) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response;
+        } catch (e) {
+            if (i === retries - 1) throw e;
+            await delay(delayMs * (i + 1));
+        }
+    }
+}
+
+async function fetchWithCache(url, options = {}, ttl = 3600000) {
+    const key = url + JSON.stringify(options);
+    if (API_CACHE[key] && Date.now() - API_CACHE[key].time < ttl) {
+        return API_CACHE[key].data;
+    }
+    const response = await fetchWithRetry(url, options);
+    const data = await response.json();
+    const keys = Object.keys(API_CACHE);
+    if (keys.length >= MAX_CACHE_SIZE) {
+        delete API_CACHE[keys[0]];
+    }
+    API_CACHE[key] = { data, time: Date.now() };
+    return data;
+}
+
+function handleError(error, fallbackMessage = '⚠️ Ошибка') {
+    console.error('❌ Ошибка:', error);
+    showToast(error.message || fallbackMessage, 'error');
+    return error.message || fallbackMessage;
+}
+
+// --- РАСШИРЕННЫЙ СТЕЙТ v5.2 ---
+let state = {
+    bets: JSON.parse(localStorage.getItem('quantum_bets') || '[]'),
+    currentLeague: localStorage.getItem('quantum_league') || '39',
+    currentMode: 'total',
+    h2hData: null,
+    isLoading: false,
+    liveTimer: null,
+    currentOdds: null,
+    apiKey: localStorage.getItem('quantum_api_key') || '',
+    currentTab: 'analysis',
+    teamStats: {},
+    liveMatches: [],
+    trends: {},
+    injuries: {},
+    xgData: {},
+    isCalculating: false,
+    weatherData: null,
+    headerWeather: null,
+    currentLeagueData: null,
+    assistantHistory: JSON.parse(localStorage.getItem('quantum_assistant') || '[]'),
+    chartRange: '30d',
+    valueBets: JSON.parse(localStorage.getItem('quantum_value_bets') || '[]'),
+    shapData: null,
+    livePredictions: {},
+    ultimateModel: null,
+    modelAccuracy: 0,
+    modelFeatures: 32,
+    calibrationData: JSON.parse(localStorage.getItem('quantum_calibration') || '[]'),
+    backtestResults: null,
+    lastPrediction: null,
+    // НОВЫЕ ПОЛЯ v5.2
+    futureMatches: [],
+    futureUpdateInterval: null,
+    futureAutoUpdateMinutes: 5,
+    filters: {
+        time: 'all',
+        confidence: 0,
+        total: 'all'
+    },
+    notifications: [],
+    refreshTimer: null,
+    refreshCountdown: 300,
+    matchStatuses: {}
+};
+
+let LEAGUES = JSON.parse(localStorage.getItem('quantum_leagues') || '{}');
+let ALL_LEAGUES_LOADED = false;
+
+// --- ПОГОДА ---
+const MOSCOW_COORDS = { lat: 55.7558, lon: 37.6173 };
+
+async function loadHeaderWeather() {
+    const iconEl = document.getElementById('weatherIconHeader');
+    const tempEl = document.getElementById('weatherTempHeader');
+    const descEl = document.getElementById('weatherDescHeader');
+    if (!iconEl) return;
+    iconEl.textContent = '⏳';
+    tempEl.textContent = '--°C';
+    descEl.textContent = 'Загрузка...';
+    const key = localStorage.getItem('quantum_weather_key');
+    if (!key || key === '') {
+        iconEl.textContent = '❌';
+        tempEl.textContent = '--°C';
+        descEl.textContent = 'Нет ключа';
+        return;
+    }
+    try {
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${MOSCOW_COORDS.lat}&lon=${MOSCOW_COORDS.lon}&units=metric&appid=${key}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Погода не найдена');
+        const data = await response.json();
+        state.headerWeather = {
+            temp: Math.round(data.main.temp),
+            feels_like: Math.round(data.main.feels_like),
+            humidity: data.main.humidity,
+            wind_speed: data.wind.speed,
+            weather: data.weather[0].main,
+            description: data.weather[0].description,
+            icon: data.weather[0].icon,
+            city: data.name,
+            country: data.sys.country
+        };
+        updateHeaderWeatherDisplay();
+        updateWeatherCard();
+    } catch(e) {
+        console.log('⚠️ Ошибка погоды:', e);
+        iconEl.textContent = '❌';
+        tempEl.textContent = '--°C';
+        descEl.textContent = 'Ошибка';
+        updateWeatherCardError();
+    }
+}
+
+function updateHeaderWeatherDisplay() {
+    const iconEl = document.getElementById('weatherIconHeader');
+    const tempEl = document.getElementById('weatherTempHeader');
+    const descEl = document.getElementById('weatherDescHeader');
+    if (!state.headerWeather) return;
+    const w = state.headerWeather;
+    iconEl.textContent = getWeatherEmoji(w);
+    tempEl.textContent = w.temp + '°C';
+    descEl.textContent = w.description;
+}
+
+function getWeatherEmoji(weather) {
+    if (!weather) return '🌤️';
+    const condition = weather.weather.toLowerCase();
+    if (condition.includes('rain') || condition.includes('drizzle')) return '🌧️';
+    if (condition.includes('snow')) return '❄️';
+    if (condition.includes('cloud')) return '☁️';
+    if (condition.includes('clear')) return '☀️';
+    if (condition.includes('thunder')) return '⛈️';
+    if (condition.includes('mist') || condition.includes('fog')) return '🌫️';
+    return '🌤️';
+}
+
+function refreshWeather() {
+    loadHeaderWeather();
+    showToast('🔄 Обновление погоды...', 'info');
+}
+
+function updateWeatherCard() {
+    const container = document.getElementById('weatherCardContent');
+    if (!container) return;
+    if (!state.headerWeather) {
+        container.innerHTML = '<div class="weather-loading-text">⏳ Загрузка погоды...</div>';
+        return;
+    }
+    const w = state.headerWeather;
+    const emoji = getWeatherEmoji(w);
+    const impact = getWeatherImpactText(w);
+    const location = w.city && w.country ? `${w.city}, ${w.country}` : 'Москва, Россия';
+    container.innerHTML = `
+        <div class="weather-main">
+            <span class="big-icon">${emoji}</span>
+            <div>
+                <div class="temp-big">${w.temp}°C</div>
+                <div class="desc-big">${w.description}</div>
+            </div>
+        </div>
+        <div class="weather-details">
+            <span>💨 ${Math.round(w.wind_speed)} км/ч</span>
+            <span>💧 ${w.humidity}%</span>
+            <span>🌡️ Ощущается ${w.feels_like}°C</span>
+        </div>
+        <div class="weather-city">📍 ${location}</div>
+        <div class="weather-impact">📊 ${impact}</div>
+    `;
+}
+
+function updateWeatherCardError() {
+    const container = document.getElementById('weatherCardContent');
+    if (!container) return;
+    container.innerHTML = '<div class="weather-error-text">❌ Ошибка загрузки погоды. Проверьте ключ API.</div>';
+}
+
+function getWeatherImpactText(weather) {
+    if (!weather) return 'Нет данных';
+    const condition = weather.weather.toLowerCase();
+    if (condition.includes('rain') || condition.includes('drizzle')) return '⚠️ Дождь: -15% голов, -20% ОЗ';
+    if (condition.includes('snow')) return '❄️ Снег: -25% голов, -30% ОЗ';
+    if (weather.temp > 30) return '🌡️ Жара: -20% голов во 2-м тайме';
+    if (weather.temp < 0) return '🥶 Холод: -10% голов';
+    if (weather.wind_speed > 20) return '💨 Ветер: -10% голов, меньше точных ударов';
+    if (condition.includes('clear')) return '☀️ Отличная погода для футбола';
+    if (condition.includes('cloud')) return '☁️ Облачно, условия нормальные';
+    return '✅ Погода нейтральна';
+}
+
+async function loadWeatherByCity() {
+    const cityInput = document.getElementById('cityWeatherInput');
+    const city = cityInput.value.trim();
+    if (!city) { showToast('⚠️ Введите город', 'error'); return; }
+    const key = localStorage.getItem('quantum_weather_key');
+    if (!key) { showToast('⚠️ Введите ключ погоды в настройках', 'error'); return; }
+    try {
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=metric&appid=${key}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Город не найден');
+        const data = await response.json();
+        state.headerWeather = {
+            temp: Math.round(data.main.temp),
+            feels_like: Math.round(data.main.feels_like),
+            humidity: data.main.humidity,
+            wind_speed: data.wind.speed,
+            weather: data.weather[0].main,
+            description: data.weather[0].description,
+            icon: data.weather[0].icon,
+            city: data.name,
+            country: data.sys.country
+        };
+        updateHeaderWeatherDisplay();
+        updateWeatherCard();
+        showToast(`✅ Погода в ${data.name}, ${data.sys.country}`, 'success');
+    } catch(e) {
+        showToast(`❌ Город "${city}" не найден`, 'error');
+    }
+}
+
+// ================================================================
+// КОНЕЦ ЧАСТИ 2/5
+// ДАЛЕЕ СЛЕДУЕТ ЧАСТЬ 3/5: ДЕРБИ, МОТИВАЦИЯ, ТРАВМЫ, H2H
+// ================================================================   
