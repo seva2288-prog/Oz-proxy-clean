@@ -13,7 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>  
     <style>  
         /* ================================================================  
-           ЧАСТЬ 1: ПОЛНЫЕ СТИЛИ CSS  
+           ЧАСТЬ 1: ПОЛНЫЕ СТИЛИ CSS (~600 строк)  
            ================================================================ */  
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }  
         body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: #0b0e14; color: #e0e0e0; max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: background 0.3s, color 0.3s; }  
@@ -340,94 +340,11 @@
         .backtest-item .num { font-size: 16px; font-weight: 700; color: #f7931a; }  
         .backtest-item .label { font-size: 8px; color: #888; }  
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }  
-        
-        /* ===== СТИЛИ ДЛЯ ПРОГНОЗОВ ===== */
-        .prediction-card {
-            background: #1a1f2a;
-            border-radius: 8px;
-            padding: 8px 12px;
-            margin: 4px 0;
-            transition: all 0.2s;
-        }
-        .prediction-card:hover {
-            background: #2a3140;
-        }
-        .prediction-card .match-name {
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .prediction-card .match-league {
-            font-size: 10px;
-            color: #888;
-        }
-        .prediction-card .match-details {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 4px;
-            font-size: 11px;
-            color: #aaa;
-        }
-        .prediction-card .match-status {
-            font-weight: 600;
-        }
-        .prediction-card .match-confidence {
-            font-weight: 700;
-        }
-        .prediction-card .confidence-high { color: #2ecc71; }
-        .prediction-card .confidence-medium { color: #f1c40f; }
-        .prediction-card .confidence-low { color: #e74c3c; }
-        .prediction-card .status-live { color: #e74c3c; }
-        .prediction-card .status-upcoming { color: #2ecc71; }
-        .prediction-card .status-soon { color: #f1c40f; }
-        .prediction-card .border-live { border-left: 4px solid #e74c3c; }
-        .prediction-card .border-upcoming { border-left: 4px solid #2ecc71; }
-        .prediction-card .border-soon { border-left: 4px solid #f1c40f; }
-        .prediction-card .border-finished { border-left: 4px solid #888; }
-        
-        .history-item-mini {
-            background: #1a1f2a;
-            border-radius: 6px;
-            padding: 6px 10px;
-            margin: 2px 0;
-            font-size: 11px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.2s;
-        }
-        .history-item-mini:hover {
-            background: #2a3140;
-        }
-        .history-item-mini .result-win { color: #2ecc71; }
-        .history-item-mini .result-loss { color: #e74c3c; }
-        .history-item-mini .result-draw { color: #f1c40f; }
-        
-        .filter-label {
-            font-size: 10px;
-            color: #888;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .predictions-stats {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            font-size: 11px;
-            color: #888;
-            padding: 4px 0;
-            border-bottom: 1px solid #2a3140;
-            margin-bottom: 6px;
-        }
-        .predictions-stats b {
-            color: #f7931a;
-        }
     </style>  
 </head>  
 <body>  
     <!-- ================================================================ -->  
-    <!-- ЧАСТЬ 1: HTML СТРУКТУРА                                        -->  
+    <!-- ЧАСТЬ 1: HTML СТРУКТУРА (~300 строк)                            -->  
     <!-- ================================================================ -->  
     <header class="header">  
         <h1>⚛️ Квантум <span>ULTIMATE v5.0</span></h1>  
@@ -778,71 +695,6 @@
                 </div>  
             </div>  
         </div>  
-          
-        <!-- ====== ПРОГНОЗЫ ====== -->  
-        <div class="screen" id="predictionsScreen">  
-            <!-- ВЕРХНЯЯ ПАНЕЛЬ -->  
-            <div class="card" style="border-left:4px solid #f7931a;">  
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">  
-                    <span style="font-size:14px;font-weight:700;color:#f7931a;">📊 Прогнозы на матчи</span>  
-                    <div style="display:flex;gap:4px;align-items:center;">  
-                        <span id="predictionsLastUpdate" style="font-size:9px;color:#555;">⏳ загрузка...</span>  
-                        <button onclick="refreshPredictions()" style="background:#2a3140;border:none;color:#fff;padding:4px 12px;border-radius:12px;font-size:11px;cursor:pointer;">🔄 Обновить</button>  
-                    </div>  
-                </div>  
-            </div>  
-
-            <!-- ФИЛЬТР ПО ВРЕМЕНИ -->  
-            <div class="card">  
-                <div style="display:flex;gap:4px;flex-wrap:wrap;">  
-                    <button class="mode-btn active" data-time="6h" onclick="setTimeFilter('6h',this)">⏱️ 6ч</button>  
-                    <button class="mode-btn" data-time="today" onclick="setTimeFilter('today',this)">📅 Сегодня</button>  
-                    <button class="mode-btn" data-time="tomorrow" onclick="setTimeFilter('tomorrow',this)">📅 Завтра</button>  
-                    <button class="mode-btn" data-time="week" onclick="setTimeFilter('week',this)">📅 Неделя</button>  
-                </div>  
-            </div>  
-
-            <!-- РАСШИРЕННЫЕ ФИЛЬТРЫ -->  
-            <div class="card" style="border-left:3px solid #2ecc71;">  
-                <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">  
-                    <select id="filterTotal" style="flex:1;min-width:80px;padding:4px 6px;border-radius:6px;background:#0b0e14;color:#e0e0e0;border:1px solid #2a3140;font-size:11px;">  
-                        <option value="all">📊 Все тоталы</option>  
-                        <option value="over1.5">⚽ ОВЕР 1.5</option>  
-                        <option value="under1.5">⚽ АНДЕР 1.5</option>  
-                        <option value="over2.5">⚽ ОВЕР 2.5</option>  
-                        <option value="under2.5">⚽ АНДЕР 2.5</option>  
-                        <option value="over3.5">⚽ ОВЕР 3.5</option>  
-                        <option value="under3.5">⚽ АНДЕР 3.5</option>  
-                    </select>  
-                    <select id="filterLeague" style="flex:1;min-width:80px;padding:4px 6px;border-radius:6px;background:#0b0e14;color:#e0e0e0;border:1px solid #2a3140;font-size:11px;">  
-                        <option value="all">🌍 Все лиги</option>  
-                    </select>  
-                    <input type="number" id="filterMinConfidence" value="50" min="0" max="100" style="width:60px;padding:4px 6px;border-radius:6px;background:#0b0e14;color:#e0e0e0;border:1px solid #2a3140;font-size:11px;text-align:center;" placeholder="≥%">  
-                    <label style="font-size:10px;color:#888;display:flex;align-items:center;gap:4px;">  
-                        <input type="checkbox" id="filterOnlyLive"> 🔴 Только live  
-                    </label>  
-                </div>  
-            </div>  
-
-            <!-- БЛОК: АКТУАЛЬНЫЕ ПРОГНОЗЫ -->  
-            <div class="card" style="border-left:4px solid #2ecc71;margin-top:4px;">  
-                <div style="display:flex;justify-content:space-between;align-items:center;">  
-                    <span class="card-title" style="margin-bottom:0;">🚀 Актуальные прогнозы <span id="upcomingCount" style="font-size:10px;color:#888;"></span></span>  
-                    <span style="font-size:9px;color:#555;" id="upcomingTimer">⏳ обновление через --с</span>  
-                </div>  
-                <div id="upcomingPredictions">  
-                    <div class="text-muted text-center" style="padding:20px 0;">⏳ Загрузка прогнозов...</div>  
-                </div>  
-            </div>  
-
-            <!-- БЛОК: ИСТОРИЯ / ТОЧНОСТЬ -->  
-            <div class="card" style="border-left:4px solid #9b59b6;margin-top:4px;">  
-                <div class="card-title">📜 История сыгранных матчей <span id="historyCount" style="font-size:10px;color:#888;"></span></div>  
-                <div id="historyPredictions">  
-                    <div class="text-muted text-center" style="padding:10px 0;">Нет сыгранных матчей</div>  
-                </div>  
-            </div>  
-        </div>  
     </div>  
     
     <!-- ===== НИЖНЯЯ НАВИГАЦИЯ ===== -->  
@@ -855,11 +707,6 @@
             <span class="nav-icon">🔍</span>  
             <span class="nav-label">Поиск</span>  
             <span class="badge" id="searchBadgeNav" style="display:none;">0</span>  
-        </button>  
-        <button class="nav-btn" data-tab="predictions" onclick="switchTab('predictions')">  
-            <span class="nav-icon">📊</span>  
-            <span class="nav-label">Прогнозы</span>  
-            <span class="badge" id="predictionsBadge" style="display:none;">0</span>  
         </button>  
         <button class="nav-btn" data-tab="stats" onclick="switchTab('stats')">  
             <span class="nav-icon">📈</span>  
@@ -883,12 +730,12 @@
     <div class="swipe-indicator show" id="swipeIndicator">👆 Свайп влево/вправо</div>  
       
     <!-- ================================================================ -->  
-    <!-- КОНЕЦ ЧАСТИ 1 (HTML)                                           -->  
-    <!-- ДАЛЕЕ СЛЕДУЕТ ЧАСТЬ 2: JAVASCRIPT                              -->  
-    <!-- ================================================================ -->
+    <!-- КОНЕЦ ЧАСТИ 1                                               -->  
+    <!-- ДАЛЕЕ СЛЕДУЕТ ЧАСТЬ 2: JAVASCRIPT — УТИЛИТЫ, СТЕЙТ, ПОГОДА, H2H -->  
+    <!-- ================================================================ -->  
 <script>  
     // ================================================================  
-    // ЧАСТЬ 2: JAVASCRIPT — ПОЛНАЯ ЛОГИКА ПРИЛОЖЕНИЯ  
+    // ЧАСТЬ 2: JAVASCRIPT — УТИЛИТЫ, СТЕЙТ, ПОГОДА, H2H, API  
     // ================================================================  
       
     // --- БАЗОВЫЕ УТИЛИТЫ ---  
@@ -1229,7 +1076,7 @@
         return Math.max(0, xg + penalty);  
     }  
       
-    // --- НАВИГАЦИЯ (ОБНОВЛЕННАЯ) ---  
+    // --- НАВИГАЦИЯ ---  
     function switchTab(tab) {  
         state.currentTab = tab;  
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));  
@@ -1239,11 +1086,9 @@
             'stats': 'statsScreen',  
             'live': 'liveScreen',  
             'settings': 'settingsScreen',  
-            'assistant': 'assistantScreen',  
-            'predictions': 'predictionsScreen'  
+            'assistant': 'assistantScreen'  
         };  
-        const screen = document.getElementById(map[tab]);  
-        if (screen) screen.classList.add('active');  
+        if ($(map[tab])) $(map[tab]).classList.add('active');  
         document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));  
         const target = document.querySelector(`.nav-btn[data-tab="${tab}"]`);  
         if (target) target.classList.add('active');  
@@ -1278,7 +1123,6 @@
             }  
         }  
         if (tab === 'assistant') renderAssistantHistory();  
-        if (tab === 'predictions') refreshPredictions();  
     }  
       
     // --- РЕЖИМЫ ---  
@@ -1610,6 +1454,7 @@
                     ${total > 15 ? `<div style="color:#888;font-size:10px;text-align:center;margin-top:4px;">и еще ${total - 15} матчей...</div>` : ''}  
                 `;  
             }  
+            // Загрузка травм  
             if (status) status.innerHTML = '⏳ Загрузка травм...';  
             const homeInjuries = await loadInjuries(homeId);  
             const awayInjuries = await loadInjuries(awayId);  
@@ -1767,6 +1612,12 @@
     }  
       
     // ================================================================  
+    // КОНЕЦ ЧАСТИ 2  
+    // ДАЛЕЕ СЛЕДУЕТ ЧАСТЬ 3: КАЛИБРОВКА, ФИЛЬТР, ULTIMATE AI  
+    // ================================================================  
+</script>  
+<script>  
+    // ================================================================  
     // ЧАСТЬ 3: КАЛИБРОВКА, ФИЛЬТР КАЧЕСТВА, ULTIMATE AI  
     // ================================================================  
       
@@ -1802,9 +1653,11 @@
     // --- ФИЛЬТР КАЧЕСТВА ---  
     function qualityFilter(prediction, ensembleResults, detectiveResult) {  
         const checks = [];  
+        // 1. Минимальная уверенность  
         const confidence = prediction.confidence || 0;  
         const passConfidence = confidence >= 0.6;  
         checks.push({ name: 'Уверенность ≥ 60%', pass: passConfidence, value: `${Math.round(confidence * 100)}%` });  
+        // 2. Согласованность моделей  
         if (ensembleResults && ensembleResults.individual) {  
             const values = Object.values(ensembleResults.individual);  
             const mean = values.reduce((a, b) => a + b, 0) / values.length;  
@@ -1814,12 +1667,15 @@
         } else {  
             checks.push({ name: 'Разброс моделей ≤ 15%', pass: false, value: 'Нет данных' });  
         }  
+        // 3. Value  
         const isValue = prediction.isValue || false;  
         checks.push({ name: 'Value (EV > 5%)', pass: isValue, value: isValue ? '✅ Да' : '❌ Нет' });  
+        // 4. Не дерби с высокой непредсказуемостью  
         const isDerbyMatch = detectiveResult ? detectiveResult.derby : false;  
         const unpredictability = detectiveResult ? (detectiveResult.homeUnpredictability?.level === 'high' || detectiveResult.awayUnpredictability?.level === 'high') : false;  
         const passDerby = !(isDerbyMatch && unpredictability);  
         checks.push({ name: 'Не дерби с высокой непредсказуемостью', pass: passDerby, value: passDerby ? '✅ Проходит' : '❌ Отказ' });  
+        // 5. Качество данных  
         const hasData = (state.h2hData && state.h2hData.length >= 3);  
         checks.push({ name: 'Достаточно данных (≥3 матчей)', pass: hasData, value: hasData ? `${state.h2hData?.length || 0} матчей` : '❌ Мало данных' });  
         const allPass = checks.every(c => c.pass);  
@@ -2080,6 +1936,12 @@
         if (log) log.innerHTML = '';  
     }  
       
+    // ================================================================  
+    // КОНЕЦ ЧАСТИ 3  
+    // ДАЛЕЕ СЛЕДУЕТ ЧАСТЬ 4: ULTIMATE AI ПРОГНОЗ, АНСАМБЛЬ, SHAP, VALUE  
+    // ================================================================  
+</script>  
+<script>  
     // ================================================================  
     // ЧАСТЬ 4: ULTIMATE AI ПРОГНОЗ, АНСАМБЛЬ, SHAP, VALUE BETTING  
     // ================================================================  
@@ -2633,6 +2495,12 @@
     }  
       
     // ================================================================  
+    // КОНЕЦ ЧАСТИ 4  
+    // ДАЛЕЕ СЛЕДУЕТ ЧАСТЬ 5: СТАТИСТИКА, LIVE, АССИСТЕНТ, ИНИЦИАЛИЗАЦИЯ  
+    // ================================================================  
+</script>  
+<script>  
+    // ================================================================  
     // ЧАСТЬ 5: СТАТИСТИКА, LIVE, АССИСТЕНТ, ИНИЦИАЛИЗАЦИЯ  
     // ================================================================  
       
@@ -2959,6 +2827,7 @@
         if (choice === '1') {  
             b.outcome = 'win';  
             b.resultText = '✅ Выигрыш';  
+            // Обновляем калибровку  
             if (state.lastPrediction) {  
                 updateCalibration(state.lastPrediction.predicted, 1);  
             }  
@@ -3107,6 +2976,7 @@
                 renderLiveMatches(response.response);  
                 const badge = document.getElementById('liveBadgeNav');  
                 if (badge) { badge.style.display = 'block'; badge.textContent = response.response.length; }  
+                // Live прогнозы  
                 if (response.response.length > 0) {  
                     const match = response.response[0];  
                     const home = match.teams.home.name;  
@@ -3306,340 +3176,6 @@
         return `🧠 **ИИ-АССИСТЕНТ ULTIMATE v5.0**\n\n📊 Ваша статистика: ${context.bets.length} ставок\n${ultimateAI.isTrained() ? `🎯 ULTIMATE AI: ${Math.round(ultimateAI.accuracy * 100)}%` : '⏳ Обучите ULTIMATE AI'}\n\nЧто вас интересует?`;  
     }  
       
-    // ================================================================  
-    // ЧАСТЬ 6: ПРОГНОЗЫ НА МАТЧИ — ПОЛНАЯ РЕАЛИЗАЦИЯ  
-    // ================================================================  
-      
-    let predictionsState = {  
-        matches: [],  
-        filtered: [],  
-        timeFilter: '6h',  
-        totalFilter: 'all',  
-        leagueFilter: 'all',  
-        minConfidence: 50,  
-        onlyLive: false,  
-        lastUpdate: null,  
-        autoUpdateInterval: null,  
-        notificationTimer: null,  
-        notifiedMatches: new Set()  
-    };  
-      
-    function generateMockMatches() {  
-        const teams = [  
-            ['Реал Мадрид', 'Барселона', '🇪🇸 Ла Лига'],  
-            ['Ливерпуль', 'Манчестер Сити', '🏴 АПЛ'],  
-            ['Бавария', 'Боруссия Д', '🇩🇪 Бундеслига'],  
-            ['Ювентус', 'Милан', '🇮🇹 Серия А'],  
-            ['ПСЖ', 'Марсель', '🇫🇷 Лига 1'],  
-            ['Спартак', 'Зенит', '🇷🇺 РПЛ'],  
-            ['Арсенал', 'Тоттенхэм', '🏴 АПЛ'],  
-            ['Интер', 'Наполи', '🇮🇹 Серия А'],  
-            ['Атлетико', 'Севилья', '🇪🇸 Ла Лига'],  
-            ['Рома', 'Лацио', '🇮🇹 Серия А'],  
-            ['Манчестер Юнайтед', 'Челси', '🏴 АПЛ'],  
-            ['Боруссия М', 'Байер', '🇩🇪 Бундеслига'],  
-            ['Аякс', 'ПСВ', '🇳🇱 Эредивизи'],  
-            ['Порту', 'Бенфика', '🇵🇹 Примейра'],  
-            ['Милан', 'Интер', '🇮🇹 Серия А']  
-        ];  
-        const now = new Date();  
-        const matches = [];  
-        const predictions = [  
-            'Тотал БОЛЬШЕ 2.5', 'Тотал МЕНЬШЕ 2.5',  
-            'ОЗ – ДА', 'ОЗ – НЕТ',  
-            'Фора Хозяева -1', 'Фора Гости +1',  
-            'Тотал БОЛЬШЕ 3.5', 'Тотал МЕНЬШЕ 3.5'  
-        ];  
-        for (let i = 0; i < 30; i++) {  
-            const teamIdx = i % teams.length;  
-            const [home, away, league] = teams[teamIdx];  
-            const startOffset = 1 + Math.random() * 168;  
-            const startTime = new Date(now.getTime() + startOffset * 3600000);  
-            let status = 'upcoming', statusText = '', isLive = false, isFinished = false;  
-            let homeGoals = 0, awayGoals = 0;  
-            if (i < 4) {  
-                status = 'live'; isLive = true;  
-                const elapsed = 15 + Math.random() * 60;  
-                statusText = `⏱️ Идёт ${Math.round(elapsed)}'`;  
-                homeGoals = Math.floor(Math.random() * 3);  
-                awayGoals = Math.floor(Math.random() * 3);  
-            } else if (i < 8) {  
-                status = 'finished'; isFinished = true;  
-                homeGoals = Math.floor(Math.random() * 4);  
-                awayGoals = Math.floor(Math.random() * 4);  
-                statusText = `🏁 Завершён ${homeGoals}:${awayGoals}`;  
-            } else if (i < 12) {  
-                const hours = 2 + Math.random() * 4;  
-                statusText = `🟢 Через ${Math.round(hours)}ч ${Math.round(Math.random()*60)}м`;  
-            } else {  
-                const hours = 6 + Math.random() * 48;  
-                const h = Math.floor(hours);  
-                const m = Math.floor((hours - h) * 60);  
-                statusText = `🟢 Через ${h}ч ${m}м`;  
-            }  
-            const total = homeGoals + awayGoals;  
-            const oz = homeGoals > 0 && awayGoals > 0;  
-            const confidence = 45 + Math.random() * 47;  
-            const prediction = predictions[Math.floor(Math.random() * predictions.length)];  
-            matches.push({  
-                id: `match_${i}_${Date.now()}`,  
-                home, away, league,  
-                startTime: startTime.toISOString(),  
-                homeGoals, awayGoals, total, oz,  
-                confidence: Math.round(confidence),  
-                prediction, status, statusText, isLive, isFinished,  
-                timestamp: Date.now()  
-            });  
-        }  
-        matches.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));  
-        return matches;  
-    }  
-      
-    function filterByTime(matches, filter) {  
-        const now = new Date();  
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());  
-        const tomorrow = new Date(today);  
-        tomorrow.setDate(tomorrow.getDate() + 1);  
-        const weekEnd = new Date(today);  
-        weekEnd.setDate(weekEnd.getDate() + 7);  
-        return matches.filter(m => {  
-            if (m.isFinished) return false;  
-            const start = new Date(m.startTime);  
-            const hoursDiff = (start - now) / (1000 * 60 * 60);  
-            if (hoursDiff < -2) return false;  
-            switch(filter) {  
-                case '6h': return hoursDiff >= 0 && hoursDiff <= 6;  
-                case 'today': return start >= today && start < tomorrow;  
-                case 'tomorrow': return start >= tomorrow && start < new Date(tomorrow.getTime() + 86400000);  
-                case 'week': return start >= today && start < weekEnd;  
-                default: return true;  
-            }  
-        });  
-    }  
-      
-    function sortByPriority(matches) {  
-        const now = new Date();  
-        return [...matches].sort((a, b) => {  
-            const timeA = (new Date(a.startTime) - now) / (1000 * 60 * 60);  
-            const timeB = (new Date(b.startTime) - now) / (1000 * 60 * 60);  
-            const priorityA = a.isLive ? a.confidence * 10 : a.confidence / Math.max(0.5, timeA);  
-            const priorityB = b.isLive ? b.confidence * 10 : b.confidence / Math.max(0.5, timeB);  
-            return priorityB - priorityA;  
-        });  
-    }  
-      
-    function applyAllFilters(matches, filters) {  
-        let result = [...matches];  
-        result = filterByTime(result, filters.timeFilter || '6h');  
-        if (filters.totalFilter && filters.totalFilter !== 'all') {  
-            const isOver = filters.totalFilter.includes('over');  
-            const threshold = parseFloat(filters.totalFilter.replace(/over|under/, '')) || 2.5;  
-            result = result.filter(m => isOver ? m.total > threshold : m.total < threshold);  
-        }  
-        if (filters.leagueFilter && filters.leagueFilter !== 'all') {  
-            result = result.filter(m => m.league === filters.leagueFilter);  
-        }  
-        if (filters.minConfidence > 0) {  
-            result = result.filter(m => m.confidence >= filters.minConfidence);  
-        }  
-        if (filters.onlyLive) {  
-            result = result.filter(m => m.isLive);  
-        }  
-        return result;  
-    }  
-      
-    function refreshPredictions() {  
-        const allMatches = generateMockMatches();  
-        predictionsState.matches = allMatches;  
-        const filters = {  
-            timeFilter: predictionsState.timeFilter,  
-            totalFilter: document.getElementById('filterTotal').value,  
-            leagueFilter: document.getElementById('filterLeague').value,  
-            minConfidence: parseInt(document.getElementById('filterMinConfidence').value) || 0,  
-            onlyLive: document.getElementById('filterOnlyLive').checked  
-        };  
-        updateLeagueFilter(allMatches);  
-        let upcoming = applyAllFilters(allMatches, filters);  
-        upcoming = sortByPriority(upcoming);  
-        const now = new Date();  
-        const history = allMatches.filter(m => {  
-            const start = new Date(m.startTime);  
-            return (start < now && !m.isLive) || m.isFinished;  
-        });  
-        predictionsState.filtered = upcoming;  
-        predictionsState.lastUpdate = new Date();  
-        renderUpcomingPredictions(upcoming);  
-        renderHistoryPredictions(history);  
-        document.getElementById('upcomingCount').textContent = `(${upcoming.length})`;  
-        document.getElementById('historyCount').textContent = `(${history.length})`;  
-        document.getElementById('predictionsLastUpdate').textContent = `🕐 ${new Date().toLocaleTimeString()}`;  
-        checkNotifications(upcoming);  
-        updatePredictionsBadge(upcoming);  
-    }  
-      
-    function renderUpcomingPredictions(matches) {  
-        const container = document.getElementById('upcomingPredictions');  
-        if (!matches || matches.length === 0) {  
-            container.innerHTML = '<div class="text-muted text-center" style="padding:20px 0;">📭 Нет матчей по выбранным фильтрам</div>';  
-            return;  
-        }  
-        container.innerHTML = matches.slice(0, 30).map(m => {  
-            const isSoon = (new Date(m.startTime) - new Date()) / (1000 * 60) < 120 && !m.isLive;  
-            const statusClass = m.isLive ? 'border-live' : (isSoon ? 'border-soon' : 'border-upcoming');  
-            const confClass = m.confidence >= 70 ? 'confidence-high' : (m.confidence >= 55 ? 'confidence-medium' : 'confidence-low');  
-            const statusColor = m.isLive ? '#e74c3c' : (isSoon ? '#f1c40f' : '#2ecc71');  
-            const timeDisplay = m.isLive ? m.statusText : (m.isFinished ? m.statusText : `🟢 ${formatTimeRemaining(m.startTime)}`);  
-            return `  
-                <div class="prediction-card ${statusClass}">  
-                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">  
-                        <span class="match-name">${m.home} vs ${m.away}</span>  
-                        <span class="match-league">${m.league}</span>  
-                    </div>  
-                    <div class="match-details">  
-                        <span>🎯 ${m.prediction}</span>  
-                        <span class="match-confidence ${confClass}">📊 ${m.confidence}%</span>  
-                        <span class="match-status" style="color:${statusColor};">${timeDisplay}</span>  
-                        ${m.isLive ? '<span style="color:#e74c3c;font-weight:700;">🔴 LIVE</span>' : ''}  
-                        ${m.total > 0 ? `<span>⚽ ${m.homeGoals}:${m.awayGoals}</span>` : ''}  
-                    </div>  
-                </div>  
-            `;  
-        }).join('');  
-    }  
-      
-    function renderHistoryPredictions(matches) {  
-        const container = document.getElementById('historyPredictions');  
-        if (!matches || matches.length === 0) {  
-            container.innerHTML = '<div class="text-muted text-center" style="padding:10px 0;">📭 Нет сыгранных матчей</div>';  
-            return;  
-        }  
-        const sorted = [...matches].sort((a, b) => new Date(b.startTime) - new Date(a.startTime));  
-        let correct = 0;  
-        sorted.forEach(m => {  
-            const pred = m.prediction.toLowerCase();  
-            const isOver = pred.includes('больше') || pred.includes('over');  
-            const isUnder = pred.includes('меньше') || pred.includes('under');  
-            const isOz = pred.includes('оз');  
-            if (isOver && m.total > 2.5) correct++;  
-            else if (isUnder && m.total < 2.5) correct++;  
-            else if (isOz && m.oz) correct++;  
-        });  
-        const accuracy = sorted.length > 0 ? Math.round((correct / sorted.length) * 100) : 0;  
-        container.innerHTML = `  
-            <div class="predictions-stats">  
-                <span>📊 Всего: <b>${sorted.length}</b></span>  
-                <span>✅ Точных: <b style="color:#2ecc71;">${correct}</b></span>  
-                <span>🎯 Точность: <b style="color:${accuracy >= 60 ? '#2ecc71' : '#f1c40f'};">${accuracy}%</b></span>  
-            </div>  
-            ${sorted.slice(0, 15).map(m => `  
-                <div class="history-item-mini" style="border-left:3px solid ${m.oz ? '#2ecc71' : '#e74c3c'};">  
-                    <div>  
-                        <span style="font-weight:600;">${m.home} vs ${m.away}</span>  
-                        <span style="color:#888;font-size:9px;margin-left:6px;">${m.league}</span>  
-                    </div>  
-                    <div style="text-align:right;">  
-                        <div>${m.homeGoals}:${m.awayGoals} ${m.oz ? '✅' : '❌'}</div>  
-                        <div style="font-size:9px;color:#555;">${new Date(m.startTime).toLocaleDateString()}</div>  
-                    </div>  
-                </div>  
-            `).join('')}  
-            ${sorted.length > 15 ? `<div style="text-align:center;font-size:9px;color:#555;margin-top:4px;">и еще ${sorted.length - 15} матчей...</div>` : ''}  
-        `;  
-    }  
-      
-    function formatTimeRemaining(startTime) {  
-        const now = new Date();  
-        const start = new Date(startTime);  
-        const diff = (start - now) / 1000;  
-        if (diff < 0) return '⏳ Скоро';  
-        const hours = Math.floor(diff / 3600);  
-        const minutes = Math.floor((diff % 3600) / 60);  
-        if (hours > 24) return `${Math.floor(hours / 24)}д ${hours % 24}ч`;  
-        if (hours > 0) return `${hours}ч ${minutes}м`;  
-        return `${minutes}м`;  
-    }  
-      
-    function updateLeagueFilter(matches) {  
-        const select = document.getElementById('filterLeague');  
-        const leagues = [...new Set(matches.map(m => m.league))].filter(Boolean);  
-        const currentValue = select.value;  
-        select.innerHTML = `<option value="all">🌍 Все лиги</option>`;  
-        leagues.forEach(l => {  
-            select.innerHTML += `<option value="${l}">${l}</option>`;  
-        });  
-        if (leagues.includes(currentValue)) select.value = currentValue;  
-    }  
-      
-    function setTimeFilter(filter, btn) {  
-        predictionsState.timeFilter = filter;  
-        document.querySelectorAll('[data-time]').forEach(b => b.classList.remove('active'));  
-        if (btn) btn.classList.add('active');  
-        refreshPredictions();  
-    }  
-      
-    function checkNotifications(matches) {  
-        if (!('Notification' in window)) return;  
-        if (Notification.permission !== 'granted') return;  
-        const now = new Date();  
-        const notified = predictionsState.notifiedMatches || new Set();  
-        matches.forEach(m => {  
-            const start = new Date(m.startTime);  
-            const diff = (start - now) / (1000 * 60);  
-            if (diff > 25 && diff < 35 && m.confidence >= 70 && !notified.has(m.id)) {  
-                new Notification('⚽ КВАНТУМ PRO ULTIMATE', {  
-                    body: `Матч ${m.home} vs ${m.away} начнётся через 30 минут!\nПрогноз: ${m.prediction} (${m.confidence}%)`,  
-                    icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="45" fill="%230b0e14"/%3E%3Ctext x="50" y="72" font-size="60" text-anchor="middle" font-family="Arial"%3E%E2%9A%9B%3C/text%3E%3C/svg%3E'  
-                });  
-                notified.add(m.id);  
-            }  
-        });  
-        predictionsState.notifiedMatches = notified;  
-    }  
-      
-    function updatePredictionsBadge(matches) {  
-        const badge = document.getElementById('predictionsBadge');  
-        if (!badge) return;  
-        const count = matches.filter(m => !m.isFinished && (new Date(m.startTime) - new Date()) / (1000 * 60) < 120).length;  
-        if (count > 0) {  
-            badge.style.display = 'inline';  
-            badge.textContent = count;  
-        } else {  
-            badge.style.display = 'none';  
-        }  
-    }  
-      
-    function startAutoUpdate() {  
-        if (predictionsState.autoUpdateInterval) clearInterval(predictionsState.autoUpdateInterval);  
-        predictionsState.autoUpdateInterval = setInterval(() => {  
-            refreshPredictions();  
-            let seconds = 300;  
-            const timerEl = document.getElementById('upcomingTimer');  
-            if (timerEl) {  
-                const interval = setInterval(() => {  
-                    seconds--;  
-                    timerEl.textContent = `⏳ обновление через ${seconds}с`;  
-                    if (seconds <= 0) clearInterval(interval);  
-                }, 1000);  
-            }  
-        }, 300000);  
-    }  
-      
-    function requestNotificationPermission() {  
-        if ('Notification' in window && Notification.permission === 'default') {  
-            Notification.requestPermission();  
-        }  
-    }  
-      
-    function initPredictions() {  
-        refreshPredictions();  
-        startAutoUpdate();  
-        requestNotificationPermission();  
-        document.getElementById('filterTotal').addEventListener('change', refreshPredictions);  
-        document.getElementById('filterLeague').addEventListener('change', refreshPredictions);  
-        document.getElementById('filterMinConfidence').addEventListener('input', refreshPredictions);  
-        document.getElementById('filterOnlyLive').addEventListener('change', refreshPredictions);  
-    }  
-      
     // --- ИНИЦИАЛИЗАЦИЯ ---  
     document.addEventListener('DOMContentLoaded', async function() {  
         initTheme();  
@@ -3673,7 +3209,7 @@
         renderAssistantHistory();  
         await ultimateAI.loadModel();  
         updateAIStatus();  
-        initPredictions();  
+        // Защита от двойного нажатия  
         document.querySelectorAll('.btn, .btn-api, .btn-ai').forEach(btn => {  
             btn.addEventListener('click', function(e) {  
                 if (this.dataset.clicked) {  
@@ -3698,7 +3234,6 @@
         console.log('✅ Фильтр качества (5 условий)');  
         console.log('✅ Backtesting (Equity, ROI, сравнение стратегий)');  
         console.log('✅ SHAP-бары (визуализация)');  
-        console.log('✅ Раздел "Прогнозы" с фильтрацией и уведомлениями');  
         console.log('🚀 ГОТОВ К РАБОТЕ!');  
     });  
       
@@ -3707,8 +3242,8 @@
     });  
       
     // ================================================================  
-    // КОНЕЦ ПОЛНОГО КОДА v5.0  
+    // КОНЕЦ ПОЛНОГО КОДА v5.0 (3300+ строк)  
     // ================================================================  
 </script>  
 </body>  
-</html>
+</html>  
