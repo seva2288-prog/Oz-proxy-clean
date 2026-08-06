@@ -5934,7 +5934,47 @@ function getFallbackMatches() {
         // ================================================================
         // ИНИЦИАЛИЗАЦИЯ
         // ================================================================
-        document.addEventListener('DOMContentLoaded', async function() {
+       // ===== ЗАГРУЗКА ВСЕХ ЛИГ =====
+async function loadAllLeagues() {
+    const apiKey = localStorage.getItem('quantum_api_key');
+    if (!apiKey || apiKey === '') {
+        console.log('⚠️ Нет API ключа для загрузки лиг');
+        return;
+    }
+    
+    try {
+        showToast('📡 Загрузка лиг...', 'info');
+        const response = await fetch('https://v3.football.api-sports.io/leagues', {
+            headers: {
+                'x-rapidapi-key': apiKey,
+                'x-rapidapi-host': 'v3.football.api-sports.io'
+            }
+        });
+        const data = await response.json();
+        
+        if (data.response) {
+            const leagues = {};
+            data.response.forEach(l => {
+                if (l.league.type === 'League') {
+                    leagues[l.league.id] = {
+                        name: l.league.name,
+                        country: l.country.name,
+                        flag: l.country.flag || '🌍',
+                        season: 2025
+                    };
+                }
+            });
+            
+            localStorage.setItem('quantum_leagues', JSON.stringify(leagues));
+            window.LEAGUES = leagues;
+            updateLeagueFilters();
+            showToast(`✅ Загружено ${Object.keys(leagues).length} лиг`, 'success');
+        }
+    } catch(e) {
+        console.error('Ошибка загрузки лиг:', e);
+    }
+}
+    document.addEventListener('DOMContentLoaded', async function() {
             initTheme();
             renderLeagues();
             renderHistory();
