@@ -5655,18 +5655,26 @@ function getFallbackMatches() {
         }
 
         function refreshPredictions() {
-            const btn = document.getElementById('refreshPredictionsBtn');
-            const icon = document.getElementById('refreshIcon');
-            if (icon) icon.textContent = '⏳';
-            if (btn) btn.disabled = true;
-
-            setTimeout(() => {
-                renderPredictions();
-                if (icon) icon.textContent = '🔄';
-                if (btn) btn.disabled = false;
-                showToast('🔄 Прогнозы обновлены', 'success');
-            }, 500);
-        }
+    const btn = document.getElementById('refreshPredictionsBtn');
+    const icon = document.getElementById('refreshIcon');
+    if (icon) icon.textContent = '⏳';
+    if (btn) btn.disabled = true;
+    
+    // Загружаем реальные матчи
+    generateTestPredictions().then(matches => {
+        // Сохраняем в состояние
+        state.predictions = matches;
+        renderPredictions();
+        if (icon) icon.textContent = '🔄';
+        if (btn) btn.disabled = false;
+        showToast('✅ Прогнозы обновлены', 'success');
+    }).catch(error => {
+        console.error(error);
+        if (icon) icon.textContent = '🔄';
+        if (btn) btn.disabled = false;
+        showToast('⚠️ Ошибка обновления', 'error');
+    });
+}
 
         // ================================================================
         // УВЕДОМЛЕНИЯ
