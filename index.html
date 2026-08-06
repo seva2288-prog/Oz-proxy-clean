@@ -4740,101 +4740,129 @@
 
         // ===== ПРОГНОЗЫ v5.0 =====
         async function generateTestPredictions() {
-            const apiKey = localStorage.getItem('quantum_api_key');
-            if (!apiKey || apiKey === '') {
-                showToast('⚠️ Введите API ключ в настройках', 'error');
-                return getFallbackMatches();
-            }
+    const apiKey = localStorage.getItem('quantum_api_key');
+    if (!apiKey || apiKey === '') {
+        showToast('⚠️ Введите API ключ в настройках', 'error');
+        return getFallbackMatches();
+    }
 
+    try {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const dateStr = today.toISOString().split('T')[0];
+        const dateStr2 = tomorrow.toISOString().split('T')[0];
+        
+        // ВСЕ ЕВРОПЕЙСКИЕ ЛИГИ + ЕВРОКУБКИ
+        const leagues = [
+            // ТОП-5
+            39, 140, 78, 135, 61,
+            // Другие европейские
+            88, 94, 40, 79, 136, 141, 62,
+            144, 203, 848, 95, 207, 218, 197,
+            345, 106, 210, 354, 217, 188, 103,
+            48, 199, 113, 126, 179,
+            // Еврокубки
+            2, 3, 128, 529
+        ];
+        
+        let allMatches = [];
+        let totalLoaded = 0;
+        
+        for (const leagueId of leagues) {
             try {
-                const today = new Date();
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                const dateStr = today.toISOString().split('T')[0];
-                const dateStr2 = tomorrow.toISOString().split('T')[0];
-                const leagues = [39, 140, 78, 135, 61, 848];
-                let allMatches = [];
-
-                for (const leagueId of leagues) {
-                    try {
-                        const url1 = `${PROXY_BASE}fixtures?league=${leagueId}&season=2025&date=${dateStr}`;
-                        const response1 = await fetch(url1, {
-                            headers: { 'x-apisports-key': apiKey }
-                        });
-                        const data1 = await response1.json();
-                        if (data1.response && data1.response.length > 0) {
-                            allMatches = allMatches.concat(data1.response);
-                        }
-                        const url2 = `${PROXY_BASE}fixtures?league=${leagueId}&season=2025&date=${dateStr2}`;
-                        const response2 = await fetch(url2, {
-                            headers: { 'x-apisports-key': apiKey }
-                        });
-                        const data2 = await response2.json();
-                        if (data2.response && data2.response.length > 0) {
-                            allMatches = allMatches.concat(data2.response);
-                        }
-                        await delay(200);
-                    } catch (e) {
-                        console.log('Ошибка загрузки лиги:', e);
-                    }
-                }
-
-                if (allMatches.length === 0) {
-                    showToast('⚠️ Нет матчей на сегодня', 'info');
-                    return getFallbackMatches();
-                }
-
-                const predictions = allMatches.map(match => {
-                    const homeTeam = match.teams.home.name;
-                    const awayTeam = match.teams.away.name;
-                    const status = match.fixture.status.short;
-                    let prediction = 'Тотал > 2.5';
-                    let confidence = 65 + Math.floor(Math.random() * 25);
-                    if (match.goals && match.goals.home !== null) {
-                        const total = (match.goals.home || 0) + (match.goals.away || 0);
-                        if (total > 2.5) prediction = '✅ Тотал > 2.5';
-                        else prediction = '❌ Тотал < 2.5';
-                    } else {
-                        const random = Math.random();
-                        if (random > 0.6) prediction = 'ОЗ - ДА';
-                        else if (random > 0.3) prediction = 'Тотал > 2.5';
-                        else prediction = 'Фора +1.5';
-                    }
-                    let odds = 1.85;
-                    if (match.odds && match.odds[0] && match.odds[0].values) {
-                        const oddValue = match.odds[0].values[0]?.odd;
-                        if (oddValue) odds = parseFloat(oddValue);
-                    }
-                    return {
-                        id: match.fixture.id || Date.now() + Math.random(),
-                        home: homeTeam,
-                        away: awayTeam,
-                        league: match.league.name || 'Лига',
-                        country: match.league.country || 'Мир',
-                        startTime: new Date(match.fixture.date),
-                        homeScore: match.goals?.home ?? null,
-                        awayScore: match.goals?.away ?? null,
-                        status: status === 'FT' ? 'finished' : (status === '1H' || status === '2H' ? 'live' : 'upcoming'),
-                        prediction: prediction,
-                        confidence: confidence,
-                        odds: odds,
-                        total: 2.5,
-                        oz: Math.random() > 0.5,
-                        isLive: status === '1H' || status === '2H',
-                        actualOutcome: status === 'FT' ? (Math.random() > 0.5 ? 'win' : 'loss') : undefined
-                    };
+                // СЕЗОН 2026 (исправлено!)
+                const url1 = `${PROXY_BASE}fixtures?league=${leagueId}&season=2026&date=${dateStr}`;
+                const response1 = await fetch(url1, {
+                    headers: { 'x-apisports-key': apiKey }
                 });
-
-                predictions.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
-                showToast(`✅ Загружено ${predictions.length} реальных матчей`, 'success');
-                return predictions;
-
-            } catch (error) {
-                console.error('Ошибка загрузки матчей:', error);
-                showToast('⚠️ Ошибка загрузки, используем тестовые', 'error');
-                return getFallbackMatches();
+                const data1 = await response1.json();
+                
+                if (data1.response && data1.response.length > 0) {
+                    allMatches = allMatches.concat(data1.response);
+                    totalLoaded += data1.response.length;
+                }
+                
+                // Завтра
+                const url2 = `${PROXY_BASE}fixtures?league=${leagueId}&season=2026&date=${dateStr2}`;
+                const response2 = await fetch(url2, {
+                    headers: { 'x-apisports-key': apiKey }
+                });
+                const data2 = await response2.json();
+                
+                if (data2.response && data2.response.length > 0) {
+                    allMatches = allMatches.concat(data2.response);
+                    totalLoaded += data2.response.length;
+                }
+                
+                await delay(300);
+            } catch (e) {
+                console.log('Ошибка загрузки лиги:', e);
             }
         }
+        
+        if (allMatches.length === 0) {
+            showToast(`⚠️ Нет матчей на сегодня (${dateStr})`, 'info');
+            return getFallbackMatches();
+        }
+        
+        const predictions = allMatches.map(match => {
+            const homeTeam = match.teams.home.name;
+            const awayTeam = match.teams.away.name;
+            const status = match.fixture.status.short;
+            
+            let prediction = 'Тотал > 2.5';
+            let confidence = 65 + Math.floor(Math.random() * 25);
+            
+            if (match.goals && match.goals.home !== null) {
+                const total = (match.goals.home || 0) + (match.goals.away || 0);
+                if (total > 2.5) prediction = '✅ Тотал > 2.5';
+                else prediction = '❌ Тотал < 2.5';
+            } else {
+                const random = Math.random();
+                if (random > 0.6) prediction = 'ОЗ - ДА';
+                else if (random > 0.3) prediction = 'Тотал > 2.5';
+                else prediction = 'Фора +1.5';
+            }
+            
+            let odds = 1.85;
+            if (match.odds && match.odds[0] && match.odds[0].values) {
+                const oddValue = match.odds[0].values[0]?.odd;
+                if (oddValue) odds = parseFloat(oddValue);
+            }
+            
+            return {
+                id: match.fixture.id || Date.now() + Math.random(),
+                home: homeTeam,
+                away: awayTeam,
+                league: match.league.name || 'Лига',
+                country: match.league.country || 'Мир',
+                startTime: new Date(match.fixture.date),
+                homeScore: match.goals?.home ?? null,
+                awayScore: match.goals?.away ?? null,
+                status: status === 'FT' ? 'finished' : (status === '1H' || status === '2H' ? 'live' : 'upcoming'),
+                prediction: prediction,
+                confidence: confidence,
+                odds: odds,
+                total: 2.5,
+                oz: Math.random() > 0.5,
+                isLive: status === '1H' || status === '2H',
+                actualOutcome: status === 'FT' ? (Math.random() > 0.5 ? 'win' : 'loss') : undefined
+            };
+        });
+        
+        predictions.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+        
+        showToast(`✅ Загружено ${predictions.length} реальных матчей (${totalLoaded} всего)`, 'success');
+        return predictions;
+        
+    } catch (error) {
+        console.error('Ошибка загрузки матчей:', error);
+        showToast('⚠️ Ошибка загрузки, используем тестовые', 'error');
+        return getFallbackMatches();
+    }
+}
 
         function getFallbackMatches() {
             const now = new Date();
