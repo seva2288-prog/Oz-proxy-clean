@@ -5990,7 +5990,21 @@ async function loadAllLeagues() {
             if (savedKey && savedKey !== '') {
                 document.getElementById('apiKeyInput').value = savedKey;
                 await loadAllLeagues();
-            }
+            const savedKey = localStorage.getItem('quantum_api_key');
+    
+    // ===== НОВЫЙ КОД: ЗАГРУЗКА РЕАЛЬНЫХ МАТЧЕЙ =====
+    if (savedKey && savedKey !== '') {
+        document.getElementById('apiKeyInput').value = savedKey;
+        await loadAllLeagues();
+        
+        // Загружаем реальные матчи
+        const matches = await generateTestPredictions();
+        state.predictions = matches;
+        renderPredictions();
+    } else {
+        showToast('⚠️ Введите API ключ в настройках', 'error');
+    }
+    // ===== КОНЕЦ НОВОГО КОДА =====}
             const savedWeatherKey = localStorage.getItem('quantum_weather_key');
             if (savedWeatherKey) {
                 document.getElementById('weatherKeyInput').value = savedWeatherKey;
