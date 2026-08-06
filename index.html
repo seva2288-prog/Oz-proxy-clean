@@ -1193,3 +1193,677 @@ async function loadWeatherByCity() {
         showToast(`❌ Город "${city}" не найден`, 'error');
     }
 }
+// ================================================================
+// ЧАСТЬ 3/5: ДЕРБИ, МОТИВАЦИЯ, ТРАВМЫ, H2H (v5.2)
+// ================================================================
+
+// --- ДЕРБИ И МОТИВАЦИЯ ---
+const DERBY_PAIRS = [
+    ['Real Madrid', 'Barcelona'],
+    ['Liverpool', 'Manchester United'],
+    ['Manchester City', 'Manchester United'],
+    ['Chelsea', 'Arsenal'],
+    ['Spartak Moscow', 'CSKA Moscow'],
+    ['AC Milan', 'Inter Milan'],
+    ['Juventus', 'Torino'],
+    ['Bayern Munich', 'Borussia Dortmund'],
+    ['Paris Saint-Germain', 'Marseille'],
+    ['Sevilla', 'Real Betis'],
+    ['Boca Juniors', 'River Plate'],
+    ['Flamengo', 'Fluminense']
+];
+
+function isDerby(homeTeam, awayTeam) {
+    if (!homeTeam || !awayTeam) return false;
+    const h = homeTeam.toLowerCase().trim();
+    const a = awayTeam.toLowerCase().trim();
+    return DERBY_PAIRS.some(pair => {
+        const p1 = pair[0].toLowerCase();
+        const p2 = pair[1].toLowerCase();
+        return (p1 === h && p2 === a) || (p2 === h && p1 === a);
+    });
+}
+
+function calculateMotivation(homeTeam, awayTeam, league, matches) {
+    let homePos = 10, awayPos = 10;
+    if (matches && matches.length > 0) {
+        const homeWins = matches.filter(m => m.homeScore > m.awayScore).length;
+        const awayWins = matches.filter(m => m.awayScore > m.homeScore).length;
+        const total = matches.length;
+        if (total > 0) {
+            homePos = Math.round(20 - (homeWins / total) * 20) + 1;
+            awayPos = Math.round(20 - (awayWins / total) * 20) + 1;
+        }
+    }
+    let motivation = 1.0;
+    let reason = 'Средняя мотивация';
+    if (homePos <= 3) { motivation = 1.25; reason = '🔥 Борьба за чемпионство'; }
+    else if (awayPos <= 3) { motivation = 1.2; reason = '🔥 Борьба за чемпионство (гости)'; }
+    if (homePos >= 17) { motivation = 1.3; reason = '🔥 Борьба за выживание'; }
+    else if (awayPos >= 17) { motivation = 1.25; reason = '🔥 Борьба за выживание (гости)'; }
+    if (isDerby(homeTeam, awayTeam)) { motivation = 1.35; reason = '⚔️ Дерби! Максимальная мотивация'; }
+    return { factor: motivation, reason: reason, homePos: homePos, awayPos: awayPos };
+}
+
+function calculateUnpredictability(team, matches) {
+    if (!matches || matches.length < 5) {
+        return { level: 'low', factor: 1.0, advice: '✅ Недостаточно данных', anomalies: 0 };
+    }
+    let anomalies = 0;
+    const avgTotal = matches.reduce((s, m) => s + m.total, 0) / matches.length;
+    const teamMatches = matches.filter(m => m.home === team || m.away === team);
+    if (teamMatches.length === 0) return { level: 'low', factor: 1.0, advice: '✅ Нет данных', anomalies: 0 };
+    const teamAvg = teamMatches.reduce((s, m) => s + (m.home === team ? m.homeScore : m.awayScore), 0) / teamMatches.length;
+    teamMatches.forEach(m => {
+        const total = m.total;
+        const scored = m.home === team ? m.homeScore : m.awayScore;
+        const conceded = m.home === team ? m.awayScore : m.homeScore;
+        if (Math.abs(total - avgTotal) > 2) anomalies++;
+        if (Math.abs(scored - teamAvg) > 1.5) anomalies++;
+        if ((m.home === team && scored < conceded && m.homeScore > 0) || (m.away === team && scored > conceded)) anomalies++;
+    });
+    const anomalyRate = anomalies / teamMatches.length;
+    if (anomalyRate > 0.3) {
+        return { level: 'high', factor: 0.65, advice: '⚠️ Команда крайне непредсказуема', anomalies: Math.round(anomalyRate * 100) };
+    } else if (anomalyRate > 0.15) {
+        return { level: 'medium', factor: 0.85, advice: '🟡 Команда слегка непредсказуема', anomalies: Math.round(anomalyRate * 100) };
+    } else {
+        return { level: 'low', factor: 1.0, advice: '✅ Команда стабильна', anomalies: Math.round(anomalyRate * 100) };
+    }
+}
+
+function getLeague() {
+    if (LEAGUES[state.currentLeague]) return LEAGUES[state.currentLeague];
+    return { name: 'Лига', oz: 60, avgGoals: 2.6, country: 'Мир' };
+}
+
+// --- ТРАВМЫ ---
+const INJURY_PENALTY = {
+    'forward': -0.2,
+    'midfielder': -0.1,
+    'defender': 0.15,
+    'goalkeeper': 0.1
+};
+
+async function loadInjuries(teamId) {
+    const apiKey = localStorage.getItem('quantum_api_key');
+    if (!apiKey || !teamId) return null;
+    try {
+        const url = `${PROXY_BASE}injuries?team=${teamId}&season=2024`;
+        const response = await fetchWithCache(url, { headers: { 'x-apisports-key': apiKey } }, 3600000);
+        if (response.response) {
+            const injuries = response.response.filter(i => i.player && i.player.injury);
+            return injuries.map(i => ({
+                player: i.player.name,
+                position: i.player.position || 'unknown',
+                importance: i.player.importance || 'medium',
+                injury: i.player.injury
+            }));
+        }
+        return null;
+    } catch(e) { return null; }
+}
+
+function applyInjuryPenalty(injuries, xg) {
+    if (!injuries || injuries.length === 0) return xg;
+    let penalty = 0;
+    injuries.forEach(i => {
+        const pos = i.position.toLowerCase();
+        if (i.importance === 'high') {
+            penalty += INJURY_PENALTY[pos] || -0.05;
+        }
+    });
+    return Math.max(0, xg + penalty);
+}
+
+// --- НАВИГАЦИЯ ---
+function switchTab(tab) {
+    state.currentTab = tab;
+    document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+    const map = {
+        'analysis': 'analysisScreen',
+        'search': 'searchScreen',
+        'stats': 'statsScreen',
+        'live': 'liveScreen',
+        'settings': 'settingsScreen',
+        'assistant': 'assistantScreen'
+    };
+    if ($(map[tab])) $(map[tab]).classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+    const target = document.querySelector(`.nav-btn[data-tab="${tab}"]`);
+    if (target) target.classList.add('active');
+    
+    if (tab === 'stats') {
+        renderHistory();
+        renderStats();
+        renderDashboard();
+        renderChartCanvas();
+        renderMonthlyChart();
+        renderInsights();
+        renderUltimateDashboard();
+        runBacktest();
+    }
+    if (tab === 'settings') {
+        document.getElementById('apiKeyInput').value = localStorage.getItem('quantum_api_key') || '';
+        document.getElementById('weatherKeyInput').value = localStorage.getItem('quantum_weather_key') || '';
+        updateAIStatus();
+    }
+    if (tab === 'live') {
+        loadLiveMatches();
+        loadTrends();
+        loadFutureMatches();
+        if (!state.liveTimer) {
+            state.liveTimer = setInterval(() => {
+                loadLiveMatches();
+                loadTrends();
+            }, 30000);
+        }
+        if (!state.futureUpdateInterval) {
+            const intervalMs = state.futureAutoUpdateMinutes * 60 * 1000;
+            state.futureUpdateInterval = setInterval(() => {
+                loadFutureMatches();
+            }, intervalMs);
+        }
+        if (!state.refreshTimer) {
+            startRefreshTimer();
+        }
+    } else {
+        if (state.liveTimer) {
+            clearInterval(state.liveTimer);
+            state.liveTimer = null;
+        }
+    }
+    if (tab === 'assistant') renderAssistantHistory();
+}
+
+// --- РЕЖИМЫ ---
+function switchMode(mode, btn) {
+    state.currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    const labels = {
+        'total': 'Ожидаемый тотал',
+        'fora': 'Ожидаемая фора',
+        'oz': 'Обе забьют'
+    };
+    const label1 = $('resLabel1');
+    if (label1) label1.textContent = labels[mode] || 'Ожидаемый';
+    if ($('resValue1')) $('resValue1').textContent = '--';
+    if ($('resValue2')) $('resValue2').textContent = '--';
+    if ($('resValue3')) $('resValue3').textContent = '--';
+    const adv = $('resAdvice');
+    if (adv) { adv.textContent = '⏳ Введите данные для расчёта'; adv.className = 'advice info'; }
+    if ($('confidenceLabel')) $('confidenceLabel').textContent = '0%';
+    if ($('confidenceFill')) $('confidenceFill').style.width = '0%';
+    calculate();
+}
+
+// --- РАСЧЁТ ---
+const calculateDebounced = debounce(() => calculate(), 200);
+
+function calculate() {
+    if (state.isCalculating) return;
+    state.isCalculating = true;
+    const homeInput = $('homeGoals');
+    const awayInput = $('awayGoals');
+    if (!homeInput || !awayInput) { state.isCalculating = false; return; }
+    const home = safeNum(homeInput.value);
+    const away = safeNum(awayInput.value);
+    const total = home + away;
+    const league = getLeague();
+    const mode = state.currentMode;
+    const sumDisplay = $('sumDisplay');
+    if (sumDisplay) sumDisplay.textContent = total;
+    if (total === 0 && (!state.h2hData || state.h2hData.length === 0)) {
+        if ($('resValue1')) $('resValue1').textContent = '--';
+        if ($('resValue2')) $('resValue2').textContent = '--';
+        if ($('resValue3')) $('resValue3').textContent = '--';
+        const adv = $('resAdvice');
+        if (adv) { adv.textContent = '⏳ Введите данные для расчёта'; adv.className = 'advice info'; }
+        if ($('confidenceLabel')) $('confidenceLabel').textContent = '0%';
+        if ($('confidenceFill')) $('confidenceFill').style.width = '0%';
+        state.isCalculating = false;
+        return;
+    }
+    let result = { value: 0, prob: 50, advice: '', className: 'info' };
+    if (mode === 'oz') {
+        let baseProb = (home > 0 && away > 0) ? 75 : 25;
+        let leagueFactor = league.oz || 60;
+        let h2hOz = 50;
+        if (state.h2hData && state.h2hData.length > 0) {
+            const ozMatches = state.h2hData.filter(m => m.oz).length;
+            h2hOz = Math.round((ozMatches / state.h2hData.length) * 100);
+        }
+        let weatherFactor = 0;
+        if (state.weatherData) {
+            const condition = state.weatherData.weather.toLowerCase();
+            if (condition.includes('rain') || condition.includes('drizzle')) weatherFactor = -10;
+            else if (condition.includes('snow')) weatherFactor = -15;
+            else if (condition.includes('clear')) weatherFactor = +5;
+        }
+        let prob = Math.round((baseProb + leagueFactor + h2hOz + weatherFactor) / (3 + (weatherFactor !== 0 ? 1 : 0)));
+        prob = Math.min(100, Math.max(0, prob));
+        result.value = home > 0 && away > 0 ? '✅ Да' : '❌ Нет';
+        result.prob = prob;
+        result.advice = prob > 70 ? `✅ Высокая ${prob}%` : (prob > 40 ? `🟡 Средняя ${prob}%` : `🔴 Низкая ${prob}%`);
+        result.className = prob > 70 ? 'good' : (prob > 40 ? 'warn' : 'bad');
+    } else if (mode === 'total') {
+        let expected = total || Math.round(league.avgGoals || 2.5);
+        if (state.h2hData && state.h2hData.length > 0) {
+            const avgH2H = state.h2hData.reduce((s, m) => s + m.total, 0) / state.h2hData.length;
+            expected = Math.round((expected + avgH2H) / 2);
+        }
+        const poissonDist = calculatePoissonDistribution(expected / 2);
+        const overProb = 1 - poissonDist.cumulative;
+        result.value = expected;
+        result.prob = 50 + Math.min(Math.abs(expected - (league.avgGoals || 2.5)) * 5, 30);
+        result.advice = `📊 Poisson: OVER ${Math.round(overProb * 100)}% | UNDER ${Math.round(poissonDist.cumulative * 100)}%`;
+        result.className = 'info';
+    } else if (mode === 'fora') {
+        let expected = total ? Math.round((home - away) / 2) : 0;
+        if (state.h2hData && state.h2hData.length > 0) {
+            const avgDiff = state.h2hData.reduce((s, m) => s + (m.homeScore - m.awayScore), 0) / state.h2hData.length;
+            expected = Math.round((expected + avgDiff) / 2);
+        }
+        result.value = (expected >= 0 ? '+' : '') + expected;
+        result.prob = 50 + Math.min(Math.abs(expected) * 10, 30);
+        result.advice = `📊 Ожидаемая фора: ${result.value}`;
+        result.className = 'info';
+    }
+    if ($('resValue1')) $('resValue1').textContent = result.value;
+    if ($('resValue2')) $('resValue2').textContent = '--';
+    if ($('resValue3')) $('resValue3').textContent = '--';
+    const adv = $('resAdvice');
+    if (adv) { adv.textContent = result.advice; adv.className = 'advice ' + result.className; }
+    const confidence = Math.min(100, Math.max(0, Math.round(result.prob)));
+    if ($('confidenceLabel')) $('confidenceLabel').textContent = confidence + '%';
+    if ($('confidenceFill')) $('confidenceFill').style.width = confidence + '%';
+    generateSmartInsights(home, away, total, mode, league, confidence);
+    state.isCalculating = false;
+}
+
+function updateSum() {
+    const homeInput = $('homeGoals');
+    const awayInput = $('awayGoals');
+    if (homeInput && awayInput) {
+        const total = safeNum(homeInput.value) + safeNum(awayInput.value);
+        const sumDisplay = $('sumDisplay');
+        if (sumDisplay) sumDisplay.textContent = total;
+    }
+}
+
+// --- УМНЫЕ ВЫВОДЫ ---
+function generateSmartInsights(home, away, total, mode, league, confidence) {
+    const card = document.getElementById('smartInsightsCard');
+    if (!card) return;
+    if (!home && !away && !state.h2hData && confidence < 30) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    let h2hCount = 0, homeForm = 50, awayForm = 50, ozPercent = 50, avgTotalH2H = 2.5;
+    let homeWins = 0, awayWins = 0, draws = 0;
+    if (state.h2hData && state.h2hData.length > 0) {
+        const matches = state.h2hData;
+        h2hCount = matches.length;
+        homeWins = matches.filter(m => m.homeScore > m.awayScore).length;
+        awayWins = matches.filter(m => m.awayScore > m.homeScore).length;
+        draws = h2hCount - homeWins - awayWins;
+        homeForm = Math.round((homeWins / h2hCount) * 100);
+        awayForm = Math.round((awayWins / h2hCount) * 100);
+        const ozMatches = matches.filter(m => m.oz).length;
+        ozPercent = Math.round((ozMatches / h2hCount) * 100);
+        avgTotalH2H = matches.reduce((s, m) => s + m.total, 0) / h2hCount;
+    }
+    let weatherImpact = 'нейтральна', weatherScore = 0;
+    if (state.weatherData) {
+        const condition = state.weatherData.weather.toLowerCase();
+        if (condition.includes('rain') || condition.includes('drizzle')) { weatherImpact = 'неблагоприятная (дождь)'; weatherScore = -10; }
+        else if (condition.includes('snow')) { weatherImpact = 'неблагоприятная (снег)'; weatherScore = -15; }
+        else if (condition.includes('clear')) { weatherImpact = 'отличная (ясно)'; weatherScore = +5; }
+        else if (condition.includes('cloud')) { weatherImpact = 'нейтральная (облачно)'; weatherScore = 0; }
+    }
+    let score = 50, details = [], warnings = [], recommendation = '';
+    if (homeForm > 60) { score += 10; details.push(`🏠 Хозяева в хорошей форме (${homeForm}% побед в H2H)`); }
+    else if (homeForm < 40) { score -= 10; details.push(`🏠 Хозяева в плохой форме (${homeForm}% побед в H2H)`); }
+    if (awayForm > 60) { score += 5; details.push(`✈️ Гости в хорошей форме (${awayForm}% побед в H2H)`); }
+    else if (awayForm < 40) { score -= 10; details.push(`✈️ Гости в плохой форме (${awayForm}% побед в H2H)`); }
+    if (h2hCount >= 5) { score += 5; details.push(`📊 Проанализировано ${h2hCount} встреч (достаточно данных)`); }
+    else if (h2hCount > 0 && h2hCount < 5) { score -= 5; details.push(`📊 Проанализировано ${h2hCount} встреч (мало данных)`); }
+    else { details.push(`📊 Нет истории встреч`); }
+    if (ozPercent > 60) { score += 5; details.push(`⚽ В ${ozPercent}% встреч обе команды забивали`); }
+    else if (ozPercent < 40) { score -= 5; details.push(`⚽ Только в ${ozPercent}% встреч обе команды забивали`); }
+    if (weatherScore > 0) { score += 5; details.push(`🌤️ Погода ${weatherImpact} — способствует голам`); }
+    else if (weatherScore < 0) { score -= 10; details.push(`🌧️ Погода ${weatherImpact} — снижает результативность`); warnings.push('⚠️ Погода неблагоприятная для голов'); }
+    const leagueAvg = league.avgGoals || 2.5;
+    if (total > 0) {
+        if (total > leagueAvg + 0.5) { score += 5; details.push(`📈 Ожидаемый тотал (${total}) выше среднего по лиге (${leagueAvg})`); }
+        else if (total < leagueAvg - 0.5) { score -= 5; details.push(`📉 Ожидаемый тотал (${total}) ниже среднего по лиге (${leagueAvg})`); }
+    }
+    if (confidence > 60) { score += 5; details.push(`📊 Индекс доверия ${confidence}% — хороший уровень`); }
+    else if (confidence < 40) { score -= 5; details.push(`📊 Индекс доверия ${confidence}% — низкий уровень`); }
+    score = Math.min(100, Math.max(0, score));
+    let summary = score >= 70 ? `✅ Отличный прогноз! Уверенность ${score}%` : 
+                  (score >= 55 ? `🟡 Хороший прогноз. Уверенность ${score}%` : 
+                  (score >= 40 ? `🟠 Средний прогноз. Уверенность ${score}%` : `🔴 Слабый прогноз. Уверенность ${score}%`));
+    if (mode === 'oz') {
+        const ozProb = 1 - Math.exp(-home) * Math.exp(-away);
+        if (ozProb > 0.65 && score > 55) recommendation = `✅ Рекомендуется: ОЗ – ДА (вероятность ${Math.round(ozProb * 100)}%)`;
+        else if (ozProb < 0.35 && score > 55) recommendation = `✅ Рекомендуется: ОЗ – НЕТ (вероятность ${Math.round((1 - ozProb) * 100)}%)`;
+        else recommendation = `⚖️ Прогноз 50/50, лучше пропустить ставку`;
+    } else if (mode === 'total') {
+        const expectedTotal = total || Math.round(league.avgGoals || 2.5);
+        if (expectedTotal > 2.5 && score > 55) recommendation = `✅ Рекомендуется: Тотал БОЛЬШЕ 2.5 (ожидаемый тотал ${expectedTotal})`;
+        else if (expectedTotal < 2.5 && score > 55) recommendation = `✅ Рекомендуется: Тотал МЕНЬШЕ 2.5 (ожидаемый тотал ${expectedTotal})`;
+        else recommendation = `⚖️ Тотал около 2.5, лучше пропустить ставку`;
+    } else if (mode === 'fora') {
+        const diff = home - away;
+        if (diff > 0.5 && score > 55) recommendation = `✅ Рекомендуется: Фора Хозяева (${diff.toFixed(1)})`;
+        else if (diff < -0.5 && score > 55) recommendation = `✅ Рекомендуется: Фора Гости (${diff.toFixed(1)})`;
+        else recommendation = `⚖️ Фора около 0, лучше пропустить ставку`;
+    }
+    if (h2hCount < 3 && h2hCount > 0) warnings.push('⚠️ Мало данных для уверенного прогноза');
+    if (confidence < 40) warnings.push('⚠️ Низкое доверие к прогнозу');
+    if (weatherScore < 0) warnings.push('⚠️ Погода может снизить результативность');
+    document.getElementById('smartSummary').textContent = summary;
+    const detailsContainer = document.getElementById('smartDetails');
+    detailsContainer.innerHTML = details.map(d => `<li>${d}</li>`).join('');
+    document.getElementById('smartRecommendation').textContent = recommendation;
+    const warningsContainer = document.getElementById('smartWarnings');
+    if (warnings.length > 0) {
+        warningsContainer.innerHTML = warnings.map(w => `<div>${w}</div>`).join('');
+        warningsContainer.style.display = 'block';
+    } else {
+        warningsContainer.style.display = 'none';
+    }
+    document.getElementById('smartScore').innerHTML = `📊 Оценка: <span class="num">${score}</span>%`;
+}
+
+// --- H2H ЗАГРУЗКА ---
+async function loadH2H() {
+    const homeTeamInput = $('homeTeamH2H');
+    const awayTeamInput = $('awayTeamH2H');
+    if (!homeTeamInput || !awayTeamInput) return;
+    const homeTeam = homeTeamInput.value?.trim() || '';
+    const awayTeam = awayTeamInput.value?.trim() || '';
+    if (!homeTeam || !awayTeam) { showToast('⚠️ Введите обе команды!', 'error'); return; }
+    if (state.isLoading) return;
+    state.isLoading = true;
+    const btn = $('loadH2HBtn');
+    const btnText = $('loadBtnText');
+    const spinner = $('loadSpinner');
+    const status = $('h2hStatus');
+    const results = $('h2hResults');
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.textContent = '⏳ Загрузка...';
+    if (spinner) spinner.style.display = 'inline-block';
+    if (status) status.innerHTML = '⏳ Поиск команд...';
+    if (results) results.innerHTML = '';
+    try {
+        const apiKey = localStorage.getItem('quantum_api_key');
+        if (!apiKey || apiKey === '') throw new Error('Введите API ключ в настройках');
+        const url1 = `${PROXY_BASE}teams?search=${encodeURIComponent(homeTeam)}`;
+        const data1 = await fetchWithCache(url1, { headers: { 'x-apisports-key': apiKey } }, 3600000);
+        if (!data1.response || data1.response.length === 0) {
+            if (status) status.innerHTML = `❌ Команда "${sanitizeHTML(homeTeam)}" не найдена`;
+            state.isLoading = false;
+            resetButtons(btn, btnText, spinner); return;
+        }
+        const homeId = data1.response[0].team.id;
+        const homeTeamFull = data1.response[0].team.name;
+        const url2 = `${PROXY_BASE}teams?search=${encodeURIComponent(awayTeam)}`;
+        const data2 = await fetchWithCache(url2, { headers: { 'x-apisports-key': apiKey } }, 3600000);
+        if (!data2.response || data2.response.length === 0) {
+            if (status) status.innerHTML = `❌ Команда "${sanitizeHTML(awayTeam)}" не найдена`;
+            state.isLoading = false;
+            resetButtons(btn, btnText, spinner); return;
+        }
+        const awayId = data2.response[0].team.id;
+        const awayTeamFull = data2.response[0].team.name;
+        if (status) status.innerHTML = '⏳ Загрузка истории матчей (5 сезонов)...';
+        const allMatches = [];
+        const currentYear = new Date().getFullYear();
+        for (let i = 0; i < 5; i++) {
+            const year = currentYear - i;
+            const h2hUrl = `${PROXY_BASE}fixtures/headtohead?h2h=${homeId}-${awayId}&season=${year}`;
+            try {
+                const h2hResp = await fetchWithRetry(h2hUrl, { headers: { 'x-apisports-key': apiKey } }, 2, 1000);
+                const h2hData = await h2hResp.json();
+                if (h2hData.response) allMatches.push(...h2hData.response);
+            } catch(e) { console.log(`⚠️ Ошибка сезона ${year}:`, e); }
+            await delay(300);
+        }
+        if (allMatches.length === 0) {
+            if (status) status.innerHTML = `❌ Нет встреч между командами`;
+            state.isLoading = false;
+            resetButtons(btn, btnText, spinner); return;
+        }
+        const matches = allMatches.map(m => ({
+            home: m.teams.home.name,
+            away: m.teams.away.name,
+            homeScore: m.goals.home || 0,
+            awayScore: m.goals.away || 0,
+            oz: (m.goals.home || 0) > 0 && (m.goals.away || 0) > 0,
+            total: (m.goals.home || 0) + (m.goals.away || 0),
+            date: m.fixture.date,
+            league: m.league || null
+        }));
+        state.h2hData = matches;
+        const total = matches.length;
+        const ozCount = matches.filter(m => m.oz).length;
+        const avgTotal = (matches.reduce((s, m) => s + m.total, 0) / total).toFixed(1);
+        const homeWins = matches.filter(m => m.homeScore > m.awayScore).length;
+        const awayWins = matches.filter(m => m.awayScore > m.homeScore).length;
+        const draws = total - homeWins - awayWins;
+        let leagueInfo = null;
+        if (allMatches.length > 0 && allMatches[0].league) {
+            const league = allMatches[0].league;
+            const leagueId = league.id || league.league?.id;
+            if (leagueId && LEAGUES[leagueId]) {
+                leagueInfo = {
+                    name: LEAGUES[leagueId].name || league.name,
+                    country: LEAGUES[leagueId].country || '--',
+                    season: LEAGUES[leagueId].season || currentYear,
+                    avgGoals: LEAGUES[leagueId].avgGoals || avgTotal,
+                    oz: LEAGUES[leagueId].oz || Math.round((ozCount/total)*100),
+                    matches: total
+                };
+            } else {
+                leagueInfo = {
+                    name: league.name || 'Лига',
+                    country: '--',
+                    season: currentYear,
+                    avgGoals: parseFloat(avgTotal),
+                    oz: Math.round((ozCount/total)*100),
+                    matches: total
+                };
+            }
+        } else {
+            leagueInfo = {
+                name: 'Лига',
+                country: '--',
+                season: currentYear,
+                avgGoals: parseFloat(avgTotal),
+                oz: Math.round((ozCount/total)*100),
+                matches: total
+            };
+        }
+        state.currentLeagueData = leagueInfo;
+        updateLeagueInfoDisplay(leagueInfo);
+        if (status) status.innerHTML = `✅ Найдено ${total} встреч за 5 сезонов!`;
+        if (results) {
+            results.innerHTML = `
+                <div class="h2h-summary">
+                    <span class="item">📊 Всего: <span class="num">${total}</span></span>
+                    <span class="item">⚽ ОЗ: <span class="num">${Math.round((ozCount/total)*100)}%</span></span>
+                    <span class="item">📈 Тотал: <span class="num">${avgTotal}</span></span>
+                    <span class="item">🏠 ${homeWins} | ✈️ ${awayWins} | 🤝 ${draws}</span>
+                    <span class="item">🔥 Форма хозяев: ${Math.round((homeWins/total)*100)}%</span>
+                </div>
+                ${matches.slice(0, 15).map(m => `
+                    <div class="h2h-item">
+                        ${sanitizeHTML(m.home)} ${m.homeScore}:${m.awayScore} ${sanitizeHTML(m.away)}
+                        ${m.oz ? '✅' : '❌'}
+                        <span style="color:#555;font-size:9px;">${new Date(m.date).toLocaleDateString()}</span>
+                    </div>
+                `).join('')}
+                ${total > 15 ? `<div style="color:#888;font-size:10px;text-align:center;margin-top:4px;">и еще ${total - 15} матчей...</div>` : ''}
+            `;
+        }
+        if (status) status.innerHTML = '⏳ Загрузка травм...';
+        const homeInjuries = await loadInjuries(homeId);
+        const awayInjuries = await loadInjuries(awayId);
+        if (homeInjuries || awayInjuries) {
+            const injHtml = (injuries, team) => {
+                if (!injuries || injuries.length === 0) return '✅ Нет травм';
+                return injuries.map(i => `🤕 ${i.player} (${i.position}) - ${i.injury}`).join(' | ');
+            };
+            document.getElementById('aiInjuries').textContent = `${injHtml(homeInjuries, 'home')} | ${injHtml(awayInjuries, 'away')}`;
+            state.injuries = { home: homeInjuries, away: awayInjuries };
+        }
+        const badge = $('searchBadgeNav');
+        if (badge) { badge.style.display = 'block'; badge.textContent = total; }
+        calculate();
+        showToast(`✅ Загружено ${total} матчей!`, 'success');
+    } catch(error) {
+        handleError(error, '⚠️ Ошибка загрузки. Проверьте интернет.');
+        if (status) status.innerHTML = `❌ ${error.message}`;
+    } finally {
+        state.isLoading = false;
+        resetButtons(btn, btnText, spinner);
+    }
+}
+
+function resetButtons(btn, btnText, spinner) {
+    if (btn) btn.disabled = false;
+    if (btnText) btnText.textContent = '📊 Загрузить H2H';
+    if (spinner) spinner.style.display = 'none';
+}
+
+// --- ТЕМА ---
+function toggleTheme() {
+    const isLight = document.body.classList.toggle('light');
+    const btn = document.getElementById('themeBtn');
+    const toggleBtn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = isLight ? '☀️' : '🌙';
+    if (toggleBtn) {
+        toggleBtn.textContent = isLight ? '☀️ Светлая' : '🌙 Тёмная';
+        toggleBtn.classList.toggle('active');
+    }
+    localStorage.setItem('quantum_theme', isLight ? 'light' : 'dark');
+}
+
+function initTheme() {
+    const theme = localStorage.getItem('quantum_theme') || 'dark';
+    if (theme === 'light') {
+        document.body.classList.add('light');
+        const btn = document.getElementById('themeBtn');
+        const toggleBtn = document.getElementById('themeToggle');
+        if (btn) btn.textContent = '☀️';
+        if (toggleBtn) { toggleBtn.textContent = '☀️ Светлая'; toggleBtn.classList.add('active'); }
+    }
+}
+
+// --- API КЛЮЧИ ---
+function saveApiKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    if (!key) { showToast('⚠️ Введите API ключ', 'error'); return; }
+    localStorage.setItem('quantum_api_key', key);
+    state.apiKey = key;
+    document.getElementById('apiStatus').textContent = '✅ Ключ сохранен';
+    document.getElementById('apiStatus').style.color = '#2ecc71';
+    showToast('✅ API ключ сохранен', 'success');
+    loadAllLeagues();
+}
+
+function saveWeatherKey() {
+    const key = document.getElementById('weatherKeyInput').value.trim();
+    if (!key) { showToast('⚠️ Введите ключ погоды', 'error'); return; }
+    localStorage.setItem('quantum_weather_key', key);
+    document.getElementById('weatherStatus').textContent = '✅ Ключ погоды сохранен';
+    document.getElementById('weatherStatus').style.color = '#2ecc71';
+    showToast('✅ Ключ погоды сохранен', 'success');
+    loadHeaderWeather();
+}
+
+// --- ЛИГИ ---
+function updateLeagueInfoDisplay(leagueData) {
+    const card = document.getElementById('leagueInfoCard');
+    if (!card) return;
+    if (!leagueData) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    document.getElementById('leagueNameDisplay').textContent = leagueData.name || '🏆 Лига';
+    document.getElementById('leagueCountry').textContent = leagueData.country || '--';
+    document.getElementById('leagueSeason').textContent = leagueData.season || '--';
+    document.getElementById('leagueAvgGoals').textContent = leagueData.avgGoals || '--';
+    document.getElementById('leagueOz').textContent = (leagueData.oz || 0) + '%';
+    document.getElementById('leagueMatches').textContent = leagueData.matches || '--';
+}
+
+async function loadAllLeagues() {
+    if (ALL_LEAGUES_LOADED && Object.keys(LEAGUES).length > 0) return;
+    const apiKey = localStorage.getItem('quantum_api_key');
+    if (!apiKey || apiKey === '') { showToast('⚠️ Введите API ключ в настройках', 'error'); return; }
+    try {
+        showToast('📡 Загрузка всех лиг...', 'info');
+        const response = await fetchWithCache(`${PROXY_BASE}leagues`, { headers: { 'x-apisports-key': apiKey } });
+        if (!response.response) throw new Error('Не удалось загрузить лиги');
+        const leagues = {};
+        const leaguesToProcess = response.response.filter(l => l.league.type === 'League' && l.seasons && l.seasons.length > 0).slice(0, 50);
+        for (const league of leaguesToProcess) {
+            const id = league.league.id;
+            const season = league.seasons[0].year;
+            try {
+                const statsRes = await fetchWithCache(
+                    `${PROXY_BASE}leagues/statistics?league=${id}&season=${season}`,
+                    { headers: { 'x-apisports-key': apiKey } },
+                    86400000
+                );
+                if (statsRes.response) {
+                    const stats = statsRes.response;
+                    let avgGoals = 2.5;
+                    let ozPercent = 55;
+                    if (stats.goals && stats.goals.total) {
+                        const totalGoals = stats.goals.total.total || 0;
+                        const matches = stats.fixtures.total || 1;
+                        avgGoals = parseFloat((totalGoals / matches).toFixed(2));
+                    }
+                    if (stats.goals && stats.goals.both) {
+                        const ozMatches = stats.goals.both.total || 0;
+                        const matches = stats.fixtures.total || 1;
+                        ozPercent = Math.round((ozMatches / matches) * 100);
+                    }
+                    const flag = getFlag(league.country.name);
+                    leagues[id] = {
+                        name: `${flag} ${league.league.name}`,
+                        oz: ozPercent,
+                        avgGoals: avgGoals,
+                        country: league.country.name,
+                        season: season
+                    };
+                }
+                await delay(500);
+            } catch(e) { console.log(`⚠️ Ошибка с лигой ${league.league.name}:`, e); }
+        }
+        LEAGUES = leagues;
+        localStorage.setItem('quantum_leagues', JSON.stringify(leagues));
+        ALL_LEAGUES_LOADED = true;
+        showToast(`✅ Загружено ${Object.keys(leagues).length} лиг!`, 'success');
+    } catch(error) {
+        handleError(error, '⚠️ Ошибка загрузки лиг');
+        if (Object.keys(LEAGUES).length === 0) {
+            LEAGUES = {
+                '39': { name: '🏴 АПЛ', oz: 65, avgGoals: 2.8, country: 'Англия' },
+                '140': { name: '🇪🇸 Ла Лига', oz: 60, avgGoals: 2.6, country: 'Испания' },
+                '78': { name: '🇩🇪 Бундеслига', oz: 68, avgGoals: 3.0, country: 'Германия' },
+                '135': { name: '🇮🇹 Серия А', oz: 62, avgGoals: 2.7, country: 'Италия' }
+            };
+        }
+    }
+}
+
+function getFlag(country) {
+    const flags = {
+        'England': '🏴', 'Spain': '🇪🇸', 'Germany': '🇩🇪', 'Italy': '🇮🇹',
+        'France': '🇫🇷', 'Netherlands': '🇳🇱', 'Portugal': '🇵🇹', 'Brazil': '🇧🇷',
+        'Argentina': '🇦🇷', 'USA': '🇺🇸', 'Mexico': '🇲🇽', 'Russia': '🇷🇺'
+    };
+    return flags[country] || '🌍';
+}
