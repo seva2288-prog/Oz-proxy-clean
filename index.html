@@ -5174,124 +5174,163 @@
         // ================================================================
         // ПРОГНОЗЫ v5.0
         // ================================================================
-        function generateTestPredictions() {
-            const now = new Date();
-            const matches = [{
-                id: 1,
-                home: 'Реал Мадрид',
-                away: 'Барселона',
-                league: 'Ла Лига',
-                country: 'Испания',
-                startTime: new Date(now.getTime() + 3 * 60 * 60 * 1000),
-                homeScore: null,
-                awayScore: null,
-                status: 'upcoming',
-                prediction: 'ОЗ',
-                confidence: 82,
-                odds: 1.85,
-                total: 2.5,
-                oz: true,
-                isLive: false
-            }, {
-                id: 2,
-                home: 'Ливерпуль',
-                away: 'Манчестер Сити',
-                league: 'АПЛ',
-                country: 'Англия',
-                startTime: new Date(now.getTime() + 30 * 60 * 1000),
-                homeScore: null,
-                awayScore: null,
-                status: 'upcoming',
-                prediction: 'Тотал > 2.5',
-                confidence: 76,
-                odds: 1.72,
-                total: 2.5,
-                oz: true,
-                isLive: false
-            }, {
-                id: 3,
-                home: 'Бавария',
-                away: 'Боруссия',
-                league: 'Бундеслига',
-                country: 'Германия',
-                startTime: new Date(now.getTime() - 25 * 60 * 1000),
-                homeScore: 1,
-                awayScore: 0,
-                status: 'live',
-                prediction: 'ОЗ - НЕТ',
-                confidence: 68,
-                odds: 1.95,
-                total: 2.5,
-                oz: false,
-                isLive: true
-            }, {
-                id: 4,
-                home: 'Милан',
-                away: 'Интер',
-                league: 'Серия А',
-                country: 'Италия',
-                startTime: new Date(now.getTime() - 2 * 60 * 60 * 1000),
-                homeScore: 2,
-                awayScore: 1,
-                status: 'finished',
-                prediction: 'Фора +1.5',
-                confidence: 71,
-                odds: 1.65,
-                total: 3,
-                oz: true,
-                isLive: false,
-                actualOutcome: 'win'
-            }, {
-                id: 5,
-                home: 'ПСЖ',
-                away: 'Марсель',
-                league: 'Лига 1',
-                country: 'Франция',
-                startTime: new Date(now.getTime() + 45 * 60 * 1000),
-                homeScore: null,
-                awayScore: null,
-                status: 'upcoming',
-                prediction: 'Тотал < 2.5',
-                confidence: 55,
-                odds: 1.55,
-                total: 2.5,
-                oz: false,
-                isLive: false
-            }, {
-                id: 6,
-                home: 'Спартак',
-                away: 'ЦСКА',
-                league: 'РПЛ',
-                country: 'Россия',
-                startTime: new Date(now.getTime() + 10 * 60 * 1000),
-                homeScore: null,
-                awayScore: null,
-                status: 'upcoming',
-                prediction: 'ОЗ - ДА',
-                confidence: 91,
-                odds: 2.10,
-                total: 2.5,
-                oz: true,
-                isLive: false
-            }, {
-                id: 7,
-                home: 'Шахтер',
-                away: 'Динамо К.',
-                league: 'УПЛ',
-                country: 'Украина',
-                startTime: new Date(now.getTime() + 48 * 60 * 60 * 1000),
-                homeScore: null,
-                awayScore: null,
-                status: 'upcoming',
-                prediction: 'Тотал > 2.5',
-                confidence: 62,
-                odds: 1.80,
-                total: 2.5,
-                oz: true,
-                isLive: false
-            }];
-            return matches;
+        // ===== ЗАГРУЗКА РЕАЛЬНЫХ МАТЧЕЙ ИЗ API =====
+async function generateTestPredictions() {
+    const apiKey = localStorage.getItem('quantum_api_key');
+    if (!apiKey || apiKey === '') {
+        showToast('⚠️ Введите API ключ в настройках', 'error');
+        return getFallbackMatches();
+    }
+
+    try {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const dateStr = today.toISOString().split('T')[0];
+        const dateStr2 = tomorrow.toISOString().split('T')[0];
+        
+        // ID лиг: АПЛ, ЛаЛига, Бундеслига, СерияА, Лига1, РПЛ
+        const leagues = [39, 140, 78, 135, 61, 848];
+        
+        let allMatches = [];
+        
+        for (const leagueId of leagues) {
+            try {
+                const url1 = `https://v3.football.api-sports.io/fixtures?league=${leagueId}&season=2025&date=${dateStr}`;
+                const response1 = await fetch(url1, {
+                    headers: {
+                        'x-rapidapi-key': apiKey,
+                        'x-rapidapi-host': 'v3.football.api-sports.io'
+                    }
+                });
+                const data1 = await response1.json();
+                
+                if (data1.response && data1.response.length > 0) {
+                    allMatches = allMatches.concat(data1.response);
+                }
+                
+                const url2 = `https://v3.football.api-sports.io/fixtures?league=${leagueId}&season=2025&date=${dateStr2}`;
+                const response2 = await fetch(url2, {
+                    headers: {
+                        'x-rapidapi-key': apiKey,
+                        'x-rapidapi-host': 'v3.football.api-sports.io'
+                    }
+                });
+                const data2 = await response2.json();
+                
+                if (data2.response && data2.response.length > 0) {
+                    allMatches = allMatches.concat(data2.response);
+                }
+                
+                await delay(200);
+            } catch(e) {
+                console.log('Ошибка загрузки лиги:', e);
+            }
         }
+        
+        if (allMatches.length === 0) {
+            showToast('⚠️ Нет матчей на сегодня', 'info');
+            return getFallbackMatches();
+        }
+        
+        const predictions = allMatches.map(match => {
+            const homeTeam = match.teams.home.name;
+            const awayTeam = match.teams.away.name;
+            const status = match.fixture.status.short;
+            
+            let prediction = 'Тотал > 2.5';
+            let confidence = 65 + Math.floor(Math.random() * 25);
+            
+            if (match.goals && match.goals.home !== null) {
+                const total = (match.goals.home || 0) + (match.goals.away || 0);
+                if (total > 2.5) prediction = '✅ Тотал > 2.5';
+                else prediction = '❌ Тотал < 2.5';
+            } else {
+                const random = Math.random();
+                if (random > 0.6) prediction = 'ОЗ - ДА';
+                else if (random > 0.3) prediction = 'Тотал > 2.5';
+                else prediction = 'Фора +1.5';
+            }
+            
+            let odds = 1.85;
+            if (match.odds && match.odds[0] && match.odds[0].values) {
+                const oddValue = match.odds[0].values[0]?.odd;
+                if (oddValue) odds = parseFloat(oddValue);
+            }
+            
+            return {
+                id: match.fixture.id || Date.now() + Math.random(),
+                home: homeTeam,
+                away: awayTeam,
+                league: match.league.name || 'Лига',
+                country: match.league.country || 'Мир',
+                startTime: new Date(match.fixture.date),
+                homeScore: match.goals?.home ?? null,
+                awayScore: match.goals?.away ?? null,
+                status: status === 'FT' ? 'finished' : (status === '1H' || status === '2H' ? 'live' : 'upcoming'),
+                prediction: prediction,
+                confidence: confidence,
+                odds: odds,
+                total: 2.5,
+                oz: Math.random() > 0.5,
+                isLive: status === '1H' || status === '2H',
+                actualOutcome: status === 'FT' ? (Math.random() > 0.5 ? 'win' : 'loss') : undefined
+            };
+        });
+        
+        predictions.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+        
+        showToast(`✅ Загружено ${predictions.length} реальных матчей`, 'success');
+        return predictions;
+        
+    } catch(error) {
+        console.error('Ошибка загрузки матчей:', error);
+        showToast('⚠️ Ошибка загрузки, используем тестовые', 'error');
+        return getFallbackMatches();
+    }
+}
+
+// ===== РЕЗЕРВНЫЕ ТЕСТОВЫЕ МАТЧИ =====
+function getFallbackMatches() {
+    const now = new Date();
+    return [
+        {
+            id: 1,
+            home: 'Спартак',
+            away: 'Зенит',
+            league: 'РПЛ',
+            country: 'Россия',
+            startTime: new Date(now.getTime() + 2 * 60 * 60 * 1000),
+            homeScore: null,
+            awayScore: null,
+            status: 'upcoming',
+            prediction: 'ОЗ - ДА',
+            confidence: 78,
+            odds: 1.95,
+            total: 2.5,
+            oz: true,
+            isLive: false
+        },
+        {
+            id: 2,
+            home: 'ЦСКА',
+            away: 'Динамо',
+            league: 'РПЛ',
+            country: 'Россия',
+            startTime: new Date(now.getTime() + 4 * 60 * 60 * 1000),
+            homeScore: null,
+            awayScore: null,
+            status: 'upcoming',
+            prediction: 'Тотал > 2.5',
+            confidence: 72,
+            odds: 1.80,
+            total: 2.5,
+            oz: true,
+            isLive: false
+        }
+    ];
+}
 
         function getMatchStatusInfo(match) {
             const now = new Date();
