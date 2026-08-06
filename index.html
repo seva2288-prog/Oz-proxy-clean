@@ -1877,3 +1877,326 @@ function getFlag(country) {
 // КОНЕЦ ЧАСТИ 3/5
 // ДАЛЕЕ СЛЕДУЕТ ЧАСТЬ 4/5: КАЛИБРОВКА, ФИЛЬТР, ULTIMATE AI
 // ================================================================
+// ================================================================
+// ЧАСТЬ 4/5: КАЛИБРОВКА, ФИЛЬТР КАЧЕСТВА, ULTIMATE AI (v5.2)
+// ================================================================
+
+// --- КАЛИБРОВКА ВЕРОЯТНОСТЕЙ ---
+function calibrateProbability(rawProb) {
+    if (state.calibrationData.length < 5) return rawProb;
+    const data = state.calibrationData;
+    const sorted = [...data].sort((a, b) => a.predicted - b.predicted);
+    const bins = [];
+    const binSize = Math.max(1, Math.floor(sorted.length / 5));
+    for (let i = 0; i < sorted.length; i += binSize) {
+        const bin = sorted.slice(i, i + binSize);
+        const avgPred = bin.reduce((s, d) => s + d.predicted, 0) / bin.length;
+        const avgActual = bin.reduce((s, d) => s + d.actual, 0) / bin.length;
+        bins.push({ pred: avgPred, actual: avgActual });
+    }
+    const nearest = bins.reduce((best, b) => {
+        const diff = Math.abs(b.pred - rawProb);
+        return diff < best.diff ? { diff, ...b } : best;
+    }, { diff: Infinity, pred: 0, actual: 0 });
+    return nearest.actual || rawProb;
+}
+
+function updateCalibration(predicted, actual) {
+    state.calibrationData.push({ predicted, actual, time: Date.now() });
+    if (state.calibrationData.length > 200) state.calibrationData = state.calibrationData.slice(-200);
+    localStorage.setItem('quantum_calibration', JSON.stringify(state.calibrationData));
+    const brier = state.calibrationData.reduce((s, d) => s + Math.pow(d.predicted - d.actual, 2), 0) / state.calibrationData.length;
+    const logloss = -state.calibrationData.reduce((s, d) => s + (d.actual * Math.log(d.predicted + 1e-10) + (1 - d.actual) * Math.log(1 - d.predicted + 1e-10)), 0) / state.calibrationData.length;
+    return { brier, logloss };
+}
+
+// --- ФИЛЬТР КАЧЕСТВА ---
+function qualityFilter(prediction, ensembleResults, detectiveResult) {
+    const checks = [];
+    // 1. Минимальная уверенность
+    const confidence = prediction.confidence || 0;
+    const passConfidence = confidence >= 0.6;
+    checks.push({ name: 'Уверенность ≥ 60%', pass: passConfidence, value: `${Math.round(confidence * 100)}%` });
+    // 2. Согласованность моделей
+    if (ensembleResults && ensembleResults.individual) {
+        const values = Object.values(ensembleResults.individual);
+        const mean = values.reduce((a, b) => a + b, 0) / values.length;
+        const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
+        const passVariance = Math.sqrt(variance) <= 0.15;
+        checks.push({ name: 'Разброс моделей ≤ 15%', pass: passVariance, value: `${(Math.sqrt(variance) * 100).toFixed(1)}%` });
+    } else {
+        checks.push({ name: 'Разброс моделей ≤ 15%', pass: false, value: 'Нет данных' });
+    }
+    // 3. Value
+    const isValue = prediction.isValue || false;
+    checks.push({ name: 'Value (EV > 5%)', pass: isValue, value: isValue ? '✅ Да' : '❌ Нет' });
+    // 4. Не дерби с высокой непредсказуемостью
+    const isDerbyMatch = detectiveResult ? detectiveResult.derby : false;
+    const unpredictability = detectiveResult ? (detectiveResult.homeUnpredictability?.level === 'high' || detectiveResult.awayUnpredictability?.level === 'high') : false;
+    const passDerby = !(isDerbyMatch && unpredictability);
+    checks.push({ name: 'Не дерби с высокой непредсказуемостью', pass: passDerby, value: passDerby ? '✅ Проходит' : '❌ Отказ' });
+    // 5. Качество данных
+    const hasData = (state.h2hData && state.h2hData.length >= 3);
+    checks.push({ name: 'Достаточно данных (≥3 матчей)', pass: hasData, value: hasData ? `${state.h2hData?.length || 0} матчей` : '❌ Мало данных' });
+    const allPass = checks.every(c => c.pass);
+    return { passes: allPass, checks, summary: allPass ? '✅ Ставка рекомендуется' : '❌ Ставка отклонена' };
+}
+
+// --- ULTIMATE AI МОДЕЛЬ ---
+class UltimateQuantumAI {
+    constructor() {
+        this.model = null;
+        this.isTraining = false;
+        this.accuracy = 0;
+        this.initialized = false;
+        this.trainingHistory = [];
+        this.bestAccuracy = 0;
+        this.featureCount = 32;
+        this.means = [];
+        this.stds = [];
+    }
+    
+    prepareData(bets) {
+        const features = [], labels = [];
+        bets.forEach(bet => {
+            if (bet.outcome === 'pending') return;
+            features.push([
+                bet.home || 0, bet.away || 0, bet.confidence || 50,
+                bet.weather_factor || 1.0, bet.league_avg || 2.5,
+                bet.h2h_avg || 2.5, bet.home_form || 50, bet.away_form || 50,
+                bet.home_xG || 1.2, bet.away_xG || 1.2,
+                bet.home_xGA || 1.0, bet.away_xGA || 1.0,
+                bet.motivation_home || 1.0, bet.motivation_away || 1.0,
+                bet.is_derby || 0, bet.temperature || 15,
+                bet.wind_speed || 5, bet.humidity || 60,
+                bet.precipitation || 0, bet.home_rest_days || 7,
+                bet.away_rest_days || 7, bet.home_elo || 1500,
+                bet.away_elo || 1500, bet.home_team_rank || 10,
+                bet.away_team_rank || 10, bet.is_cup_match || 0,
+                bet.home_possession || 50, bet.away_possession || 50,
+                bet.home_shot_conversion || 12, bet.away_shot_conversion || 12,
+                bet.home_pressing_intensity || 5, bet.away_pressing_intensity || 5
+            ]);
+            labels.push(bet.outcome === 'win' ? 1 : 0);
+        });
+        if (features.length === 0) return { features: [], labels: [] };
+        return { features, labels };
+    }
+    
+    normalizeFeatures(features) {
+        if (this.means.length === 0) {
+            const numFeatures = features[0].length;
+            for (let j = 0; j < numFeatures; j++) {
+                const values = features.map(f => f[j]);
+                this.means.push(values.reduce((a, b) => a + b, 0) / values.length);
+                const std = Math.sqrt(values.reduce((a, b) => a + Math.pow(b - this.means[j], 2), 0) / values.length);
+                this.stds.push(std || 1);
+            }
+        }
+        return features.map(f => f.map((v, j) => (v - this.means[j]) / this.stds[j]));
+    }
+    
+    async createModel() {
+        if (this.model) return this.model;
+        const model = tf.sequential();
+        model.add(tf.layers.dense({ units: 256, activation: 'relu', inputShape: [32] }));
+        model.add(tf.layers.batchNormalization());
+        model.add(tf.layers.dropout({ rate: 0.3 }));
+        model.add(tf.layers.dense({ units: 128, activation: 'relu' }));
+        model.add(tf.layers.batchNormalization());
+        model.add(tf.layers.dropout({ rate: 0.25 }));
+        model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
+        model.add(tf.layers.batchNormalization());
+        model.add(tf.layers.dropout({ rate: 0.2 }));
+        model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+        model.add(tf.layers.dropout({ rate: 0.15 }));
+        model.add(tf.layers.dense({ units: 16, activation: 'relu' }));
+        model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));
+        model.compile({
+            optimizer: tf.train.adam(0.0003),
+            loss: 'binaryCrossentropy',
+            metrics: ['accuracy']
+        });
+        this.model = model;
+        return model;
+    }
+    
+    async train(bets, epochs = 300, onProgress = null) {
+        if (bets.length < 10) { showToast('⚠️ Нужно минимум 10 ставок', 'error'); return false; }
+        this.isTraining = true;
+        updateAIStatus();
+        try {
+            const { features, labels } = this.prepareData(bets);
+            if (features.length === 0) { this.isTraining = false; return false; }
+            const split = Math.floor(features.length * 0.8);
+            const trainFeatures = this.normalizeFeatures(features.slice(0, split));
+            const trainLabels = labels.slice(0, split);
+            const valFeatures = features.slice(split);
+            const valLabels = labels.slice(split);
+            await this.createModel();
+            const xs = tf.tensor2d(trainFeatures);
+            const ys = tf.tensor2d(trainLabels, [trainLabels.length, 1]);
+            const valXs = valFeatures.length > 0 ? tf.tensor2d(valFeatures) : null;
+            const valYs = valLabels.length > 0 ? tf.tensor2d(valLabels, [valLabels.length, 1]) : null;
+            const history = await this.model.fit(xs, ys, {
+                epochs,
+                batchSize: Math.min(32, features.length),
+                validationData: (valXs && valYs) ? [valXs, valYs] : undefined,
+                callbacks: {
+                    onEpochEnd: async (epoch, logs) => {
+                        this.accuracy = logs.acc || 0;
+                        if (onProgress) onProgress(`Epoch ${epoch+1}/${epochs}: ${(logs.acc*100).toFixed(1)}%`);
+                        if (logs.acc > 0.9) return false;
+                    }
+                }
+            });
+            this.accuracy = history.history.acc[history.history.acc.length - 1] || 0;
+            await this.saveModel();
+            this.isTraining = false;
+            updateAIStatus();
+            showToast(`✅ ULTIMATE AI обучен! Точность: ${Math.round(this.accuracy * 100)}%`, 'success');
+            return true;
+        } catch(e) {
+            console.error(e);
+            this.isTraining = false;
+            updateAIStatus();
+            return false;
+        }
+    }
+    
+    async incrementalTrain(newBets, epochs = 3) {
+        if (!this.model || newBets.length === 0) return false;
+        try {
+            const { features, labels } = this.prepareData(newBets);
+            if (features.length === 0) return false;
+            const normFeatures = this.normalizeFeatures(features);
+            const xs = tf.tensor2d(normFeatures);
+            const ys = tf.tensor2d(labels, [labels.length, 1]);
+            await this.model.fit(xs, ys, { epochs, batchSize: Math.min(8, features.length) });
+            await this.saveModel();
+            return true;
+        } catch(e) { console.error(e); return false; }
+    }
+    
+    async saveModel() {
+        if (!this.model) return;
+        try {
+            await this.model.save('localstorage://quantum-ultimate-ai');
+            localStorage.setItem('quantum_ultimate_accuracy', this.accuracy.toString());
+            localStorage.setItem('quantum_ultimate_means', JSON.stringify(this.means));
+            localStorage.setItem('quantum_ultimate_stds', JSON.stringify(this.stds));
+        } catch(e) {}
+    }
+    
+    async loadModel() {
+        try {
+            this.model = await tf.loadLayersModel('localstorage://quantum-ultimate-ai');
+            this.accuracy = parseFloat(localStorage.getItem('quantum_ultimate_accuracy')) || 0;
+            this.means = JSON.parse(localStorage.getItem('quantum_ultimate_means') || '[]');
+            this.stds = JSON.parse(localStorage.getItem('quantum_ultimate_stds') || '[]');
+            return true;
+        } catch(e) { return false; }
+    }
+    
+    isTrained() { return this.model !== null && this.accuracy > 0; }
+}
+
+const ultimateAI = new UltimateQuantumAI();
+
+// --- AI СТАТУС ---
+function updateAIStatus() {
+    const statusText = $('aiStatusText');
+    const statusDot = $('aiStatusDot');
+    const accuracyDisplay = $('aiAccuracyDisplay');
+    if (!statusText || !statusDot || !accuracyDisplay) return;
+    if (ultimateAI.isTraining) {
+        statusText.textContent = '⏳ Обучение ULTIMATE...';
+        statusDot.className = 'status-dot training';
+        accuracyDisplay.textContent = '⏳';
+        return;
+    }
+    if (ultimateAI.isTrained()) {
+        const acc = Math.round(ultimateAI.accuracy * 100);
+        const total = state.bets.filter(b => b.outcome !== 'pending').length;
+        statusText.textContent = `✅ Обучен (${total} ставок, 32 признака)`;
+        statusDot.className = 'status-dot trained';
+        accuracyDisplay.textContent = `🎯 ${acc}%`;
+        accuracyDisplay.style.color = acc > 70 ? '#2ecc71' : acc > 50 ? '#f1c40f' : '#e74c3c';
+    } else {
+        statusText.textContent = '⏳ Не обучен';
+        statusDot.className = 'status-dot untrained';
+        accuracyDisplay.textContent = '—';
+    }
+}
+
+async function trainUltimateAI() {
+    const btn = $('trainAIBtn');
+    if (ultimateAI.isTraining) { showToast('⏳ Обучение уже идёт...', 'info'); return; }
+    const bets = state.bets.filter(b => b.outcome !== 'pending');
+    if (bets.length < 10) { showToast(`⚠️ Нужно минимум 10 ставок (сейчас ${bets.length})`, 'error'); return; }
+    bets.forEach(bet => {
+        if (!bet.weather_factor) bet.weather_factor = 1.0;
+        if (!bet.league_avg) bet.league_avg = 2.5;
+        if (!bet.h2h_avg) bet.h2h_avg = 2.5;
+        if (!bet.home_form) bet.home_form = 50;
+        if (!bet.away_form) bet.away_form = 50;
+        if (!bet.home_xG) bet.home_xG = 1.2;
+        if (!bet.away_xG) bet.away_xG = 1.2;
+        if (!bet.motivation_home) bet.motivation_home = 1.0;
+        if (!bet.motivation_away) bet.motivation_away = 1.0;
+        if (!bet.temperature) bet.temperature = 15;
+        if (!bet.wind_speed) bet.wind_speed = 5;
+        if (!bet.humidity) bet.humidity = 60;
+        if (!bet.precipitation) bet.precipitation = 0;
+        if (!bet.home_rest_days) bet.home_rest_days = 7;
+        if (!bet.away_rest_days) bet.away_rest_days = 7;
+        if (!bet.home_elo) bet.home_elo = 1500;
+        if (!bet.away_elo) bet.away_elo = 1500;
+        if (!bet.home_team_rank) bet.home_team_rank = 10;
+        if (!bet.away_team_rank) bet.away_team_rank = 10;
+        if (!bet.is_cup_match) bet.is_cup_match = 0;
+        if (!bet.home_possession) bet.home_possession = 50;
+        if (!bet.away_possession) bet.away_possession = 50;
+        if (!bet.home_shot_conversion) bet.home_shot_conversion = 12;
+        if (!bet.away_shot_conversion) bet.away_shot_conversion = 12;
+        if (!bet.home_pressing_intensity) bet.home_pressing_intensity = 5;
+        if (!bet.away_pressing_intensity) bet.away_pressing_intensity = 5;
+    });
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Обучение ULTIMATE...'; }
+    clearAILog();
+    addAILog(`📊 Начало ULTIMATE обучения на ${bets.length} ставках (32 признака)`);
+    await ultimateAI.train(bets, 300, (msg) => { addAILog(msg); });
+    if (btn) { btn.disabled = false; btn.textContent = '🧠 Обучить ULTIMATE AI'; }
+    updateAIStatus();
+}
+
+async function incrementalTrain() {
+    const bets = state.bets.filter(b => b.outcome !== 'pending');
+    if (bets.length < 5) { showToast('⚠️ Нужно минимум 5 ставок для дообучения', 'error'); return; }
+    const recentBets = bets.slice(-5);
+    await ultimateAI.incrementalTrain(recentBets, 3);
+    showToast('✅ Дообучение завершено!', 'success');
+    updateAIStatus();
+}
+
+function addAILog(msg) {
+    const log = document.getElementById('aiTrainLog');
+    if (!log) return;
+    log.style.display = 'block';
+    const entry = document.createElement('div');
+    entry.textContent = '🧠 ' + msg;
+    entry.style.borderBottom = '1px solid #2a3140';
+    entry.style.padding = '2px 0';
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+}
+
+function clearAILog() {
+    const log = document.getElementById('aiTrainLog');
+    if (log) log.innerHTML = '';
+}
+
+// ================================================================
+// КОНЕЦ ЧАСТИ 4/5
+// ДАЛЕЕ СЛЕДУЕТ ЧАСТЬ 5/5: ULTIMATE AI ПРОГНОЗ, SHAP, VALUE, СТАТИСТИКА, НОВЫЕ ФУНКЦИИ
+// ================================================================
