@@ -4739,20 +4739,37 @@
         }
 
         // ===== ПРОГНОЗЫ v5.0 =====
-        async function generateTestPredictions() {
-    const apiKey = localStorage.getItem('quantum_api_key');
-    if (!apiKey || apiKey === '') {
-        showToast('⚠️ Введите API ключ в настройках', 'error');
-        return getFallbackMatches();
-    }
-
+        // Исправленная версия generateTestPredictions (фрагмент)
+for (const leagueId of leagues) {
     try {
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        
-        const dateStr = today.toISOString().split('T')[0];
-        const dateStr2 = tomorrow.toISOString().split('T')[0];
+        const url1 = `${PROXY_BASE}fixtures?league=${leagueId}&season=${currentYear}&date=${dateStr}`;
+        const response1 = await fetch(url1, {
+            headers: { 'x-apisports-key': apiKey }
+        });
+        const data1 = await response1.json();
+
+        if (data1.response && data1.response.length > 0) {
+            allMatches = allMatches.concat(data1.response);
+            totalLoaded += data1.response.length;
+        }
+
+        // Завтра
+        const url2 = `${PROXY_BASE}fixtures?league=${leagueId}&season=${currentYear}&date=${dateStr2}`;
+        const response2 = await fetch(url2, {
+            headers: { 'x-apisports-key': apiKey }
+        });
+        const data2 = await response2.json();
+
+        if (data2.response && data2.response.length > 0) {
+            allMatches = allMatches.concat(data2.response);
+            totalLoaded += data2.response.length;
+        }
+
+        await delay(300);
+    } catch (e) {
+        console.log('Ошибка загрузки лиги:', e);
+    }
+}
         
         // ВСЕ ЕВРОПЕЙСКИЕ ЛИГИ + ЕВРОКУБКИ
         const leagues = [
