@@ -4772,10 +4772,12 @@
         
         for (const leagueId of leagues) {
             try {
-                // СЕЗОН 2026 (исправлено!)
-                const url1 = `${PROXY_BASE}fixtures?league=${leagueId}&season=2026&date=${dateStr}`;
-                const response1 = await fetch(url1, {
-                    headers: { 'x-apisports-key': apiKey }
+                // СЕЗОН (текущий год)
+const currentYear = new Date().getFullYear();
+const url1 = `${PROXY_BASE}fixtures?league=${leagueId}&season=${currentYear}&date=${dateStr}`;
+const response1 = await fetch(url1, { ...
+
+const url2 = `${PROXY_BASE}fixtures?league=${leagueId}&season=${currentYear}&date=${dateStr2}`;
                 });
                 const data1 = await response1.json();
                 
