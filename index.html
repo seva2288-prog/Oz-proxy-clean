@@ -5391,7 +5391,7 @@ const url2 = `${PROXY_BASE}fixtures?league=${leagueId}&season=${currentYear}&dat
                 // Загружаем реальные матчи
                 const matches = await generateTestPredictions();
                 state.predictions = matches;
-                await renderPredictions();
+               // await renderPredictions();
             } else {
                 // Если нет ключа, показываем тестовые
                 const matches = getFallbackMatches();
