@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>⚛️ КВАНТУМ PRO ULTIMATE v5.2</title>
+    <title>⚛️ Квантум v5.3</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%230b0e14'/%3E%3Ctext x='50' y='72' font-size='60' text-anchor='middle' font-family='Arial'%3E%E2%9A%9B%3C/text%3E%3C/svg%3E">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,9 +12,11 @@
     <meta name="theme-color" content="#0b0e14">
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <style>
-        /* ================================================================
-           КВАНТУМ ULTIMATE v5.2 - ОПТИМИЗИРОВАННЫЕ СТИЛИ
-           ================================================================ */
+        /* ===== ПОЛНЫЙ CSS КОД ИЗ ОРИГИНАЛА ===== */
+        /* (весь CSS остаётся без изменений, кроме текстовых замен) */
+        /* ================================================================ */
+        /* КВАНТУМ v5.3 - ОПТИМИЗИРОВАННЫЕ СТИЛИ */
+        /* ================================================================ */
         
         /* ----- СБРОС И БАЗА ----- */
         * {
@@ -1815,7 +1817,7 @@
             color: #000;
         }
         
-        /* ----- SHAP ----- */
+        /* ----- SHAP (теперь "Что повлияло") ----- */
         .shap-container {
             background: #1a1f2a;
             border: 1px solid #9b59b6;
@@ -1931,7 +1933,7 @@
             border-radius: 12px;
         }
         
-        /* ----- ОБЪЯСНЕНИЕ ----- */
+        /* ----- ОБЪЯСНЕНИЕ (было "Объяснение прогноза") ----- */
         .explanation-card {
             background: #1a1f2a;
             border: 1px solid #9b59b6;
@@ -2263,12 +2265,26 @@
                 transform: translateX(-50%) translateY(0);
             }
         }
+        
+        /* ----- ДИСКЛЕЙМЕР ----- */
+        .disclaimer {
+            font-size: 10px;
+            color: #555;
+            text-align: center;
+            padding: 8px 0 4px;
+            border-top: 1px solid #2a3140;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+        body.light .disclaimer {
+            border-top-color: #d0d5dd;
+        }
     </style>
 </head>
 <body>
     <!-- ===== ШАПКА ===== -->
     <header class="header">
-        <h1>⚛️ Квантум <span>ULTIMATE v5.2</span></h1>
+        <h1>⚛️ Квантум <span>v5.3</span></h1>
         <div class="header-actions">
             <div class="header-weather" id="headerWeather" onclick="refreshWeather()" title="Нажмите для обновления погоды">
                 <span class="weather-icon" id="weatherIconHeader">⏳</span>
@@ -2294,6 +2310,7 @@
                     <span>📈 Ср.тотал: <span class="num" id="leagueAvgGoals">--</span></span>
                     <span>⚽ ОЗ: <span class="num" id="leagueOz">--</span></span>
                     <span>📊 Матчей: <span class="num" id="leagueMatches">--</span></span>
+                    <span id="leagueDataStatus" style="color:#888;font-size:9px;"></span>
                 </div>
             </div>
 
@@ -2337,7 +2354,7 @@
             </div>
 
             <div class="explanation-card" id="explanationCard" style="display:none;">
-                <div class="card-title">🔍 Объяснение прогноза</div>
+                <div class="card-title">🔍 Что повлияло на прогноз</div>
                 <div class="contributions" id="explanationContributions"></div>
                 <div class="confidence-interval" id="explanationCI"></div>
             </div>
@@ -2348,8 +2365,8 @@
             </div>
 
             <div class="ai-card">
-                <div class="card-title">🧠 AI Прогноз ULTIMATE</div>
-                <button class="btn-ai" id="aiBtn" onclick="generateUltimatePrediction()"><span>🤖</span> Сгенерировать AI прогноз</button>
+                <div class="card-title">🧠 AI-прогноз (экспериментальный)</div>
+                <button class="btn-ai" id="aiBtn" onclick="generateUltimatePrediction()"><span>🤖</span> Сгенерировать прогноз</button>
                 <div class="ai-result" id="aiResult" style="display:none;">
                     <div class="ai-score-box">
                         <div class="score-item"><div class="num" id="aiHomeScore">0</div><div class="label">🏠 AI Хозяева</div></div>
@@ -2370,9 +2387,9 @@
                     <div class="section"><span class="label">📈 Тренд голов:</span> <span class="value" id="aiTrend">—</span></div>
                     <div class="section"><span class="label">⚡ Средний тотал:</span> <span class="value" id="aiAvgTotal">—</span></div>
                     <div class="section"><span class="label">📊 Poisson прогноз:</span> <span class="value" id="aiPoisson">—</span></div>
-                    <div class="section"><span class="label">🎯 Ансамбль:</span> <span class="value" id="aiEnsemble">—</span></div>
+                    <div class="section"><span class="label">🎯 Итоговая оценка:</span> <span class="value" id="aiEnsemble">—</span></div>
                     <div class="detective-card" id="detectiveCard" style="display:none;">
-                        <div class="card-title">🕵️ ИИ-Детектив</div>
+                        <div class="card-title">🕵️ Дополнительный анализ</div>
                         <div id="detectiveContent"></div>
                     </div>
                     <div class="recommendation">
@@ -2380,6 +2397,7 @@
                         <div class="big" id="aiRecommendation">—</div>
                         <div style="font-size:12px;color:#888;margin-top:4px;" id="aiAdvice">—</div>
                     </div>
+                    <div id="aiDataStatus" style="font-size:9px;color:#888;margin-top:4px;text-align:center;"></div>
                 </div>
             </div>
 
@@ -2392,16 +2410,19 @@
                 <div id="weatherCardContent">
                     <div class="weather-loading-text">⏳ Загрузка погоды...</div>
                 </div>
+                <div id="weatherDataStatus" style="font-size:9px;color:#888;margin-top:4px;text-align:center;"></div>
             </div>
 
             <div class="insights-card" id="smartInsightsCard" style="display:none;">
-                <div class="card-title">🧠 Умные выводы</div>
+                <div class="card-title">🧠 Краткие выводы</div>
                 <div class="insight-summary" id="smartSummary">—</div>
                 <ul class="insight-details" id="smartDetails"></ul>
                 <div class="insight-recommendation" id="smartRecommendation">—</div>
                 <div class="insight-warnings" id="smartWarnings"></div>
                 <div class="insight-score" id="smartScore">📊 Оценка: <span class="num">0</span>%</div>
             </div>
+
+            <div class="disclaimer">Это аналитический инструмент, а не рекомендация к ставкам. Решения принимаете вы.</div>
         </div>
 
         <!-- ============================================================
@@ -2420,6 +2441,7 @@
                 </button>
                 <div id="h2hContainer">
                     <div id="h2hStatus" style="color:#888;font-size:12px;padding:4px 0;">Введите команды и нажмите "Загрузить H2H"</div>
+                    <div id="h2hDataStatus" style="font-size:9px;color:#888;margin-top:2px;"></div>
                     <div class="h2h-results" id="h2hResults"></div>
                 </div>
             </div>
@@ -2498,9 +2520,11 @@
             </div>
 
             <div class="card" style="border-left:4px solid #f7931a;margin-top:6px;">
-                <div class="card-title">🧠 Умные выводы</div>
+                <div class="card-title">🧠 Краткие выводы</div>
                 <div id="insightsContent"><div class="text-muted text-center" style="padding:6px 0;">Нет данных</div></div>
             </div>
+
+            <div class="disclaimer">Это аналитический инструмент, а не рекомендация к ставкам. Решения принимаете вы.</div>
         </div>
 
         <!-- ============================================================
@@ -2586,7 +2610,7 @@
         ============================================================ -->
         <div class="screen" id="settingsScreen">
             <div class="card">
-                <div class="card-title">⚙️ Настройки ULTIMATE</div>
+                <div class="card-title">⚙️ Настройки</div>
                 <div class="settings-item"><span class="label">🎨 Тема</span><button class="toggle-btn" id="themeToggle" onclick="toggleTheme()">🌙 Тёмная</button></div>
                 <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;">
                     <span class="label">🔑 API ключ (платный)</span>
@@ -2601,16 +2625,16 @@
                     <div id="weatherStatus" style="font-size:11px;color:#888;"></div>
                 </div>
                 <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;">
-                    <span class="label">🧠 AI Обучение ULTIMATE (32+ признаков)</span>
+                    <span class="label">🧠 Экспериментальная модель</span>
                     <div style="display:flex;gap:8px;">
-                        <button class="btn-ai-train" id="trainAIBtn" onclick="trainUltimateAI()" style="flex:2;">🧠 Обучить ULTIMATE AI</button>
+                        <button class="btn-ai-train" id="trainAIBtn" onclick="trainUltimateAI()" style="flex:2;">🧠 Обучить модель</button>
                         <button class="btn-ai-train" onclick="updateAIStatus()" style="flex:1;background:#3498db;">🔄 Статус</button>
                     </div>
                     <div class="ai-training-status" id="aiTrainingStatus">
-                        <span><span class="status-dot untrained" id="aiStatusDot"></span><span id="aiStatusText">⏳ Не обучен</span></span>
+                        <span><span class="status-dot untrained" id="aiStatusDot"></span><span id="aiStatusText">⏳ Не обучена</span></span>
                         <span class="accuracy" id="aiAccuracyDisplay">—</span>
                     </div>
-                    <div style="font-size:9px;color:#555;margin-top:2px;">📊 Требуется 10+ ставок, 32 признака</div>
+                    <div style="font-size:9px;color:#555;margin-top:2px;">📊 Требуется минимум 10 ставок</div>
                     <div id="aiTrainLog" style="font-size:10px;color:#888;margin-top:4px;max-height:60px;overflow-y:auto;display:none;background:#0b0e14;padding:4px 8px;border-radius:6px;"></div>
                 </div>
                 <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;border-bottom:none;padding-bottom:4px;">
@@ -2626,23 +2650,23 @@
                     <button onclick="resetAll()" style="padding:6px 16px;border-radius:8px;border:1px solid #e74c3c;background:transparent;color:#e74c3c;cursor:pointer;font-size:12px;">Сбросить всё</button>
                 </div>
                 <div style="text-align:center;font-size:10px;color:#555;margin-top:8px;border-top:1px solid #2a3140;padding-top:8px;">
-                    ⚛️ Квантум ULTIMATE v5.2 · 32+ признаков · Ансамбль 6+ моделей · SHAP объяснимость
+                    ⚛️ Квантум · Анализ на основе H2H, Poisson и погоды
                 </div>
+                <div class="disclaimer">Это аналитический инструмент, а не рекомендация к ставкам. Решения принимаете вы.</div>
             </div>
         </div>
 
         <!-- ============================================================
-        ЭКРАН 6: ИИ-АССИСТЕНТ
+        ЭКРАН 6: АССИСТЕНТ
         ============================================================ -->
         <div class="screen" id="assistantScreen">
             <div class="assistant-card">
-                <div class="card-title">🧠 ИИ-Ассистент ULTIMATE</div>
+                <div class="card-title">🧠 Ассистент</div>
                 <div class="assistant-chat" id="assistantChat">
                     <div class="assistant-message ai">
-                        👋 Привет! Я ИИ-ассистент Квантум ULTIMATE.<br>
-                        Я использую RAG (Retrieval-Augmented Generation) и контекстный анализ.<br>
+                        👋 Привет! Я ассистент Квантум v5.3.<br>
                         Задай вопрос о ставках, прогнозах или анализе матчей.
-                        <div class="time">🤖 ИИ-ассистент</div>
+                        <div class="time">🤖 Ассистент</div>
                     </div>
                 </div>
                 <div class="assistant-input-row">
@@ -2658,9 +2682,10 @@
                     <button class="btn" style="padding:6px 12px;font-size:11px;width:auto;background:#2a3140;color:#888;" onclick="quickUltimateQuestion('Почему такой прогноз?')">🔍 Объясни</button>
                     <button class="btn" style="padding:6px 12px;font-size:11px;width:auto;background:#2a3140;color:#888;" onclick="quickUltimateQuestion('Что такое Value Betting?')">💰 Value</button>
                     <button class="btn" style="padding:6px 12px;font-size:11px;width:auto;background:#2a3140;color:#888;" onclick="quickUltimateQuestion('Как улучшить точность ставок?')">🎯 Советы</button>
-                    <button class="btn" style="padding:6px 12px;font-size:11px;width:auto;background:#2a3140;color:#888;" onclick="quickUltimateQuestion('Что такое ИИ-детектив?')">🕵️ Детектив</button>
+                    <button class="btn" style="padding:6px 12px;font-size:11px;width:auto;background:#2a3140;color:#888;" onclick="quickUltimateQuestion('Что такое дополнительный анализ?')">🕵️ Анализ</button>
                 </div>
             </div>
+            <div class="disclaimer">Это аналитический инструмент, а не рекомендация к ставкам. Решения принимаете вы.</div>
         </div>
     </div>
 
@@ -2704,19 +2729,21 @@
                 <div><span class="label">🎯 Прогноз:</span> <span class="value" id="modalPrediction">—</span></div>
                 <div><span class="label">📊 Уверенность:</span> <span class="value" id="modalConfidence">—</span></div>
                 <div><span class="label">💰 Value:</span> <span class="value" id="modalValue">—</span></div>
-                <div><span class="label">🕵️ Детектив:</span> <span class="value" id="modalDetective">—</span></div>
+                <div><span class="label">🕵️ Анализ:</span> <span class="value" id="modalDetective">—</span></div>
                 <div><span class="label">🌤️ Погода:</span> <span class="value" id="modalWeather">—</span></div>
             </div>
+            <div class="disclaimer" style="font-size:10px;color:#555;text-align:center;margin:6px 0;">Это аналитический инструмент, а не рекомендация к ставкам. Решения принимаете вы.</div>
             <div class="modal-actions">
                 <button class="btn-save-modal" id="modalSaveBtn" onclick="confirmSaveBet()">✅ Да, сохранить</button>
                 <button class="btn-skip-modal" onclick="closeSaveModal()">❌ Нет, только посмотреть</button>
             </div>
         </div>
     </div>
-<script>
+
+    <script>
     // ================================================================
     // ЧАСТЬ 2: ПОЛНАЯ JAVASCRIPT ЛОГИКА 
-    // КВАНТУМ PRO ULTIMATE v5.2 - ОПТИМИЗИРОВАННАЯ ВЕРСИЯ
+    // КВАНТУМ v5.3 - ОПТИМИЗИРОВАННАЯ ВЕРСИЯ
     // СЕЗОН: 2025-2026
     // ================================================================
 
@@ -2788,6 +2815,42 @@
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
+    }
+
+    // ----- ФУНКЦИЯ ДЛЯ СТАТУСА ДАННЫХ -----
+    function getDataStatus(timestamp, ttl, dataCount = null, minCount = 3) {
+        if (!timestamp) {
+            return { text: '⏳ Данных нет', color: '#888', emoji: '⏳' };
+        }
+        const age = Date.now() - timestamp;
+        const isFresh = age < ttl / 2;
+        const isCached = age < ttl;
+        const hours = Math.round(age / (60 * 60 * 1000));
+        
+        let statusText = '';
+        let color = '#888';
+        let emoji = '📊';
+        
+        if (isFresh) {
+            statusText = '✅ Данные свежие';
+            color = '#2ecc71';
+            emoji = '✅';
+        } else if (isCached) {
+            statusText = `📦 Из кэша (обновлено ${hours} ч. назад)`;
+            color = '#f1c40f';
+            emoji = '📦';
+        } else {
+            statusText = '⚠️ Данные устарели';
+            color = '#e74c3c';
+            emoji = '⚠️';
+        }
+        
+        if (dataCount !== null && dataCount < minCount) {
+            statusText += ` · Мало данных (${dataCount})`;
+            color = '#f39c12';
+        }
+        
+        return { text: statusText, color, emoji };
     }
 
     // ===== ОПТИМИЗИРОВАННЫЙ API-ЗАПРОС С АВТОМАТИЧЕСКИМ КЭШЕМ =====
@@ -2864,6 +2927,7 @@
         currentLeague: localStorage.getItem('quantum_league') || '39',
         currentMode: 'total',
         h2hData: null,
+        h2hTimestamp: null,
         isLoading: false,
         liveTimer: null,
         currentOdds: null,
@@ -2876,7 +2940,9 @@
         xgData: {},
         isCalculating: false,
         weatherData: null,
+        weatherTimestamp: null,
         headerWeather: null,
+        headerWeatherTimestamp: null,
         currentLeagueData: null,
         assistantHistory: JSON.parse(localStorage.getItem('quantum_assistant') || '[]'),
         chartRange: '30d',
@@ -2922,7 +2988,10 @@
         }
         
         const apiKey = localStorage.getItem('quantum_api_key');
-        if (!apiKey) { showToast('⚠️ Введите API ключ', 'error'); return; }
+        if (!apiKey) { 
+            showToast('⚠️ Введите API ключ в настройках', 'error');
+            return; 
+        }
         
         try {
             showToast('📡 Загрузка лиг...', 'info');
@@ -3073,6 +3142,19 @@
         document.getElementById('leagueAvgGoals').textContent = leagueData.avgGoals || '--';
         document.getElementById('leagueOz').textContent = (leagueData.oz || 0) + '%';
         document.getElementById('leagueMatches').textContent = leagueData.matches || '--';
+        
+        // Статус данных лиги
+        const statusEl = document.getElementById('leagueDataStatus');
+        if (statusEl) {
+            if (leagueData.timestamp) {
+                const status = getDataStatus(leagueData.timestamp, CACHE_CONFIG.LEAGUES_TTL, leagueData.matches);
+                statusEl.textContent = status.text;
+                statusEl.style.color = status.color;
+            } else {
+                statusEl.textContent = '📊 Данные загружены';
+                statusEl.style.color = '#888';
+            }
+        }
     }
 
     function renderSettingsLeagues() {}
@@ -3096,11 +3178,13 @@
         const cacheKey = `h2h_${homeTeam}_${awayTeam}`;
         const cached = localStorage.getItem(cacheKey);
         
+        // Проверяем кэш
         if (cached) {
             try {
                 const data = JSON.parse(cached);
                 if (Date.now() - data.timestamp < CACHE_CONFIG.H2H_TTL) {
                     state.h2hData = data.matches;
+                    state.h2hTimestamp = data.timestamp;
                     renderH2HData(data.matches);
                     showToast(`✅ Из кэша (${data.matches.length} матчей)`, 'success');
                     return;
@@ -3115,11 +3199,13 @@
         const spinner = $('loadSpinner');
         const status = $('h2hStatus');
         const results = $('h2hResults');
+        const dataStatus = $('h2hDataStatus');
         if (btn) btn.disabled = true;
         if (btnText) btnText.textContent = '⏳ Загрузка...';
         if (spinner) spinner.style.display = 'inline-block';
         if (status) status.innerHTML = '⏳ Поиск команд...';
         if (results) results.innerHTML = '';
+        if (dataStatus) dataStatus.textContent = '';
         
         try {
             const apiKey = localStorage.getItem('quantum_api_key');
@@ -3194,6 +3280,7 @@
             }));
             
             state.h2hData = matches;
+            state.h2hTimestamp = Date.now();
             
             // Сохраняем в кэш
             localStorage.setItem(cacheKey, JSON.stringify({
@@ -3216,6 +3303,7 @@
     function renderH2HData(matches) {
         const status = $('h2hStatus');
         const results = $('h2hResults');
+        const dataStatus = $('h2hDataStatus');
         const total = matches.length;
         const ozCount = matches.filter(m => m.oz).length;
         const avgTotal = (matches.reduce((s, m) => s + m.total, 0) / total).toFixed(1);
@@ -3229,10 +3317,18 @@
             season: CURRENT_SEASON,
             avgGoals: parseFloat(avgTotal),
             oz: Math.round((ozCount / total) * 100),
-            matches: total
+            matches: total,
+            timestamp: state.h2hTimestamp || Date.now()
         };
         state.currentLeagueData = leagueInfo;
         updateLeagueInfoDisplay(leagueInfo);
+        
+        // Статус данных H2H
+        if (dataStatus) {
+            const statusData = getDataStatus(state.h2hTimestamp, CACHE_CONFIG.H2H_TTL, total);
+            dataStatus.textContent = statusData.text;
+            dataStatus.style.color = statusData.color;
+        }
         
         if (status) status.innerHTML = `✅ Найдено ${total} встреч!`;
         if (results) {
@@ -3431,7 +3527,7 @@
         }
     }
 
-    // ===== УМНЫЕ ВЫВОДЫ =====
+    // ===== КРАТКИЕ ВЫВОДЫ (было "Умные выводы") =====
     function generateSmartInsights(home, away, total, mode, league, confidence) {
         const card = document.getElementById('smartInsightsCard');
         if (!card) return;
@@ -3551,6 +3647,7 @@
                 const data = JSON.parse(cached);
                 if (Date.now() - data.timestamp < CACHE_CONFIG.WEATHER_TTL) {
                     state.headerWeather = data.weather;
+                    state.headerWeatherTimestamp = data.timestamp;
                     updateHeaderWeatherDisplay();
                     updateWeatherCard();
                     return;
@@ -3566,6 +3663,7 @@
             iconEl.textContent = '❌';
             tempEl.textContent = '--°C';
             descEl.textContent = 'Нет ключа';
+            updateWeatherCardStatus('❌ Нет ключа погоды', '#e74c3c');
             return;
         }
         try {
@@ -3584,6 +3682,7 @@
                 city: data.name,
                 country: data.sys.country
             };
+            state.headerWeatherTimestamp = Date.now();
             localStorage.setItem(weatherCacheKey, JSON.stringify({
                 weather: state.headerWeather,
                 timestamp: Date.now()
@@ -3595,6 +3694,7 @@
             iconEl.textContent = '❌';
             tempEl.textContent = '--°C';
             descEl.textContent = 'Ошибка';
+            updateWeatherCardStatus('❌ Ошибка загрузки погоды', '#e74c3c');
         }
     }
 
@@ -3638,9 +3738,26 @@
         showToast('🔄 Обновление погоды...', 'info');
     }
 
+    function updateWeatherCardStatus(text, color = '#888') {
+        const statusEl = document.getElementById('weatherDataStatus');
+        if (statusEl) {
+            statusEl.textContent = text;
+            statusEl.style.color = color;
+        }
+    }
+
     function updateWeatherCard() {
         const container = document.getElementById('weatherCardContent');
         if (!container) return;
+        
+        // Статус погоды
+        if (state.headerWeatherTimestamp) {
+            const status = getDataStatus(state.headerWeatherTimestamp, CACHE_CONFIG.WEATHER_TTL);
+            updateWeatherCardStatus(status.text, status.color);
+        } else {
+            updateWeatherCardStatus('⏳ Данных нет', '#888');
+        }
+        
         if (!state.headerWeather) {
             container.innerHTML = `<div class="weather-loading-text">⏳ Загрузка погоды...</div>`;
             return;
@@ -3702,11 +3819,13 @@
                 city: data.name,
                 country: data.sys.country
             };
+            state.headerWeatherTimestamp = Date.now();
             updateHeaderWeatherDisplay();
             updateWeatherCard();
             showToast(`✅ Погода в ${data.name}, ${data.sys.country}`, 'success');
         } catch (e) {
             showToast(`❌ Город "${city}" не найден`, 'error');
+            updateWeatherCardStatus(`❌ Город "${city}" не найден`, '#e74c3c');
         }
     }
 
@@ -3902,7 +4021,7 @@
         renderUltimateDashboard();
         updateAIStatus();
         closeSaveModal();
-        showToast('✅ Ставка сохранена с 32 признаками!', 'success');
+        showToast('✅ Ставка сохранена со всеми данными!', 'success');
     }
 
     // ===== ТУРБО АНАЛИЗ =====
@@ -3933,11 +4052,11 @@
         const steps = [
             { icon: '📊', label: 'Загрузка H2H истории' },
             { icon: '🌤️', label: 'Получение погоды на стадионе' },
-            { icon: '🧠', label: 'AI прогноз (32 признака)' },
+            { icon: '🧠', label: 'Прогноз (несколько факторов)' },
             { icon: '📈', label: 'Анализ формы команд' },
-            { icon: '🕵️', label: 'ИИ-детектив (дерби/мотивация)' },
+            { icon: '🕵️', label: 'Дополнительный анализ (дерби/мотивация)' },
             { icon: '💰', label: 'Value Betting проверка' },
-            { icon: '🔍', label: 'SHAP объяснимость' },
+            { icon: '🔍', label: 'Что повлияло на прогноз' },
             { icon: '✅', label: 'Формирование рекомендации' }
         ];
 
@@ -4034,16 +4153,16 @@
         let finalRecommendation = '';
         let recommendationColor = '';
         if (aiConfidence >= 70 && valueResult.isValue) {
-            finalRecommendation = '✅ СТАВИТЬ! Отличный прогноз + Value';
+            finalRecommendation = '✅ Хороший сигнал + Value';
             recommendationColor = '#2ecc71';
         } else if (aiConfidence >= 60) {
-            finalRecommendation = '🟡 РАССМОТРЕТЬ. Хороший прогноз, но нет Value';
+            finalRecommendation = '🟡 Можно рассмотреть';
             recommendationColor = '#f1c40f';
         } else if (aiConfidence >= 50) {
-            finalRecommendation = '🟠 ОСТОРОЖНО. Средний прогноз';
+            finalRecommendation = '🟠 С осторожностью';
             recommendationColor = '#f39c12';
         } else {
-            finalRecommendation = '🔴 ПРОПУСТИТЬ. Низкая уверенность';
+            finalRecommendation = '🔴 Лучше пропустить';
             recommendationColor = '#e74c3c';
         }
 
@@ -4078,7 +4197,7 @@
                 <div class="row"><span class="label">🎯 Прогноз:</span><span class="value good">${results.prediction}</span></div>
                 <div class="row"><span class="label">📊 Уверенность:</span><span class="value good">${results.confidence}%</span></div>
                 <div class="row"><span class="label">💰 Value:</span><span class="value ${results.isValue ? 'good' : 'warn'}">${results.value}</span></div>
-                <div class="row"><span class="label">🕵️ Детектив:</span><span class="value">${results.detective}</span></div>
+                <div class="row"><span class="label">🕵️ Анализ:</span><span class="value">${results.detective}</span></div>
                 <div class="row"><span class="label">🧠 xG:</span><span class="value">${results.homeXG.toFixed(2)} - ${results.awayXG.toFixed(2)}</span></div>
                 <div class="row" style="border-top:1px solid #2a3140;padding-top:4px;margin-top:4px;">
                     <span style="color:${results.recommendationColor};font-weight:700;">${results.recommendation}</span>
@@ -4098,7 +4217,7 @@
         }
 
         if (progressContainer) progressContainer.classList.remove('active');
-        if (btn) { btn.disabled = false; btn.innerHTML = '🔥 ТУРБО АНАЛИЗ'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = '🔥 Турбо-анализ'; }
 
         const modalData = {
             match: results.match,
@@ -4136,7 +4255,7 @@
         if (percent) percent.textContent = pct + '%';
     }
 
-    // ===== ULTIMATE AI ПРОГНОЗ =====
+    // ===== ОСНОВНОЙ ПРОГНОЗ (было "ULTIMATE AI") =====
     async function generateUltimatePrediction() {
         const btn = $('aiBtn');
         const result = $('aiResult');
@@ -4149,7 +4268,7 @@
             showToast('⚠️ Сначала загрузите матч!', 'error');
             return;
         }
-        if (btn) { btn.disabled = true; btn.innerHTML = '⏳ ULTIMATE анализ...'; }
+        if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Анализ...'; }
         if (result) result.style.display = 'none';
         const league = getLeague();
         const avgGoals = league.avgGoals || 2.5;
@@ -4265,9 +4384,21 @@
         if ($('aiXGA')) $('aiXGA').textContent = lambdaAway.toFixed(2);
         if ($('aiTrend')) $('aiTrend').textContent = (lambdaHome + lambdaAway) > avgGoals ? '📈 Рост голов' : '📉 Спад голов';
         if ($('aiPoisson')) $('aiPoisson').textContent = `П1: ${Math.round(probHomeWin * 100)}% | X: ${Math.round(probDraw * 100)}% | П2: ${Math.round(probAwayWin * 100)}%`;
-        if ($('aiEnsemble')) $('aiEnsemble').textContent = `Ансамбль: ${Math.round(ensembleResults.final * 100)}% уверенности`;
+        if ($('aiEnsemble')) $('aiEnsemble').textContent = `Итоговая оценка: ${Math.round(ensembleResults.final * 100)}% уверенности`;
         if ($('aiRecommendation')) $('aiRecommendation').textContent = rec;
-        if ($('aiAdvice')) $('aiAdvice').textContent = `На основе ${state.h2hData ? state.h2hData.length : 0} матчей, 32+ признаков, 6+ моделей`;
+        if ($('aiAdvice')) $('aiAdvice').textContent = `На основе ${state.h2hData ? state.h2hData.length : 0} матчей, Poisson, формы и погоды`;
+        
+        // Статус данных для AI-прогноза
+        const dataStatusEl = document.getElementById('aiDataStatus');
+        if (dataStatusEl) {
+            const h2hCount = state.h2hData ? state.h2hData.length : 0;
+            let statusText = `📊 Основан на ${h2hCount} матчах H2H`;
+            if (state.weatherData) statusText += ' + погоде';
+            if (h2hCount < 3) statusText += ' · ⚠️ Мало данных';
+            dataStatusEl.textContent = statusText;
+            dataStatusEl.style.color = h2hCount >= 3 ? '#888' : '#f39c12';
+        }
+        
         if (shapResult) {
             document.getElementById('explanationCard').style.display = 'block';
             const contribContainer = document.getElementById('explanationContributions');
@@ -4327,9 +4458,9 @@
                 </div>
             `;
         }
-        if (btn) { btn.disabled = false; btn.innerHTML = '<span>🤖</span> Сгенерировать AI прогноз'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<span>🤖</span> Сгенерировать прогноз'; }
         if (result) result.style.display = 'block';
-        showToast('🧠 ULTIMATE прогноз готов!', 'success');
+        showToast('🧠 Прогноз готов!', 'success');
     }
 
     function runEnsemble(features) {
@@ -4579,8 +4710,8 @@
         }
     }
 
-    // ===== ULTIMATE AI ОБУЧЕНИЕ =====
-    class UltimateQuantumAI {
+    // ===== ЭКСПЕРИМЕНТАЛЬНАЯ МОДЕЛЬ (было UltimateQuantumAI) =====
+    class QuantumAssistant {
         constructor() {
             this.model = null;
             this.isTraining = false;
@@ -4706,7 +4837,7 @@
                 await this.saveModel();
                 this.isTraining = false;
                 updateAIStatus();
-                showToast(`✅ ULTIMATE AI обучен! Точность: ${Math.round(this.accuracy * 100)}%`, 'success');
+                showToast(`✅ Экспериментальная модель обучена! Точность: ${Math.round(this.accuracy * 100)}%`, 'success');
                 return true;
             } catch (e) {
                 console.error(e);
@@ -4738,7 +4869,7 @@
         isTrained() { return this.model !== null && this.accuracy > 0; }
     }
 
-    const ultimateAI = new UltimateQuantumAI();
+    const ultimateAI = new QuantumAssistant();
 
     function updateAIStatus() {
         const statusText = $('aiStatusText');
@@ -4746,7 +4877,7 @@
         const accuracyDisplay = $('aiAccuracyDisplay');
         if (!statusText || !statusDot || !accuracyDisplay) return;
         if (ultimateAI.isTraining) {
-            statusText.textContent = '⏳ Обучение ULTIMATE...';
+            statusText.textContent = '⏳ Обучение модели...';
             statusDot.className = 'status-dot training';
             accuracyDisplay.textContent = '⏳';
             return;
@@ -4754,12 +4885,12 @@
         if (ultimateAI.isTrained()) {
             const acc = Math.round(ultimateAI.accuracy * 100);
             const total = state.bets.filter(b => b.outcome !== 'pending').length;
-            statusText.textContent = `✅ Обучен (${total} ставок, 32 признака)`;
+            statusText.textContent = `✅ Обучена (${total} ставок)`;
             statusDot.className = 'status-dot trained';
             accuracyDisplay.textContent = `🎯 ${acc}%`;
             accuracyDisplay.style.color = acc > 70 ? '#2ecc71' : acc > 50 ? '#f1c40f' : '#e74c3c';
         } else {
-            statusText.textContent = '⏳ Не обучен';
+            statusText.textContent = '⏳ Не обучена';
             statusDot.className = 'status-dot untrained';
             accuracyDisplay.textContent = '—';
         }
@@ -4801,12 +4932,11 @@
             if (!bet.home_pressing_intensity) bet.home_pressing_intensity = 5;
             if (!bet.away_pressing_intensity) bet.away_pressing_intensity = 5;
         });
-        if (btn) { btn.disabled = true; btn.textContent = '⏳ Обучение ULTIMATE...'; }
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ Обучение модели...'; }
         clearAILog();
-        addAILog(`📊 Начало ULTIMATE обучения на ${bets.length} ставках (32 признака)`);
-        addAILog(`📊 Признаки: xG, xGA, форма (дома/в гостях), мотивация, дерби, погода, рейтинг, стиль игры и др.`);
+        addAILog(`📊 Начало обучения на ${bets.length} ставках`);
         await ultimateAI.train(bets, 300, (msg) => { addAILog(msg); });
-        if (btn) { btn.disabled = false; btn.textContent = '🧠 Обучить ULTIMATE AI'; }
+        if (btn) { btn.disabled = false; btn.textContent = '🧠 Обучить модель'; }
         updateAIStatus();
     }
 
@@ -4899,7 +5029,7 @@
         document.getElementById('kpiROITrend').textContent = roi > 0 ? '📈 За месяц' : '📉 За месяц';
         const aiAcc = ultimateAI.isTrained() ? Math.round(ultimateAI.accuracy * 100) : 0;
         document.getElementById('kpiAIDisplay').textContent = aiAcc + '%';
-        document.getElementById('kpiAITrend').textContent = ultimateAI.isTrained() ? '✅ Обучен' : '⏳ Не обучен';
+        document.getElementById('kpiAITrend').textContent = ultimateAI.isTrained() ? '✅ Обучена' : '⏳ Не обучена';
         const profit = wins - losses;
         document.getElementById('kpiProfitDisplay').textContent = profit;
         document.getElementById('kpiProfitTrend').textContent = `📊 Ставок: ${total}`;
@@ -5022,7 +5152,7 @@
                 📊 Всего: ${total}, побед: ${wins} (${rate}%)
                 <br>🔥 Последние 10: ${recentRate}%
                 ${rate > 60 ? ' 🚀 Отличная статистика!' : rate > 40 ? ' 📈 Стабильно' : ' 📉 Требуется улучшение'}
-                ${ultimateAI.isTrained() ? `<br>🧠 ULTIMATE AI: ${Math.round(ultimateAI.accuracy * 100)}% точности` : ''}
+                ${ultimateAI.isTrained() ? `<br>🧠 Экспериментальная модель: ${Math.round(ultimateAI.accuracy * 100)}% точности` : ''}
             </div>
         `;
     }
@@ -5089,7 +5219,7 @@
         renderInsights();
         renderUltimateDashboard();
         updateAIStatus();
-        showToast('✅ Ставка сохранена с 32 признаками!', 'success');
+        showToast('✅ Ставка сохранена со всеми данными!', 'success');
     }
 
     function editBet(idx) {
@@ -5146,6 +5276,7 @@
         if ($('confidenceLabel')) $('confidenceLabel').textContent = '0%';
         if ($('confidenceFill')) $('confidenceFill').style.width = '0%';
         state.h2hData = null;
+        state.h2hTimestamp = null;
         state.weatherData = null;
         state.currentLeagueData = null;
         const aiResult = $('aiResult');
@@ -5165,14 +5296,14 @@
             bets: state.bets,
             leagues: LEAGUES,
             valueBets: state.valueBets,
-            version: '5.2 ULTIMATE',
+            version: '5.3',
             exportDate: new Date().toISOString()
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `quantum_ultimate_backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.download = `quantum_backup_${new Date().toISOString().slice(0,10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
         showToast('📦 Данные экспортированы!', 'success');
@@ -5434,6 +5565,15 @@
         });
     }
 
+    // Статус для прогнозов
+    function getPredictionsDataStatus(timestamp, count) {
+        if (!timestamp) {
+            return { text: '⏳ Данных нет', color: '#888' };
+        }
+        const status = getDataStatus(timestamp, CACHE_CONFIG.PREDICTIONS_TTL, count);
+        return status;
+    }
+
     async function renderPredictions() {
         const list = document.getElementById('predictionsList');
         const empty = document.getElementById('predictionsEmpty');
@@ -5453,6 +5593,25 @@
         matches = sortByPriority(matches);
 
         if (count) count.textContent = `(${matches.length})`;
+
+        // Статус данных прогнозов
+        const predictionsStatusEl = document.getElementById('predictionsStatus');
+        // Можно добавить в контейнер
+        const container = document.getElementById('predictionsContainer');
+        let statusEl = container?.querySelector('.predictions-status');
+        if (!statusEl && container) {
+            statusEl = document.createElement('div');
+            statusEl.className = 'predictions-status';
+            statusEl.style.cssText = 'font-size:9px;color:#888;margin-top:2px;text-align:center;';
+            container.prepend(statusEl);
+        }
+        if (statusEl && state.lastUpdate) {
+            const status = getPredictionsDataStatus(state.lastUpdate, matches.length);
+            statusEl.textContent = status.text;
+            statusEl.style.color = status.color;
+        } else if (statusEl) {
+            statusEl.textContent = '⏳ Загрузка...';
+        }
 
         const badge = document.getElementById('liveBadgeNav');
         if (badge) {
@@ -5505,7 +5664,7 @@
                         <div class="time-remaining">⏱ ${statusInfo.emoji} ${statusInfo.label}</div>
                         
                         <button class="btn-turbo" onclick="turboAnalyze(${m.id})">
-                            🔥 ТУРБО АНАЛИЗ
+                            🔥 Турбо-анализ
                         </button>
                         <div class="turbo-progress-container">
                             <div class="turbo-progress-bar">
@@ -5615,6 +5774,7 @@
         
         generateTestPredictions().then(matches => {
             state.predictions = matches;
+            state.lastUpdate = new Date();
             renderPredictions();
             if (icon) icon.textContent = '🔄';
             if (btn) btn.disabled = false;
@@ -5650,7 +5810,7 @@
         const message = `🔔 Через 30 минут начинается матч ${match.home} vs ${match.away}! Прогноз: ${match.prediction} с уверенностью ${match.confidence}%`;
         showToast(message, 'success');
         if (Notification.permission === 'granted') {
-            new Notification('⚛️ Квантум ULTIMATE', {
+            new Notification('⚛️ Квантум', {
                 body: `${match.home} vs ${match.away}\nПрогноз: ${match.prediction}\nУверенность: ${match.confidence}%`,
                 icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="45" fill="%230b0e14"/%3E%3Ctext x="50" y="72" font-size="60" text-anchor="middle" font-family="Arial"%3E%E2%9A%9B%3C/text%3E%3C/svg%3E'
             });
@@ -5663,18 +5823,17 @@
         }
     }
 
-    // ===== ИИ-АССИСТЕНТ =====
+    // ===== АССИСТЕНТ =====
     function renderAssistantHistory() {
         const chat = document.getElementById('assistantChat');
         if (!chat) return;
         if (state.assistantHistory.length === 0) {
             chat.innerHTML = `
                 <div class="assistant-message ai">
-                    👋 Привет! Я ИИ-ассистент Квантум ULTIMATE v5.2.<br>
+                    👋 Привет! Я ассистент Квантум v5.3.<br>
                     Сезон ${CURRENT_SEASON} - все прогнозы актуальны!<br>
-                    Теперь я умею отслеживать матчи и присылать уведомления!<br>
                     Задай вопрос о ставках, прогнозах или анализе матчей.
-                    <div class="time">🤖 ИИ-ассистент</div>
+                    <div class="time">🤖 Ассистент</div>
                 </div>
             `;
             return;
@@ -5733,21 +5892,21 @@
                 const now = new Date();
                 return d.toDateString() === now.toDateString() && p.status !== 'finished';
             }).length;
-            return `📊 **АКТУАЛЬНЫЕ ПРОГНОЗЫ v5.2 (сезон ${CURRENT_SEASON})**\n\n• Всего прогнозов: ${context.predictions.length}\n• Будущих матчей: ${upcoming}\n• Сегодня: ${today}\n\n🔥 Топ-прогноз: ${context.predictions.filter(p => p.status !== 'finished').sort((a,b) => b.confidence - a.confidence)[0]?.prediction || 'нет'}\n\n💡 Используй фильтры в разделе "Прогнозы" для сортировки по времени и уверенности.`;
+            return `📊 **АКТУАЛЬНЫЕ ПРОГНОЗЫ (сезон ${CURRENT_SEASON})**\n\n• Всего прогнозов: ${context.predictions.length}\n• Будущих матчей: ${upcoming}\n• Сегодня: ${today}\n\n🔥 Топ-прогноз: ${context.predictions.filter(p => p.status !== 'finished').sort((a,b) => b.confidence - a.confidence)[0]?.prediction || 'нет'}\n\n💡 Используй фильтры в разделе "Прогнозы" для сортировки по времени и уверенности.`;
         }
         if (lower.includes('уведомл') || lower.includes('напомина') || lower.includes('нотификац')) {
-            return `🔔 **УВЕДОМЛЕНИЯ v5.2**\n\nСистема автоматически проверяет матчи каждые 30 минут.\n\n• Оповещает за 30 минут до начала\n• Только для прогнозов с уверенностью ≥ 70%\n• Показывает в приложении и браузере\n\n✅ Для браузерных уведомлений разрешите их в настройках браузера.\n\n📊 Сейчас активно: ${state.notifiedMatches.size} уведомлений за сессию.`;
+            return `🔔 **УВЕДОМЛЕНИЯ**\n\nСистема автоматически проверяет матчи каждые 30 минут.\n\n• Оповещает за 30 минут до начала\n• Только для прогнозов с уверенностью ≥ 70%\n• Показывает в приложении и браузере\n\n✅ Для браузерных уведомлений разрешите их в настройках браузера.\n\n📊 Сейчас активно: ${state.notifiedMatches.size} уведомлений за сессию.`;
         }
         if (lower.includes('фильтр') || lower.includes('сортировк')) {
-            return `🔍 **ФИЛЬТРАЦИЯ ПРОГНОЗОВ v5.2**\n\nДоступные фильтры:\n• ⏱ По времени (6ч, сегодня, завтра, неделя)\n• 📊 По тоталам (Over/Under 1.5, 2.5, 3.5)\n• 🏆 По лигам / регионам\n• 🎯 По минимальной уверенности (≥ 50-90%)\n• 💰 Только с live-коэффициентами\n• 🔄 Автообновление каждые 30 минут\n\n📈 Сортировка: Уверенность × (время до начала)⁻¹`;
+            return `🔍 **ФИЛЬТРАЦИЯ ПРОГНОЗОВ**\n\nДоступные фильтры:\n• ⏱ По времени (6ч, сегодня, завтра, неделя)\n• 📊 По тоталам (Over/Under 1.5, 2.5, 3.5)\n• 🏆 По лигам / регионам\n• 🎯 По минимальной уверенности (≥ 50-90%)\n• 💰 Только с live-коэффициентами\n• 🔄 Автообновление каждые 30 минут\n\n📈 Сортировка: Уверенность × (время до начала)⁻¹`;
         }
         if (lower.includes('статус') || lower.includes('время')) {
-            return `⏱ **СТАТУСЫ МАТЧЕЙ v5.2**\n\n• 🟢 «Через 2 ч 15 мин» — скоро начнётся\n• 🔴 «Идёт 37'» — матч в прямом эфире\n• 🏁 «Завершён 2:1» — матч сыгран\n\nТеперь каждый прогноз имеет чёткий статус, а не только «ОЗ: Да/Нет».\n\n📊 Актуальных матчей: ${context.predictions.filter(p => p.status !== 'finished').length}`;
+            return `⏱ **СТАТУСЫ МАТЧЕЙ**\n\n• 🟢 «Через 2 ч 15 мин» — скоро начнётся\n• 🔴 «Идёт 37'» — матч в прямом эфире\n• 🏁 «Завершён 2:1» — матч сыгран\n\nТеперь каждый прогноз имеет чёткий статус, а не только «ОЗ: Да/Нет».\n\n📊 Актуальных матчей: ${context.predictions.filter(p => p.status !== 'finished').length}`;
         }
         const total = context.bets.length;
         const wins = context.bets.filter(b => b.outcome === 'win').length;
         const rate = total > 0 ? Math.round((wins / total) * 100) : 0;
-        return `🧠 **ИИ-АССИСТЕНТ ULTIMATE v5.2**\n\n📊 Ваша статистика: ${total} ставок, ${rate}% точности\n${ultimateAI.isTrained() ? `🎯 ULTIMATE AI: ${Math.round(ultimateAI.accuracy * 100)}%` : '⏳ Обучите ULTIMATE AI'}\n\nЧто нового в v5.2:\n• 🔮 Раздел «Прогнозы» с фильтрацией\n• ⏱ Жёсткая фильтрация по времени (2–48 ч)\n• 📊 Приоритетная сортировка\n• 🏷️ Чёткие статусы матчей\n• 🔔 Уведомления за 30 минут\n• 🔄 Автообновление каждые 30 минут (экономия API)\n• 🔥 ТУРБО АНАЛИЗ в один клик\n• 📅 Сезон ${CURRENT_SEASON}\n• 🧠 Улучшенный ансамбль моделей\n• 💰 Экономия API до 95%\n\nЧто вас интересует?`;
+        return `🧠 **АССИСТЕНТ v5.3**\n\n📊 Ваша статистика: ${total} ставок, ${rate}% точности\n${ultimateAI.isTrained() ? `🎯 Экспериментальная модель: ${Math.round(ultimateAI.accuracy * 100)}%` : '⏳ Обучите модель'}\n\nЧто доступно:\n• 🔮 Раздел «Прогнозы» с фильтрацией\n• ⏱ Фильтрация по времени (6ч—неделя)\n• 📊 Приоритетная сортировка\n• 🏷️ Чёткие статусы матчей\n• 🔔 Уведомления за 30 минут\n• 🔄 Автообновление каждые 30 минут (экономия API)\n• 🔥 Турбо-анализ в один клик\n• 📅 Сезон ${CURRENT_SEASON}\n\nЧто вас интересует?`;
     }
 
     // ===== ИНИЦИАЛИЗАЦИЯ =====
@@ -5770,10 +5929,12 @@
             
             const matches = await generateTestPredictions();
             state.predictions = matches;
+            state.lastUpdate = new Date();
             renderPredictions();
         } else {
             const matches = getFallbackMatches();
             state.predictions = matches;
+            state.lastUpdate = new Date();
             renderPredictions();
             showToast('⚠️ Введите API ключ в настройках', 'error');
         }
@@ -5822,10 +5983,11 @@
             navigator.serviceWorker.register('sw.js').catch(() => {});
         }
 
-        console.log(`⚛️ КВАНТУМ ULTIMATE v5.2 — СЕЗОН ${CURRENT_SEASON}`);
-        console.log('✅ Все ошибки исправлены');
+        console.log(`⚛️ КВАНТУМ v5.3 — СЕЗОН ${CURRENT_SEASON}`);
+        console.log('✅ Честные формулировки');
         console.log('✅ Оптимизировано API (экономия до 95%)');
-        console.log('✅ ТУРБО АНАЛИЗ добавлен');
+        console.log('✅ Статусы данных добавлены');
+        console.log('✅ Экспериментальная модель отдельно');
         console.log('🚀 ГОТОВ К РАБОТЕ!');
     });
 
