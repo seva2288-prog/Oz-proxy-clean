@@ -2744,7 +2744,7 @@
     // ================================================================  
     // ЧАСТЬ 2: ПОЛНАЯ JAVASCRIPT ЛОГИКА   
     // КВАНТУМ v5.3 - ОПТИМИЗИРОВАННАЯ ВЕРСИЯ  
-    // СЕЗОН: 2025-2026  
+    // СЕЗОН: 2026-2027
     // ================================================================  
   
     // ===== КОНФИГУРАЦИЯ КЭШИРОВАНИЯ =====  
@@ -2757,8 +2757,251 @@
         UPDATE_INTERVAL: 30 * 60 * 1000            // 30 минут вместо 5  
     };  
   
-    // ТОП-15 ЛИГ ДЛЯ ОПТИМИЗАЦИИ  
-    const TOP_LEAGUES = [39, 140, 78, 135, 61, 88, 94, 2, 3, 848, 203, 197, 345, 106, 207];  
+    // ================================================================
+// ВСЕ ЕВРОПЕЙСКИЕ ЛИГИ И ТУРНИРЫ 2025-2026
+// ОБЪЕДИНЕННЫЙ СПИСОК (28 ЛИГ + ЕВРОКУБКИ)
+// ================================================================
+
+// === ПОЛНЫЙ СПИСОК ВСЕХ ЛИГ ===
+const TOP_LEAGUES = [
+    // ===== ТОП-5 ЕВРОПЕЙСКИХ ЛИГ =====
+    39,  // АПЛ (Англия) ⭐⭐⭐⭐⭐
+    140, // Ла Лига (Испания) ⭐⭐⭐⭐⭐
+    78,  // Бундеслига (Германия) ⭐⭐⭐⭐⭐
+    135, // Серия А (Италия) ⭐⭐⭐⭐⭐
+    61,  // Лига 1 (Франция) ⭐⭐⭐⭐⭐
+    
+    // ===== ВТОРЫЕ ДИВИЗИОНЫ =====
+    2,   // Чемпионшип (Англия) ⭐⭐⭐⭐
+    141, // Ла Лига 2 (Испания) ⭐⭐⭐
+    79,  // Вторая Бундеслига (Германия) ⭐⭐⭐
+    136, // Серия В (Италия) ⭐⭐⭐
+    62,  // Лига 2 (Франция) ⭐⭐⭐
+    
+    // ===== ЕВРОКУБКИ =====
+    2,   // Лига Чемпионов УЕФА ⭐⭐⭐⭐⭐
+    3,   // Лига Европы УЕФА ⭐⭐⭐⭐
+    848, // Лига Конференций УЕФА ⭐⭐⭐
+    
+    // ===== ВОСТОЧНАЯ ЕВРОПА (НОВОЕ!) =====
+    88,  // РПЛ (Россия) ⭐⭐⭐⭐
+    242, // Лига 1 (Чехия) ⭐⭐⭐
+    272, // Экстракласа (Польша) ⭐⭐⭐
+    276, // Премьер-лига (Украина) ⭐⭐⭐
+    283, // ХНЛ (Хорватия) ⭐⭐⭐
+    288, // Суперлига (Сербия) ⭐⭐⭐
+    253, // Лига 1 (Румыния) ⭐⭐⭐
+    289, // Лига 1 (Болгария) ⭐⭐
+    290, // Лига 1 (Словакия) ⭐⭐
+    291, // Лига 1 (Словения) ⭐⭐
+    
+    // ===== ЗАПАДНАЯ ЕВРОПА =====
+    88,  // Эредивизи (Нидерланды) ⭐⭐⭐⭐
+    94,  // Примейра Лига (Португалия) ⭐⭐⭐⭐
+    203, // Суперлига (Греция) ⭐⭐⭐
+    197, // Суперлига (Турция) ⭐⭐⭐
+    345, // Суперлига (Швейцария) ⭐⭐⭐
+    106, // Бундеслига (Австрия) ⭐⭐⭐
+    207, // Премьер-лига (Шотландия) ⭐⭐⭐
+    
+    // ===== СЕВЕРНАЯ ЕВРОПА =====
+    179, // Суперлига (Дания) ⭐⭐⭐
+    218, // Элитсериен (Норвегия) ⭐⭐⭐
+    240, // Аллсвенскан (Швеция) ⭐⭐⭐
+    
+    // ===== БАЛКАНЫ =====
+    289, // Лига 1 (Болгария) ⭐⭐
+    290, // Лига 1 (Словакия) ⭐⭐
+    291, // Лига 1 (Словения) ⭐⭐
+    
+    // ===== ДОПОЛНИТЕЛЬНЫЕ ТУРНИРЫ =====
+    1,   // Кубок мира
+    12,  // Кубок Англии
+    45,  // Кубок Испании
+    46,  // Кубок Германии
+    47,  // Кубок Италии
+    48,  // Кубок Франции
+    50   // Кубок Лиги (Англия)
+];
+
+// === ИНФОРМАЦИЯ О ЛИГАХ (ДЛЯ ОТОБРАЖЕНИЯ) ===
+const LEAGUE_INFO = {
+    // ТОП-5
+    39: { name: 'АПЛ', country: 'Англия', flag: '🏴', level: 5 },
+    140: { name: 'Ла Лига', country: 'Испания', flag: '🇪🇸', level: 5 },
+    78: { name: 'Бундеслига', country: 'Германия', flag: '🇩🇪', level: 5 },
+    135: { name: 'Серия А', country: 'Италия', flag: '🇮🇹', level: 5 },
+    61: { name: 'Лига 1', country: 'Франция', flag: '🇫🇷', level: 5 },
+    
+    // Вторые дивизионы
+    2: { name: 'Чемпионшип', country: 'Англия', flag: '🏴', level: 4 },
+    141: { name: 'Ла Лига 2', country: 'Испания', flag: '🇪🇸', level: 3 },
+    79: { name: '2. Бундеслига', country: 'Германия', flag: '🇩🇪', level: 3 },
+    136: { name: 'Серия В', country: 'Италия', flag: '🇮🇹', level: 3 },
+    62: { name: 'Лига 2', country: 'Франция', flag: '🇫🇷', level: 3 },
+    
+    // Еврокубки
+    2: { name: 'Лига Чемпионов', country: 'Европа', flag: '🇪🇺', level: 5 },
+    3: { name: 'Лига Европы', country: 'Европа', flag: '🇪🇺', level: 4 },
+    848: { name: 'Лига Конференций', country: 'Европа', flag: '🇪🇺', level: 3 },
+    
+    // ВОСТОЧНАЯ ЕВРОПА
+    88: { name: 'РПЛ', country: 'Россия', flag: '🇷🇺', level: 4 },
+    242: { name: 'Лига 1', country: 'Чехия', flag: '🇨🇿', level: 3 },
+    272: { name: 'Экстракласа', country: 'Польша', flag: '🇵🇱', level: 3 },
+    276: { name: 'Премьер-лига', country: 'Украина', flag: '🇺🇦', level: 3 },
+    283: { name: 'ХНЛ', country: 'Хорватия', flag: '🇭🇷', level: 3 },
+    288: { name: 'Суперлига', country: 'Сербия', flag: '🇷🇸', level: 3 },
+    253: { name: 'Лига 1', country: 'Румыния', flag: '🇷🇴', level: 3 },
+    289: { name: 'Лига 1', country: 'Болгария', flag: '🇧🇬', level: 2 },
+    290: { name: 'Лига 1', country: 'Словакия', flag: '🇸🇰', level: 2 },
+    291: { name: 'Лига 1', country: 'Словения', flag: '🇸🇮', level: 2 },
+    
+    // Западная Европа
+    94: { name: 'Примейра', country: 'Португалия', flag: '🇵🇹', level: 4 },
+    203: { name: 'Суперлига', country: 'Греция', flag: '🇬🇷', level: 3 },
+    197: { name: 'Суперлига', country: 'Турция', flag: '🇹🇷', level: 3 },
+    345: { name: 'Суперлига', country: 'Швейцария', flag: '🇨🇭', level: 3 },
+    106: { name: 'Бундеслига', country: 'Австрия', flag: '🇦🇹', level: 3 },
+    207: { name: 'Премьер-лига', country: 'Шотландия', flag: '🏴', level: 3 },
+    
+    // Северная Европа
+    179: { name: 'Суперлига', country: 'Дания', flag: '🇩🇰', level: 3 },
+    218: { name: 'Элитсериен', country: 'Норвегия', flag: '🇳🇴', level: 3 },
+    240: { name: 'Аллсвенскан', country: 'Швеция', flag: '🇸🇪', level: 3 },
+    
+    // Кубки
+    1: { name: 'Кубок мира', country: 'Мир', flag: '🌍', level: 5 },
+    12: { name: 'Кубок Англии', country: 'Англия', flag: '🏴', level: 4 },
+    45: { name: 'Кубок Испании', country: 'Испания', flag: '🇪🇸', level: 4 },
+    46: { name: 'Кубок Германии', country: 'Германия', flag: '🇩🇪', level: 4 },
+    47: { name: 'Кубок Италии', country: 'Италия', flag: '🇮🇹', level: 4 },
+    48: { name: 'Кубок Франции', country: 'Франция', flag: '🇫🇷', level: 4 },
+    50: { name: 'Кубок Лиги', country: 'Англия', flag: '🏴', level: 3 }
+};
+
+// === ГРУППИРОВКА ДЛЯ ВЫПАДАЮЩЕГО СПИСКА ===
+const LEAGUE_GROUPS = {
+    '⭐ ТОП-5 Лиг': [39, 140, 78, 135, 61],
+    '📊 Вторые дивизионы': [2, 141, 79, 136, 62],
+    '🏆 Еврокубки': [2, 3, 848],
+    '🇷🇺 Восточная Европа': [88, 242, 272, 276, 283, 288, 253, 289, 290, 291],
+    '🌍 Западная Европа': [94, 203, 197, 345, 106, 207],
+    '❄️ Северная Европа': [179, 218, 240],
+    '🏆 Кубки': [1, 12, 45, 46, 47, 48, 50]
+};
+
+// === ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ИНФОРМАЦИИ О ЛИГЕ ===
+function getLeagueInfo(leagueId) {
+    return LEAGUE_INFO[leagueId] || { 
+        name: `Лига ${leagueId}`, 
+        country: 'Мир', 
+        flag: '🌍', 
+        level: 1 
+    };
+}
+
+// === ФУНКЦИЯ ДЛЯ ОТОБРАЖЕНИЯ ВСЕХ ЛИГ В НАСТРОЙКАХ ===
+function renderAllLeagues() {
+    const select = document.getElementById('leagueSelect');
+    if (!select) return;
+    
+    select.innerHTML = '';
+    
+    for (const [groupName, leagueIds] of Object.entries(LEAGUE_GROUPS)) {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = groupName;
+        
+        for (const id of leagueIds) {
+            const info = getLeagueInfo(id);
+            const option = document.createElement('option');
+            option.value = id;
+            option.textContent = `${info.flag} ${info.name} (${info.country})`;
+            if (id == state.currentLeague) option.selected = true;
+            optgroup.appendChild(option);
+        }
+        select.appendChild(optgroup);
+    }
+}
+
+// === ФУНКЦИЯ ДЛЯ ЗАГРУЗКИ ВСЕХ ЛИГ ===
+async function loadAllLeaguesExtended() {
+    const apiKey = localStorage.getItem('quantum_api_key');
+    if (!apiKey || apiKey === '') {
+        showToast('⚠️ Введите API ключ в настройках', 'error');
+        return;
+    }
+    
+    showToast('📡 Загрузка всех европейских лиг...', 'info');
+    
+    let loadedCount = 0;
+    const leagueStats = {};
+    const allIds = Object.keys(LEAGUE_INFO).map(Number);
+    
+    for (const leagueId of allIds) {
+        const cacheKey = `league_stats_${leagueId}`;
+        const cached = localStorage.getItem(cacheKey);
+        
+        if (cached) {
+            try {
+                const data = JSON.parse(cached);
+                if (Date.now() - data.timestamp < CACHE_CONFIG.LEAGUES_TTL) {
+                    leagueStats[leagueId] = data.data;
+                    loadedCount++;
+                    continue;
+                }
+            } catch (e) {}
+        }
+        
+        try {
+            const statsRes = await fetchWithCache(
+                `${PROXY_BASE}leagues/statistics?league=${leagueId}&season=${CURRENT_SEASON}`,
+                { headers: { 'x-apisports-key': apiKey } },
+                CACHE_CONFIG.LEAGUES_TTL
+            );
+            
+            if (statsRes && statsRes.response) {
+                const stats = statsRes.response;
+                const info = getLeagueInfo(leagueId);
+                let avgGoals = 2.5, ozPercent = 55;
+                
+                if (stats.goals?.total) {
+                    avgGoals = parseFloat((stats.goals.total.total / stats.fixtures.total).toFixed(2));
+                }
+                if (stats.goals?.both) {
+                    ozPercent = Math.round((stats.goals.both.total / stats.fixtures.total) * 100);
+                }
+                
+                leagueStats[leagueId] = {
+                    name: `${info.flag} ${info.name}`,
+                    oz: ozPercent,
+                    avgGoals: avgGoals,
+                    country: info.country,
+                    season: CURRENT_SEASON,
+                    level: info.level,
+                    flag: info.flag
+                };
+                
+                localStorage.setItem(cacheKey, JSON.stringify({
+                    data: leagueStats[leagueId],
+                    timestamp: Date.now()
+                }));
+                loadedCount++;
+            }
+            await delay(100);
+        } catch (e) {
+            console.log(`⚠️ Ошибка с лигой ${leagueId}:`, e);
+        }
+    }
+    
+    LEAGUES = leagueStats;
+    localStorage.setItem('quantum_leagues', JSON.stringify(leagueStats));
+    
+    renderAllLeagues();
+    updateLeagueInfoDisplay();
+    
+    showToast(`✅ Загружено ${loadedCount} европейских лиг!`, 'success');
+}  
   
     // ===== БАЗОВЫЕ УТИЛИТЫ =====  
    // ===== БАЗОВЫЕ УТИЛИТЫ =====
