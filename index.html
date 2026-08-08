@@ -5725,6 +5725,68 @@ const TOP_LEAGUES = [
         return status;
     }
 
+    // ===== НОВАЯ ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ ФИЛЬТРА ЛИГ =====
+    function updateLeagueFilter(leagues) {
+        const select = document.getElementById('filterLeague');
+        if (!select) return;
+        
+        // Сохраняем текущее выбранное значение
+        const currentValue = select.value;
+        
+        // Очищаем select, оставляя только опцию "Все лиги"
+        select.innerHTML = '<option value="all">Все лиги</option>';
+        
+        if (!leagues || leagues.length === 0) {
+            // Если нет лиг, добавляем стандартные
+            const defaultLeagues = ['РПЛ', 'АПЛ', 'Ла Лига', 'Бундеслига', 'Серия А', 'Лига 1'];
+            defaultLeagues.forEach(league => {
+                const option = document.createElement('option');
+                option.value = league;
+                option.textContent = league;
+                select.appendChild(option);
+            });
+        } else {
+            // Сортируем лиги по алфавиту
+            const sortedLeagues = [...new Set(leagues)].sort((a, b) => a.localeCompare(b));
+            
+            sortedLeagues.forEach(league => {
+                const option = document.createElement('option');
+                option.value = league;
+                option.textContent = league;
+                select.appendChild(option);
+            });
+        }
+        
+        // Восстанавливаем выбранное значение, если оно ещё существует
+        if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
+            select.value = currentValue;
+        }
+        
+        // Обновляем state
+        state.leagueFilter = select.value;
+        
+        // Применяем фильтры
+        applyFilters();
+    }
+
+    // ===== РАСШИРЕННАЯ ФУНКЦИЯ ДЛЯ ПРИМЕНЕНИЯ ФИЛЬТРОВ =====
+    function applyFilters() {
+        const totalFilter = document.getElementById('filterTotal')?.value || 'all';
+        const leagueFilter = document.getElementById('filterLeague')?.value || 'all';
+        const confidenceFilter = parseInt(document.getElementById('filterConfidence')?.value) || 0;
+        const typeFilter = document.getElementById('filterType')?.value || 'all';
+        const liveOddsFilter = document.getElementById('filterLiveOdds')?.checked || false;
+        
+        state.totalFilter = totalFilter;
+        state.leagueFilter = leagueFilter;
+        state.confidenceFilter = confidenceFilter;
+        state.typeFilter = typeFilter;
+        state.liveOddsFilter = liveOddsFilter;
+        
+        renderPredictions();
+        checkNotifications();
+    }
+
     async function renderPredictions() {
         const list = document.getElementById('predictionsList');
         const empty = document.getElementById('predictionsEmpty');
@@ -5732,6 +5794,10 @@ const TOP_LEAGUES = [
 
         if (!state.predictions || state.predictions.length === 0) {
             state.predictions = await generateTestPredictions();
+            
+            // Обновляем фильтр лиг после загрузки прогнозов
+            const leagues = state.predictions.map(m => m.league).filter(Boolean);
+            updateLeagueFilter(leagues);
         }
         let matches = state.predictions;
 
@@ -5746,8 +5812,6 @@ const TOP_LEAGUES = [
         if (count) count.textContent = `(${matches.length})`;
 
         // Статус данных прогнозов
-        const predictionsStatusEl = document.getElementById('predictionsStatus');
-        // Можно добавить в контейнер
         const container = document.getElementById('predictionsContainer');
         let statusEl = container?.querySelector('.predictions-status');
         if (!statusEl && container) {
@@ -5905,16 +5969,6 @@ const TOP_LEAGUES = [
         checkNotifications();
     }
 
-    function applyFilters() {
-        state.totalFilter = document.getElementById('filterTotal')?.value || 'all';
-        state.leagueFilter = document.getElementById('filterLeague')?.value || 'all';
-        state.confidenceFilter = parseInt(document.getElementById('filterConfidence')?.value) || 0;
-        state.typeFilter = document.getElementById('filterType')?.value || 'all';
-        state.liveOddsFilter = document.getElementById('filterLiveOdds')?.checked || false;
-        renderPredictions();
-        checkNotifications();
-    }
-
     function refreshPredictions() {
         const btn = document.getElementById('refreshPredictionsBtn');
         const icon = document.getElementById('refreshIcon');
@@ -5926,6 +5980,11 @@ const TOP_LEAGUES = [
         generateTestPredictions().then(matches => {
             state.predictions = matches;
             state.lastUpdate = new Date();
+            
+            // Обновляем фильтр лиг
+            const leagues = matches.map(m => m.league).filter(Boolean);
+            updateLeagueFilter(leagues);
+            
             renderPredictions();
             if (icon) icon.textContent = '🔄';
             if (btn) btn.disabled = false;
@@ -6081,11 +6140,21 @@ const TOP_LEAGUES = [
             const matches = await generateTestPredictions();
             state.predictions = matches;
             state.lastUpdate = new Date();
+            
+            // Обновляем фильтр лиг после загрузки прогнозов
+            const leagues = matches.map(m => m.league).filter(Boolean);
+            updateLeagueFilter(leagues);
+            
             renderPredictions();
         } else {
             const matches = getFallbackMatches();
             state.predictions = matches;
             state.lastUpdate = new Date();
+            
+            // Обновляем фильтр лиг для фолбэк-матчей
+            const leagues = matches.map(m => m.league).filter(Boolean);
+            updateLeagueFilter(leagues);
+            
             renderPredictions();
             showToast('⚠️ Введите API ключ в настройках', 'error');
         }
@@ -6108,7 +6177,10 @@ const TOP_LEAGUES = [
         await ultimateAI.loadModel();
         updateAIStatus();
 
-        updateLeagueFilters();
+        // Инициализируем фильтр лиг
+        const leagues = state.predictions.map(m => m.league).filter(Boolean);
+        updateLeagueFilter(leagues);
+
         requestNotificationPermission();
 
         if (!state.updateTimer) {
@@ -6139,6 +6211,7 @@ const TOP_LEAGUES = [
         console.log('✅ Оптимизировано API (экономия до 95%)');
         console.log('✅ Статусы данных добавлены');
         console.log('✅ Экспериментальная модель отдельно');
+        console.log('✅ Фильтр лиг динамически обновляется');
         console.log('🚀 ГОТОВ К РАБОТЕ!');
     });
 
