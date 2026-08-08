@@ -2740,12 +2740,11 @@
 
     <script>
     // ================================================================
-    // ЧАСТЬ 2: ПОЛНАЯ JAVASCRIPT ЛОГИКА
-    // КВАНТУМ v5.3 - ОПТИМИЗИРОВАННАЯ ВЕРСИЯ
+    // КВАНТУМ v5.3 - ПОЛНАЯ JAVASCRIPT ЛОГИКА
     // СЕЗОН: 2026-2027
     // ================================================================
 
-    // ===== КОНФИГУРАЦИЯ КЭШИРОВАНИЯ =====
+    // ===== КОНФИГУРАЦИЯ =====
     const CACHE_CONFIG = {
         H2H_TTL: 7 * 24 * 60 * 60 * 1000,
         LEAGUES_TTL: 24 * 60 * 60 * 1000,
@@ -2756,91 +2755,33 @@
     };
 
     // ================================================================
-    // ВСЕ ЕВРОПЕЙСКИЕ ЛИГИ И ТУРНИРЫ 2026-2027
-    // ПОЛНЫЙ СПИСОК (39 ТУРНИРОВ)
+    // ВСЕ ЕВРОПЕЙСКИЕ ЛИГИ 2026-2027 (39 ТУРНИРОВ)
     // ================================================================
 
-    // === ПОЛНЫЙ СПИСОК ВСЕХ ЛИГ (БЕЗ ДУБЛИКАТОВ) ===
     const TOP_LEAGUES = [
-        // ===== ТОП-5 ЕВРОПЕЙСКИХ ЛИГ =====
-        39,  // АПЛ (Англия) ⭐⭐⭐⭐⭐
-        140, // Ла Лига (Испания) ⭐⭐⭐⭐⭐
-        78,  // Бундеслига (Германия) ⭐⭐⭐⭐⭐
-        135, // Серия А (Италия) ⭐⭐⭐⭐⭐
-        61,  // Лига 1 (Франция) ⭐⭐⭐⭐⭐
-
-        // ===== ВТОРЫЕ ДИВИЗИОНЫ =====
-        40,  // Чемпионшип (Англия) ⭐⭐⭐⭐
-        141, // Ла Лига 2 (Испания) ⭐⭐⭐
-        79,  // Вторая Бундеслига (Германия) ⭐⭐⭐
-        136, // Серия В (Италия) ⭐⭐⭐
-        62,  // Лига 2 (Франция) ⭐⭐⭐
-
-        // ===== ЕВРОКУБКИ =====
-        2,   // Лига Чемпионов УЕФА ⭐⭐⭐⭐⭐
-        3,   // Лига Европы УЕФА ⭐⭐⭐⭐
-        848, // Лига Конференций УЕФА ⭐⭐⭐
-
-        // ===== ВОСТОЧНАЯ ЕВРОПА (ВКЛЮЧАЯ РПЛ И ЧЕХИЮ) =====
-        88,  // РПЛ (Россия) ⭐⭐⭐⭐
-        242, // Лига 1 (Чехия) ⭐⭐⭐
-        272, // Экстракласа (Польша) ⭐⭐⭐
-        276, // Премьер-лига (Украина) ⭐⭐⭐
-        283, // ХНЛ (Хорватия) ⭐⭐⭐
-        288, // Суперлига (Сербия) ⭐⭐⭐
-        253, // Лига 1 (Румыния) ⭐⭐⭐
-        289, // Лига 1 (Болгария) ⭐⭐
-        290, // Лига 1 (Словакия) ⭐⭐
-        291, // Лига 1 (Словения) ⭐⭐
-
-        // ===== ЗАПАДНАЯ ЕВРОПА =====
-        94,  // Примейра Лига (Португалия) ⭐⭐⭐⭐
-        203, // Суперлига (Греция) ⭐⭐⭐
-        197, // Суперлига (Турция) ⭐⭐⭐
-        345, // Суперлига (Швейцария) ⭐⭐⭐
-        106, // Бундеслига (Австрия) ⭐⭐⭐
-        207, // Премьер-лига (Шотландия) ⭐⭐⭐
-
-        // ===== СЕВЕРНАЯ ЕВРОПА =====
-        179, // Суперлига (Дания) ⭐⭐⭐
-        218, // Элитсериен (Норвегия) ⭐⭐⭐
-        240, // Аллсвенскан (Швеция) ⭐⭐⭐
-
-        // ===== ДОПОЛНИТЕЛЬНЫЕ ТУРНИРЫ =====
-        1,   // Кубок мира
-        12,  // Кубок Англии
-        45,  // Кубок Испании
-        46,  // Кубок Германии
-        47,  // Кубок Италии
-        48,  // Кубок Франции
-        50   // Кубок Лиги (Англия)
+        39, 140, 78, 135, 61,  // ТОП-5
+        40, 141, 79, 136, 62,   // Вторые дивизионы
+        2, 3, 848,              // Еврокубки
+        88, 242, 272, 276, 283, 288, 253, 289, 290, 291,  // Восточная Европа (РПЛ, Чехия)
+        94, 203, 197, 345, 106, 207,  // Западная Европа
+        179, 218, 240,          // Северная Европа
+        1, 12, 45, 46, 47, 48, 50  // Кубки
     ];
 
-    // === УНИКАЛЬНЫЙ СПИСОК (БЕЗ ДУБЛИКАТОВ) ===
-    const UNIQUE_LEAGUES = [...new Set(TOP_LEAGUES)];
-
-    // === ИНФОРМАЦИЯ О ЛИГАХ ===
     const LEAGUE_INFO = {
-        // ТОП-5
         39: { name: 'АПЛ', country: 'Англия', flag: '🏴', level: 5 },
         140: { name: 'Ла Лига', country: 'Испания', flag: '🇪🇸', level: 5 },
         78: { name: 'Бундеслига', country: 'Германия', flag: '🇩🇪', level: 5 },
         135: { name: 'Серия А', country: 'Италия', flag: '🇮🇹', level: 5 },
         61: { name: 'Лига 1', country: 'Франция', flag: '🇫🇷', level: 5 },
-
-        // Вторые дивизионы
         40: { name: 'Чемпионшип', country: 'Англия', flag: '🏴', level: 4 },
         141: { name: 'Ла Лига 2', country: 'Испания', flag: '🇪🇸', level: 3 },
         79: { name: '2. Бундеслига', country: 'Германия', flag: '🇩🇪', level: 3 },
         136: { name: 'Серия В', country: 'Италия', flag: '🇮🇹', level: 3 },
         62: { name: 'Лига 2', country: 'Франция', flag: '🇫🇷', level: 3 },
-
-        // Еврокубки
         2: { name: 'Лига Чемпионов', country: 'Европа', flag: '🇪🇺', level: 5 },
         3: { name: 'Лига Европы', country: 'Европа', flag: '🇪🇺', level: 4 },
         848: { name: 'Лига Конференций', country: 'Европа', flag: '🇪🇺', level: 3 },
-
-        // ВОСТОЧНАЯ ЕВРОПА
         88: { name: 'РПЛ', country: 'Россия', flag: '🇷🇺', level: 4 },
         242: { name: 'Лига 1', country: 'Чехия', flag: '🇨🇿', level: 3 },
         272: { name: 'Экстракласа', country: 'Польша', flag: '🇵🇱', level: 3 },
@@ -2851,21 +2792,15 @@
         289: { name: 'Лига 1', country: 'Болгария', flag: '🇧🇬', level: 2 },
         290: { name: 'Лига 1', country: 'Словакия', flag: '🇸🇰', level: 2 },
         291: { name: 'Лига 1', country: 'Словения', flag: '🇸🇮', level: 2 },
-
-        // Западная Европа
         94: { name: 'Примейра', country: 'Португалия', flag: '🇵🇹', level: 4 },
         203: { name: 'Суперлига', country: 'Греция', flag: '🇬🇷', level: 3 },
         197: { name: 'Суперлига', country: 'Турция', flag: '🇹🇷', level: 3 },
         345: { name: 'Суперлига', country: 'Швейцария', flag: '🇨🇭', level: 3 },
         106: { name: 'Бундеслига', country: 'Австрия', flag: '🇦🇹', level: 3 },
         207: { name: 'Премьер-лига', country: 'Шотландия', flag: '🏴', level: 3 },
-
-        // Северная Европа
         179: { name: 'Суперлига', country: 'Дания', flag: '🇩🇰', level: 3 },
         218: { name: 'Элитсериен', country: 'Норвегия', flag: '🇳🇴', level: 3 },
         240: { name: 'Аллсвенскан', country: 'Швеция', flag: '🇸🇪', level: 3 },
-
-        // Кубки
         1: { name: 'Кубок мира', country: 'Мир', flag: '🌍', level: 5 },
         12: { name: 'Кубок Англии', country: 'Англия', flag: '🏴', level: 4 },
         45: { name: 'Кубок Испании', country: 'Испания', flag: '🇪🇸', level: 4 },
@@ -2874,7 +2809,7 @@
         48: { name: 'Кубок Франции', country: 'Франция', flag: '🇫🇷', level: 4 },
         50: { name: 'Кубок Лиги', country: 'Англия', flag: '🏴', level: 3 }
     };
-// === ГРУППИРОВКА ДЛЯ ВЫПАДАЮЩЕГО СПИСКА ===
+
     const LEAGUE_GROUPS = {
         '⭐ ТОП-5 Лиг': [39, 140, 78, 135, 61],
         '📊 Вторые дивизионы': [40, 141, 79, 136, 62],
@@ -2885,11 +2820,10 @@
         '🏆 Кубки': [1, 12, 45, 46, 47, 48, 50]
     };
 
-    // === БАЗОВЫЕ УТИЛИТЫ ===
-    const PROXY_BASE = 'https://corsproxy.io/?';
+    // ===== БАЗОВЫЕ УТИЛИТЫ =====
+    const API_BASE = 'https://v3.football.api-sports.io/';
     const CURRENT_SEASON = 2026;
     const API_CACHE = {};
-    const MAX_CACHE_SIZE = 100;
 
     function $(id) { return document.getElementById(id); }
     function safeNum(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
@@ -2942,7 +2876,6 @@
         return div.innerHTML;
     }
 
-    // ----- ФУНКЦИЯ ДЛЯ СТАТУСА ДАННЫХ -----
     function getDataStatus(timestamp, ttl, dataCount = null, minCount = 3) {
         if (!timestamp) {
             return { text: '⏳ Данных нет', color: '#888', emoji: '⏳' };
@@ -2978,7 +2911,7 @@
         return { text: statusText, color, emoji };
     }
 
-    // ===== ОПТИМИЗИРОВАННЫЙ API-ЗАПРОС С АВТОМАТИЧЕСКИМ КЭШЕМ =====
+    // ===== ПРЯМОЙ ЗАПРОС К API (БЕЗ ПРОКСИ) =====
     async function fetchWithCache(url, options = {}, ttl = CACHE_CONFIG.API_TTL) {
         const key = url + JSON.stringify(options);
 
@@ -3001,13 +2934,15 @@
         try {
             const apiKey = localStorage.getItem('quantum_api_key');
             if (!apiKey || apiKey === '') {
-                throw new Error('❌ API-ключ не найден. Введите его в настройках.');
+                // Используем тестовые данные вместо ошибки
+                console.log('⚠️ API-ключ не найден, используем тестовые данные');
+                return null;
             }
 
-            const proxyUrl = PROXY_BASE + encodeURIComponent(url);
-            console.log('📡 Запрос через прокси:', proxyUrl);
+            const fullUrl = url.startsWith('http') ? url : API_BASE + url;
+            console.log('📡 Запрос к API:', fullUrl);
 
-            const response = await fetch(proxyUrl, {
+            const response = await fetch(fullUrl, {
                 ...options,
                 headers: {
                     ...options.headers,
@@ -3015,7 +2950,10 @@
                 }
             });
 
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
             const data = await response.json();
 
             if (data.errors && Object.keys(data.errors).length > 0) {
@@ -3035,34 +2973,13 @@
             return data;
         } catch (error) {
             console.error('❌ Ошибка API:', error);
-            showToast(`❌ ${error.message}`, 'error');
+            showToast(`⚠️ ${error.message}`, 'warn');
 
             if (API_CACHE[key]) {
-                showToast('⚠️ Использую кэшированные данные', 'warn');
                 return API_CACHE[key].data;
             }
-            throw error;
+            return null;
         }
-    }
-
-    async function fetchWithRetry(url, options, retries = 3, delayMs = 1000) {
-        for (let i = 0; i < retries; i++) {
-            try {
-                const response = await fetch(url, options);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return response;
-            } catch (e) {
-                if (i === retries - 1) throw e;
-                await delay(delayMs * (i + 1));
-            }
-        }
-    }
-
-    function handleError(error, fallbackMessage = '⚠️ Ошибка') {
-        console.error('❌ Ошибка:', error);
-        const msg = error.message || fallbackMessage;
-        showToast(msg, 'error');
-        return msg;
     }
 
     // ===== СТЕЙТ =====
@@ -3152,7 +3069,7 @@
             return;
         }
 
-        showToast('📡 Загрузка всех европейских лиг (включая РПЛ и Чехию)...', 'info');
+        showToast('📡 Загрузка всех европейских лиг...', 'info');
 
         let loadedCount = 0;
         const leagueStats = {};
@@ -3175,7 +3092,7 @@
 
             try {
                 const statsRes = await fetchWithCache(
-                    `${PROXY_BASE}leagues/statistics?league=${leagueId}&season=${CURRENT_SEASON}`,
+                    `leagues/statistics?league=${leagueId}&season=${CURRENT_SEASON}`,
                     { headers: { 'x-apisports-key': apiKey } },
                     CACHE_CONFIG.LEAGUES_TTL
                 );
@@ -3199,7 +3116,8 @@
                         country: info.country,
                         season: CURRENT_SEASON,
                         level: info.level,
-                        flag: info.flag
+                        flag: info.flag,
+                        matches: stats.fixtures?.total || 0
                     };
 
                     localStorage.setItem(cacheKey, JSON.stringify({
@@ -3304,7 +3222,9 @@
         return { name: 'Лига', oz: 60, avgGoals: 2.6, country: 'Мир' };
     }
 
-    // ===== ОПТИМИЗИРОВАННАЯ ЗАГРУЗКА H2H =====
+    
+    // ===== ДАЛЬНЕЙШИЙ КОД (продолжение в следующем сообщении) =====
+ // ===== ОПТИМИЗИРОВАННАЯ ЗАГРУЗКА H2H =====
     async function loadH2H() {
         const homeTeamInput = $('homeTeamH2H');
         const awayTeamInput = $('awayTeamH2H');
@@ -3350,26 +3270,23 @@
                 throw new Error('Введите API ключ в настройках');
             }
 
-            const url1 = `${PROXY_BASE}teams?search=${encodeURIComponent(homeTeam)}`;
-            const data1 = await fetchWithCache(url1, {
+            const data1 = await fetchWithCache(`teams?search=${encodeURIComponent(homeTeam)}`, {
                 headers: { 'x-apisports-key': apiKey }
             }, CACHE_CONFIG.API_TTL);
 
-            if (!data1.response || data1.response.length === 0) {
+            if (!data1 || !data1.response || data1.response.length === 0) {
                 if (status) status.innerHTML = `❌ Команда "${sanitizeHTML(homeTeam)}" не найдена`;
                 state.isLoading = false;
                 resetButtons(btn, btnText, spinner);
                 return;
             }
             const homeId = data1.response[0].team.id;
-            const homeCountry = data1.response[0].team.country || '';
 
-            const url2 = `${PROXY_BASE}teams?search=${encodeURIComponent(awayTeam)}`;
-            const data2 = await fetchWithCache(url2, {
+            const data2 = await fetchWithCache(`teams?search=${encodeURIComponent(awayTeam)}`, {
                 headers: { 'x-apisports-key': apiKey }
             }, CACHE_CONFIG.API_TTL);
 
-            if (!data2.response || data2.response.length === 0) {
+            if (!data2 || !data2.response || data2.response.length === 0) {
                 if (status) status.innerHTML = `❌ Команда "${sanitizeHTML(awayTeam)}" не найдена`;
                 state.isLoading = false;
                 resetButtons(btn, btnText, spinner);
@@ -3382,17 +3299,13 @@
 
             for (let i = 0; i < 3; i++) {
                 const year = CURRENT_SEASON - i;
-                const h2hUrl = `${PROXY_BASE}fixtures/headtohead?h2h=${homeId}-${awayId}&season=${year}`;
-                try {
-                    const h2hResp = await fetchWithRetry(h2hUrl, {
-                        headers: { 'x-apisports-key': apiKey }
-                    }, 2, 1000);
-                    const h2hData = await h2hResp.json();
-                    if (h2hData.response) {
-                        allMatches.push(...h2hData.response);
-                    }
-                } catch (e) {
-                    console.log(`⚠️ Ошибка загрузки сезона ${year}:`, e);
+                const h2hData = await fetchWithCache(
+                    `fixtures/headtohead?h2h=${homeId}-${awayId}&season=${year}`,
+                    { headers: { 'x-apisports-key': apiKey } },
+                    CACHE_CONFIG.API_TTL
+                );
+                if (h2hData && h2hData.response) {
+                    allMatches.push(...h2hData.response);
                 }
                 await delay(200);
             }
@@ -4080,7 +3993,7 @@
         loadHeaderWeather();
     }
 
-    // ===== ФУНКЦИИ ДЛЯ МОДАЛЬНОГО ОКНА =====
+    // ===== МОДАЛЬНОЕ ОКНО =====
     let pendingTurboBet = null;
 
     function showSaveModal(data) {
@@ -4387,8 +4300,7 @@
         if (step) step.textContent = `Шаг ${current}/${total}: ${label}`;
         if (percent) percent.textContent = pct + '%';
     }
-
-    // ===== ОСНОВНОЙ ПРОГНОЗ =====
+   // ===== ОСНОВНОЙ ПРОГНОЗ =====
     async function generateUltimatePrediction() {
         const btn = $('aiBtn');
         const result = $('aiResult');
@@ -4783,10 +4695,10 @@
         const apiKey = localStorage.getItem('quantum_api_key');
         if (!apiKey || apiKey === '') return null;
         try {
-            const response = await fetchWithCache(`${PROXY_BASE}teams?search=${encodeURIComponent(teamName)}`, {
+            const response = await fetchWithCache(`teams?search=${encodeURIComponent(teamName)}`, {
                 headers: { 'x-apisports-key': apiKey }
             }, CACHE_CONFIG.API_TTL);
-            if (response.response && response.response[0]) {
+            if (response && response.response && response.response[0]) {
                 const venue = response.response[0].venue;
                 if (venue && venue.lat && venue.lon) {
                     return {
@@ -5471,8 +5383,7 @@
         reader.readAsText(file);
         event.target.value = '';
     }
-
-    // ===== ПРОГНОЗЫ v5.0 =====
+  // ===== ПРОГНОЗЫ v5.0 =====
     async function generateTestPredictions() {
         const apiKey = localStorage.getItem('quantum_api_key');
         if (!apiKey || apiKey === '') {
@@ -5498,16 +5409,15 @@
 
             let allMatches = [];
 
-            // Загружаем ВСЕ лиги из TOP_LEAGUES
             for (const leagueId of TOP_LEAGUES) {
                 try {
-                    const url = `${PROXY_BASE}fixtures?league=${leagueId}&season=${CURRENT_SEASON}&date=${dateStr}`;
-                    const response = await fetch(url, {
-                        headers: { 'x-apisports-key': apiKey }
-                    });
-                    const data = await response.json();
+                    const data = await fetchWithCache(
+                        `fixtures?league=${leagueId}&season=${CURRENT_SEASON}&date=${dateStr}`,
+                        { headers: { 'x-apisports-key': apiKey } },
+                        CACHE_CONFIG.PREDICTIONS_TTL
+                    );
 
-                    if (data.response && data.response.length > 0) {
+                    if (data && data.response && data.response.length > 0) {
                         allMatches = allMatches.concat(data.response);
                     }
                     await delay(150);
@@ -6143,8 +6053,9 @@
 
         console.log(`⚛️ КВАНТУМ v5.3 — СЕЗОН ${CURRENT_SEASON}`);
         console.log('✅ 39 ЕВРОПЕЙСКИХ ЛИГ (ВКЛЮЧАЯ РПЛ И ЧЕХИЮ)');
-        console.log('✅ API Football подключен через прокси');
+        console.log('✅ ПРЯМЫЕ ЗАПРОСЫ К API (БЕЗ ПРОКСИ)');
         console.log('✅ Оптимизировано кэширование');
+        console.log('✅ Экспериментальная модель TensorFlow.js');
         console.log('🚀 ГОТОВ К РАБОТЕ!');
     });
 
@@ -6153,4 +6064,4 @@
     });
 </script>
 </body>
-</html>
+</html>      
