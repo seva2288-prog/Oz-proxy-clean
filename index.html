@@ -2045,3 +2045,971 @@
     </style>
 </head>
 <body>
+<!-- ===== ШАПКА ===== -->
+    <header class="header">
+        <h1>⚛️ Квантум <span>v5.3</span></h1>
+        <div class="header-actions">
+            <div class="header-weather" id="headerWeather" onclick="refreshWeather()" title="Нажмите для обновления погоды">
+                <span class="weather-icon" id="weatherIconHeader">⏳</span>
+                <span class="weather-temp" id="weatherTempHeader">--°C</span>
+                <span class="weather-desc" id="weatherDescHeader">Загрузка...</span>
+            </div>
+            <button onclick="toggleTheme()" id="themeBtn" title="Сменить тему">🌙</button>
+            <button onclick="resetAll()" title="Сбросить всё">🔄</button>
+        </div>
+    </header>
+
+    <!-- ===== ОСНОВНОЙ КОНТЕНТ ===== -->
+    <div class="main-content" id="mainContent">
+
+        <!-- ============================================================
+        ЭКРАН 1: АНАЛИЗ
+        ============================================================ -->
+        <div class="screen active" id="analysisScreen">
+            <div class="league-info-card" id="leagueInfoCard" style="display:none;">
+                <div class="league-name" id="leagueNameDisplay">🏆 Лига</div>
+                <div class="league-details" id="leagueDetailsDisplay">
+                    <span>🌍 Страна: <span class="num" id="leagueCountry">--</span></span>
+                    <span>📅 Сезон: <span class="num" id="leagueSeason">--</span></span>
+                    <span>📈 Ср.тотал: <span class="num" id="leagueAvgGoals">--</span></span>
+                    <span>⚽ ОЗ: <span class="num" id="leagueOz">--</span></span>
+                    <span>📊 Матчей: <span class="num" id="leagueMatches">--</span></span>
+                    <span id="leagueDataStatus" style="color:var(--text-secondary);font-size:9px;"></span>
+                </div>
+            </div>
+
+            <div class="mode-wrap" id="modeTabs">
+                <button class="mode-btn active" data-mode="total" onclick="switchMode('total',this)">⚽ Тотал</button>
+                <button class="mode-btn" data-mode="oz" onclick="switchMode('oz',this)">⚽ ОЗ</button>
+                <button class="mode-btn" data-mode="fora" onclick="switchMode('fora',this)">⚖️ Фора</button>
+            </div>
+
+            <div id="inputArea">
+                <div class="input-group">
+                    <div class="field">
+                        <label>🏠 Хозяева</label>
+                        <input type="number" id="homeGoals" value="0" min="0" oninput="updateSum(); calculateDebounced();" />
+                    </div>
+                    <div class="field">
+                        <label>✈️ Гости</label>
+                        <input type="number" id="awayGoals" value="0" min="0" oninput="updateSum(); calculateDebounced();" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="total-display">
+                <div class="label">📈 Сумма голов</div>
+                <div class="value" id="sumDisplay">0</div>
+            </div>
+
+            <button class="btn btn-primary" onclick="calculate()">⚡ Рассчитать</button>
+
+            <div class="action-row">
+                <button class="btn btn-success" onclick="saveBet()">💾 Записать</button>
+                <button class="btn btn-danger" onclick="clearAll()">🗑️ Очистить</button>
+            </div>
+
+            <div class="card">
+                <div class="result-grid">
+                    <div class="item">
+                        <div class="label" id="resLabel1">Ожидаемый</div>
+                        <div class="value" id="resValue1">--</div>
+                    </div>
+                    <div class="item">
+                        <div class="label">Линия БК</div>
+                        <div class="value" id="resValue2">--</div>
+                    </div>
+                    <div class="item">
+                        <div class="label">Разница</div>
+                        <div class="value" id="resValue3">--</div>
+                    </div>
+                </div>
+                <div class="advice info" id="resAdvice">⏳ Введите данные для расчёта</div>
+                <div class="confidence-label">
+                    <span>📊 Индекс доверия</span>
+                    <span id="confidenceLabel">0%</span>
+                </div>
+                <div class="confidence-bar"><div class="fill" id="confidenceFill" style="width:0%"></div></div>
+            </div>
+
+            <div class="explanation-card" id="explanationCard" style="display:none;">
+                <div class="card-title">🔍 Что повлияло на прогноз</div>
+                <div class="contributions" id="explanationContributions"></div>
+                <div class="confidence-interval" id="explanationCI"></div>
+            </div>
+
+            <div class="value-container" id="valueContainer" style="display:none;">
+                <h3>💰 Value Betting</h3>
+                <div id="valueContent"></div>
+            </div>
+
+            <div class="ai-card">
+                <div class="card-title">🧠 AI-прогноз (экспериментальный)</div>
+                <button class="btn btn-purple" id="aiBtn" onclick="generateUltimatePrediction()">
+                    <span>🤖</span> Сгенерировать прогноз
+                </button>
+                <div class="ai-result" id="aiResult" style="display:none;">
+                    <div class="ai-score-box">
+                        <div class="score-item">
+                            <div class="num" id="aiHomeScore">0</div>
+                            <div class="label">🏠 AI Хозяева</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="num" id="aiAwayScore">0</div>
+                            <div class="label">✈️ AI Гости</div>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <span class="label">📋 Форма команд:</span>
+                        <span id="aiFormText">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">🧠 xG прогноз:</span>
+                        <span class="value" id="aiXG">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">📉 xGA прогноз:</span>
+                        <span class="value" id="aiXGA">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">🔥 Вероятность ОЗ:</span>
+                        <span class="value" id="aiOzProb">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">📊 Уверенность:</span>
+                        <span class="value" id="aiConfidence">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">📈 Тренд голов:</span>
+                        <span class="value" id="aiTrend">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">⚡ Средний тотал:</span>
+                        <span class="value" id="aiAvgTotal">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">📊 Poisson прогноз:</span>
+                        <span class="value" id="aiPoisson">—</span>
+                    </div>
+                    <div class="section">
+                        <span class="label">🎯 Итоговая оценка:</span>
+                        <span class="value" id="aiEnsemble">—</span>
+                    </div>
+                    <div class="detective-card" id="detectiveCard" style="display:none;">
+                        <div class="card-title">🕵️ Дополнительный анализ</div>
+                        <div id="detectiveContent"></div>
+                    </div>
+                    <div class="recommendation">
+                        <div class="label">🎯 РЕКОМЕНДАЦИЯ:</div>
+                        <div class="big" id="aiRecommendation">—</div>
+                        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;" id="aiAdvice">—</div>
+                    </div>
+                    <div id="aiDataStatus" style="font-size:9px;color:var(--text-secondary);margin-top:4px;text-align:center;"></div>
+                </div>
+            </div>
+
+            <div class="weather-card" id="weatherCard">
+                <div class="card-title">🌤️ Погода на стадионе</div>
+                <div class="weather-input-row">
+                    <input type="text" id="cityWeatherInput" placeholder="Введите город (например: London)" class="weather-input">
+                    <button onclick="loadWeatherByCity()">🔍</button>
+                </div>
+                <div id="weatherCardContent">
+                    <div class="weather-loading-text" style="color:var(--text-secondary);text-align:center;padding:8px 0;">⏳ Загрузка погоды...</div>
+                </div>
+                <div id="weatherDataStatus" style="font-size:9px;color:var(--text-secondary);margin-top:4px;text-align:center;"></div>
+            </div>
+
+            <div class="insights-card" id="smartInsightsCard" style="display:none;">
+                <div class="card-title">🧠 Краткие выводы</div>
+                <div class="insight-summary" id="smartSummary">—</div>
+                <ul class="insight-details" id="smartDetails"></ul>
+                <div class="insight-recommendation" id="smartRecommendation">—</div>
+                <div class="insight-warnings" id="smartWarnings"></div>
+                <div class="insight-score">📊 Оценка: <span class="num" id="smartScore">0</span>%</div>
+            </div>
+
+            <div class="disclaimer">Это аналитический инструмент, а не рекомендация к ставкам. Решения принимаете вы.</div>
+        </div>
+
+        <!-- ============================================================
+        ЭКРАН 2: ПОИСК H2H
+        ============================================================ -->
+        <div class="screen" id="searchScreen">
+            <div class="card">
+                <div class="card-title">🔍 Поиск H2H + Статистика</div>
+                <div class="input-group">
+                    <div class="field">
+                        <label>🏠 Хозяева</label>
+                        <input type="text" id="homeTeamH2H" placeholder="Например: Real Madrid" />
+                    </div>
+                    <div class="field">
+                        <label>✈️ Гости</label>
+                        <input type="text" id="awayTeamH2H" placeholder="Например: Barcelona" />
+                    </div>
+                </div>
+                <button class="btn btn-info" id="loadH2HBtn" onclick="loadH2H()">
+                    <span id="loadBtnText">📊 Загрузить H2H</span>
+                    <span id="loadSpinner" style="display:none;"><span class="spinner"></span></span>
+                </button>
+                <div id="h2hContainer">
+                    <div id="h2hStatus" style="color:var(--text-secondary);font-size:12px;padding:4px 0;">Введите команды и нажмите "Загрузить H2H"</div>
+                    <div id="h2hDataStatus" style="font-size:9px;color:var(--text-secondary);margin-top:2px;"></div>
+                    <div class="h2h-results" id="h2hResults"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📊 Детальная статистика команд</div>
+                <div id="teamStatsContainer">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <div id="homeTeamStats" style="background:var(--bg-input);padding:10px;border-radius:var(--radius-sm);text-align:center;">
+                            <div style="font-size:11px;color:var(--text-secondary);">🏠 Статистика хозяев</div>
+                            <div id="homeStatsContent" style="margin-top:4px;">—</div>
+                        </div>
+                        <div id="awayTeamStats" style="background:var(--bg-input);padding:10px;border-radius:var(--radius-sm);text-align:center;">
+                            <div style="font-size:11px;color:var(--text-secondary);">✈️ Статистика гостей</div>
+                            <div id="awayStatsContent" style="margin-top:4px;">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="disclaimer">Это аналитический инструмент, а не рекомендация к ставкам. Решения принимаете вы.</div>
+        </div>
+
+        <!-- ============================================================
+        ЭКРАН 3: СТАТИСТИКА / ДАШБОРД
+        ============================================================ -->
+        <div class="screen" id="statsScreen">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="label">📊 ROI</div>
+                    <div class="value" id="kpiROIDisplay">0%</div>
+                    <div class="trend" id="kpiROITrend">📈 За месяц</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="label">🎯 Точность AI</div>
+                    <div class="value" id="kpiAIDisplay">0%</div>
+                    <div class="trend" id="kpiAITrend">✅ Обучен</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="label">💰 Прибыль</div>
+                    <div class="value" id="kpiProfitDisplay">0</div>
+                    <div class="trend" id="kpiProfitTrend">📊 Ставок: 0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="label">🏆 Value ставки</div>
+                    <div class="value" id="kpiValueDisplay">0%</div>
+                    <div class="trend" id="kpiValueTrend">✅ +0%</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="card-title">📈 График баланса</div>
+                <canvas id="balanceChart" height="80"></canvas>
+                <div class="chart-controls">
+                    <button class="time-range" data-range="7d" onclick="setChartRange('7d')">7д</button>
+                    <button class="time-range active" data-range="30d" onclick="setChartRange('30d')">30д</button>
+                    <button class="time-range" data-range="90d" onclick="setChartRange('90d')">90д</button>
+                    <button class="time-range" data-range="all" onclick="setChartRange('all')">Всё</button>
+                </div>
+            </div>
+
+            <div class="shap-container" id="shapContainer">
+                <h3>🔍 Влияние факторов на прогноз</h3>
+                <div id="shapVisualization"><div class="text-muted text-center" style="padding:10px 0;">Нет данных для анализа</div></div>
+            </div>
+
+            <div class="value-container">
+                <h3>💰 Найденные Value-ставки</h3>
+                <div id="valueBetsList"><div class="text-muted text-center" style="padding:10px 0;">Пока нет value-ставок</div></div>
+            </div>
+
+            <div class="live-container" id="liveDashboard" style="display:none;">
+                <h3>🔴 Live аналитика</h3>
+                <div id="liveAnalytics">
+                    <div class="momentum-indicator">
+                        <div class="team home" id="liveHomeTeam">⚽ Хозяева</div>
+                        <div class="momentum-bar">
+                            <div class="bar home" id="liveHomeBar" style="width:50%"></div>
+                            <div class="bar away" id="liveAwayBar" style="width:50%"></div>
+                        </div>
+                        <div class="team away" id="liveAwayTeam">✈️ Гости</div>
+                    </div>
+                    <div class="in-play-prob" id="liveProbabilities">
+                        <div>⏳ Ожидание данных...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div style="display:flex;justify-content:space-between;margin:4px 0;">
+                    <span style="font-size:14px;font-weight:700;color:var(--accent);">📜 История</span>
+                    <button onclick="clearHistory()" class="btn btn-danger btn-sm" style="padding:4px 12px;font-size:10px;width:auto;">🗑️</button>
+                </div>
+                <div id="historyList"><div class="text-muted text-center" style="padding:10px 0;">Нет ставок</div></div>
+            </div>
+
+            <div class="card" style="border-left:4px solid var(--accent);margin-top:6px;">
+                <div class="card-title">🧠 Краткие выводы</div>
+                <div id="insightsContent"><div class="text-muted text-center" style="padding:6px 0;">Нет данных</div></div>
+            </div>
+
+            <div class="disclaimer">Это аналитический инструмент, а не рекомендация к ставкам. Решения принимаете вы.</div>
+        </div>
+
+        <!-- ============================================================
+        ЭКРАН 4: ПРОГНОЗЫ v5.0
+        ============================================================ -->
+        <div class="screen" id="liveScreen">
+            <div class="card">
+                <div class="predictions-header">
+                    <div class="card-title" style="margin-bottom:0;">🔮 Актуальные прогнозы <span id="predictionsCount" style="font-size:10px;color:var(--text-secondary);"></span></div>
+                    <button class="refresh-btn" id="refreshPredictionsBtn" onclick="refreshPredictions()">
+                        <span id="refreshIcon">🔄</span> Обновить
+                    </button>
+                </div>
+
+                <div class="predictions-filter-bar">
+                    <button class="active" data-filter="time" data-value="6h" onclick="setTimeFilter('6h',this)">⏱ Ближайшие 6ч</button>
+                    <button data-filter="time" data-value="today" onclick="setTimeFilter('today',this)">📅 Сегодня</button>
+                    <button data-filter="time" data-value="tomorrow" onclick="setTimeFilter('tomorrow',this)">📅 Завтра</button>
+                    <button data-filter="time" data-value="week" onclick="setTimeFilter('week',this)">📅 Эта неделя</button>
+                </div>
+
+                <div class="predictions-filter-bar" style="flex-wrap:wrap;">
+                    <select id="filterTotal" onchange="applyFilters()">
+                        <option value="all">Все тоталы</option>
+                        <option value="over1.5">ОВЕР 1.5</option>
+                        <option value="under1.5">АНДЕР 1.5</option>
+                        <option value="over2.5">ОВЕР 2.5</option>
+                        <option value="under2.5">АНДЕР 2.5</option>
+                        <option value="over3.5">ОВЕР 3.5</option>
+                        <option value="under3.5">АНДЕР 3.5</option>
+                    </select>
+                    <select id="filterLeague" onchange="applyFilters()">
+                        <option value="all">🌍 Все лиги</option>
+                    </select>
+                    <select id="filterConfidence" onchange="applyFilters()">
+                        <option value="0">Мин. уверенность</option>
+                        <option value="50">≥ 50%</option>
+                        <option value="60">≥ 60%</option>
+                        <option value="70">≥ 70%</option>
+                        <option value="80">≥ 80%</option>
+                        <option value="90">≥ 90%</option>
+                    </select>
+                    <select id="filterType" onchange="applyFilters()">
+                        <option value="all">Все прогнозы</option>
+                        <option value="oz">ОЗ</option>
+                        <option value="total">Тотал</option>
+                        <option value="fora">Фора</option>
+                    </select>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-secondary);">
+                        <input type="checkbox" id="filterLiveOdds" onchange="applyFilters()"> Только с live-коэф.
+                    </label>
+                </div>
+
+                <div id="predictionsContainer">
+                    <div class="empty-state" id="predictionsEmpty">⏳ Загрузка прогнозов...</div>
+                    <div class="predictions-list" id="predictionsList"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📊 История прогнозов <span style="font-size:10px;color:var(--text-secondary);">(сыгранные матчи)</span></div>
+                <div id="historyPredictionsContainer">
+                    <div class="empty-state">Нет сыгранных прогнозов</div>
+                    <div class="predictions-list" id="historyPredictionsList"></div>
+                </div>
+                <div class="history-stats-mini" id="historyStatsMini">
+                    <span class="stat">✅ Побед: <span class="num" id="histWins">0</span></span>
+                    <span class="stat">❌ Поражений: <span class="num" id="histLosses">0</span></span>
+                    <span class="stat">📊 Точность: <span class="num" id="histAccuracy">0%</span></span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📊 Тренды и прогнозы</div>
+                <div id="trendsContainer">
+                    <div class="text-muted text-center" style="padding:10px 0;">Анализ трендов...</div>
+                </div>
+            </div>
+
+            <div class="disclaimer">Это аналитический инструмент, а не рекомендация к ставкам. Решения принимаете вы.</div>
+        </div>
+
+        <!-- ============================================================
+        ЭКРАН 5: НАСТРОЙКИ
+        ============================================================ -->
+        <div class="screen" id="settingsScreen">
+            <div class="card">
+                <div class="card-title">⚙️ Настройки</div>
+
+                <div class="settings-item">
+                    <span class="label">🎨 Тема</span>
+                    <button class="toggle-btn" id="themeToggle" onclick="toggleTheme()">🌙 Тёмная</button>
+                </div>
+
+                <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;">
+                    <span class="label">🔑 API ключ (платный)</span>
+                    <input type="password" id="apiKeyInput" placeholder="Вставьте ваш платный API ключ" style="padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border-color);background:var(--bg-input);color:var(--text-primary);outline:none;">
+                    <button onclick="saveApiKey()" style="padding:10px;border-radius:var(--radius-sm);border:1px solid var(--success);background:transparent;color:var(--success);cursor:pointer;font-weight:600;">💾 Сохранить ключ</button>
+                    <div id="apiStatus" style="font-size:11px;color:var(--text-secondary);"></div>
+                </div>
+
+                <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;">
+                    <span class="label">🌤️ OpenWeatherMap ключ (погода)</span>
+                    <input type="password" id="weatherKeyInput" placeholder="Вставьте ваш ключ погоды" style="padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border-color);background:var(--bg-input);color:var(--text-primary);outline:none;">
+                    <button onclick="saveWeatherKey()" style="padding:10px;border-radius:var(--radius-sm);border:1px solid var(--info);background:transparent;color:var(--info);cursor:pointer;font-weight:600;">💾 Сохранить ключ погоды</button>
+                    <div id="weatherStatus" style="font-size:11px;color:var(--text-secondary);"></div>
+                </div>
+
+                <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;">
+                    <span class="label">🧠 Экспериментальная модель</span>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn-purple btn-sm" id="trainAIBtn" onclick="trainUltimateAI()" style="flex:2;padding:8px;font-size:12px;">🧠 Обучить модель</button>
+                        <button class="btn btn-info btn-sm" onclick="updateAIStatus()" style="flex:1;padding:8px;font-size:12px;">🔄 Статус</button>
+                    </div>
+                    <div class="ai-training-status" id="aiTrainingStatus">
+                        <span><span class="status-dot untrained" id="aiStatusDot"></span><span id="aiStatusText">⏳ Не обучена</span></span>
+                        <span class="accuracy" id="aiAccuracyDisplay">—</span>
+                    </div>
+                    <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">📊 Требуется минимум 10 ставок</div>
+                    <div id="aiTrainLog" style="font-size:10px;color:var(--text-secondary);margin-top:4px;max-height:60px;overflow-y:auto;display:none;background:var(--bg-input);padding:6px 10px;border-radius:var(--radius-sm);"></div>
+                </div>
+
+                <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;border-bottom:none;padding-bottom:4px;">
+                    <span class="label">💾 Данные</span>
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="exportData()" style="flex:1;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--border-color);background:var(--bg-input);color:var(--text-primary);cursor:pointer;font-size:12px;">📦 Экспорт</button>
+                        <button onclick="document.getElementById('importFile').click()" style="flex:1;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--border-color);background:var(--bg-input);color:var(--text-primary);cursor:pointer;font-size:12px;">📥 Импорт</button>
+                        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+                    </div>
+                </div>
+
+                <div class="settings-item" style="border-bottom:none;padding-bottom:4px;">
+                    <span class="label">🗑️ Сброс</span>
+                    <button onclick="resetAll()" style="padding:6px 16px;border-radius:var(--radius-sm);border:1px solid var(--danger);background:transparent;color:var(--danger);cursor:pointer;font-size:12px;">Сбросить всё</button>
+                </div>
+
+                <div style="text-align:center;font-size:10px;color:var(--text-muted);margin-top:8px;border-top:1px solid var(--border-color);padding-top:8px;">
+                    ⚛️ Квантум v5.3 · Анализ на основе H2H, Poisson и погоды
+                </div>
+                <div class="disclaimer">Это аналитический инструмент, а не рекомендация к ставкам. Решения принимаете вы.</div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+        ЭКРАН 6: АССИСТЕНТ
+        ============================================================ -->
+        <div class="screen" id="assistantScreen">
+            <div class="assistant-card">
+                <div class="card-title">🧠 Ассистент</div>
+                <div class="assistant-chat" id="assistantChat">
+                    <div class="assistant-message ai">
+                        👋 Привет! Я ассистент Квантум v5.3.<br>
+                        Задай вопрос о ставках, прогнозах или анализе матчей.
+                        <div class="time">🤖 Ассистент</div>
+                    </div>
+                </div>
+                <div class="assistant-input-row">
+                    <input type="text" id="assistantInput" placeholder="Спроси меня о ставках..." onkeydown="if(event.key==='Enter') sendUltimateMessage()">
+                    <button onclick="sendUltimateMessage()">➤</button>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:8px;">
+                <div class="card-title">📊 Быстрые вопросы</div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                    <button class="btn btn-outline btn-sm" style="padding:6px 12px;font-size:11px;width:auto;" onclick="quickUltimateQuestion('Какой прогноз на сегодня?')">📈 Прогноз</button>
+                    <button class="btn btn-outline btn-sm" style="padding:6px 12px;font-size:11px;width:auto;" onclick="quickUltimateQuestion('Какая погода влияет на голы?')">🌤️ Погода</button>
+                    <button class="btn btn-outline btn-sm" style="padding:6px 12px;font-size:11px;width:auto;" onclick="quickUltimateQuestion('Почему такой прогноз?')">🔍 Объясни</button>
+                    <button class="btn btn-outline btn-sm" style="padding:6px 12px;font-size:11px;width:auto;" onclick="quickUltimateQuestion('Что такое Value Betting?')">💰 Value</button>
+                    <button class="btn btn-outline btn-sm" style="padding:6px 12px;font-size:11px;width:auto;" onclick="quickUltimateQuestion('Как улучшить точность ставок?')">🎯 Советы</button>
+                    <button class="btn btn-outline btn-sm" style="padding:6px 12px;font-size:11px;width:auto;" onclick="quickUltimateQuestion('Что такое дополнительный анализ?')">🕵️ Анализ</button>
+                    <button class="btn btn-outline btn-sm" style="padding:6px 12px;font-size:11px;width:auto;" onclick="quickUltimateQuestion('Сколько лиг доступно?')">🏆 Лиги</button>
+                </div>
+            </div>
+
+            <div class="disclaimer">Это аналитический инструмент, а не рекомендация к ставкам. Решения принимаете вы.</div>
+        </div>
+    </div>
+
+    <!-- ===== НИЖНЯЯ НАВИГАЦИЯ ===== -->
+    <div class="bottom-nav" id="bottomNav">
+        <button class="nav-btn active" data-tab="analysis" onclick="switchTab('analysis')">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Анализ</span>
+        </button>
+        <button class="nav-btn" data-tab="search" onclick="switchTab('search')">
+            <span class="nav-icon">🔍</span>
+            <span class="nav-label">Поиск</span>
+            <span class="badge" id="searchBadgeNav" style="display:none;">0</span>
+        </button>
+        <button class="nav-btn" data-tab="stats" onclick="switchTab('stats')">
+            <span class="nav-icon">📈</span>
+            <span class="nav-label">Стат</span>
+        </button>
+        <button class="nav-btn" data-tab="live" onclick="switchTab('live')">
+            <span class="nav-icon">🔮</span>
+            <span class="nav-label">Прогнозы</span>
+            <span class="badge" id="liveBadgeNav" style="display:none;">0</span>
+        </button>
+        <button class="nav-btn" data-tab="settings" onclick="switchTab('settings')">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">Настройки</span>
+        </button>
+        <button class="nav-btn" data-tab="assistant" onclick="switchTab('assistant')">
+            <span class="nav-icon">🧠</span>
+            <span class="nav-label">Ассистент</span>
+        </button>
+    </div>
+
+    <div class="swipe-indicator show" id="swipeIndicator">👆 Свайп влево/вправо</div>
+
+    <!-- ===== МОДАЛЬНОЕ ОКНО ===== -->
+    <div class="modal-overlay" id="saveModal">
+        <div class="modal-box">
+            <h3>💾 Сохранить ставку?</h3>
+            <div class="modal-result" id="modalResult">
+                <div><span class="label">🎯 Прогноз:</span> <span class="value" id="modalPrediction">—</span></div>
+                <div><span class="label">📊 Уверенность:</span> <span class="value" id="modalConfidence">—</span></div>
+                <div><span class="label">💰 Value:</span> <span class="value" id="modalValue">—</span></div>
+                <div><span class="label">🕵️ Анализ:</span> <span class="value" id="modalDetective">—</span></div>
+                <div><span class="label">🌤️ Погода:</span> <span class="value" id="modalWeather">—</span></div>
+            </div>
+            <div class="disclaimer" style="font-size:10px;color:var(--text-muted);text-align:center;margin:6px 0;">Это аналитический инструмент, а не рекомендация к ставкам. Решения принимаете вы.</div>
+            <div class="modal-actions">
+                <button class="btn-save-modal" id="modalSaveBtn" onclick="confirmSaveBet()">✅ Да, сохранить</button>
+                <button class="btn-skip-modal" onclick="closeSaveModal()">❌ Нет, только посмотреть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+    ===== ПОЛНЫЙ JAVASCRIPT (2800+ строк) =====
+    ================================================================ -->
+    <script>
+    // ================================================================
+    // КВАНТУМ v5.3 - ПОЛНАЯ ЛОГИКА
+    // СЕЗОН: 2025-2026
+    // ================================================================
+
+    // ---- ВСЕ 82 ЛИГИ ----
+    const ALL_LEAGUES = [
+        // === ЕВРОПЕЙСКИЕ ЛИГИ ===
+        // Россия
+        '🇷🇺 РПЛ', '🇷🇺 Первая лига', '🇷🇺 Вторая лига',
+        // Англия
+        '🏴 АПЛ', '🏴 Чемпионшип', '🏴 Лига 1',
+        // Испания
+        '🇪🇸 Ла Лига', '🇪🇸 Сегунда',
+        // Германия
+        '🇩🇪 Бундеслига', '🇩🇪 Бундеслига 2', '🇩🇪 Бундеслига 3',
+        // Италия
+        '🇮🇹 Серия А', '🇮🇹 Серия В', '🇮🇹 Серия С',
+        // Франция
+        '🇫🇷 Лига 1', '🇫🇷 Лига 2',
+        // Нидерланды
+        '🇳🇱 Эредивизи', '🇳🇱 Эрсте Дивизи',
+        // Португалия
+        '🇵🇹 Примейра', '🇵🇹 Сегунда',
+        // Бельгия
+        '🇧🇪 Про-лига', '🇧🇪 Челленджер-лига',
+        // Турция
+        '🇹🇷 Суперлига', '🇹🇷 Первая лига',
+        // Украина
+        '🇺🇦 УПЛ', '🇺🇦 Первая лига',
+        // Греция
+        '🇬🇷 Суперлига', '🇬🇷 Суперлига 2',
+        // Швейцария
+        '🇨🇭 Суперлига', '🇨🇭 Челлендж-лига',
+        // Австрия
+        '🇦🇹 Бундеслига', '🇦🇹 Вторая лига',
+        // Чехия
+        '🇨🇿 Первая лига', '🇨🇿 Вторая лига',
+        // Польша
+        '🇵🇱 Экстракласа', '🇵🇱 Первая лига',
+        // Дания
+        '🇩🇰 Суперлига', '🇩🇰 Первая лига',
+        // Норвегия
+        '🇳🇴 Элитсериен', '🇳🇴 Первая лига',
+        // Швеция
+        '🇸🇪 Аллсвенскан', '🇸🇪 Суперэттан',
+        // Финляндия
+        '🇫🇮 Вейккауслига',
+        // Хорватия
+        '🇭🇷 ХНЛ',
+        // Сербия
+        '🇷🇸 Суперлига',
+        // Словакия
+        '🇸🇰 Суперлига',
+        // Словения
+        '🇸🇮 Первая лига',
+        // Болгария
+        '🇧🇬 Первая лига',
+        // Румыния
+        '🇷🇴 Лига 1',
+        // Венгрия
+        '🇭🇺 НБ I',
+        // Израиль
+        '🇮🇱 Лига ХаАль',
+        // Шотландия
+        '🏴 Шотландский Премьершип',
+        // Ирландия
+        '🇮🇪 Ирландская Премьер-лига',
+        // Уэльс
+        '🏴 Уэльская Премьер-лига',
+        // Европейские кубки
+        '🏆 Лига Чемпионов', '🏆 Лига Европы', '🏆 Лига Конференций',
+        // Сборные
+        '🌍 Матчи сборных', '🌍 Отборочные ЧМ-2026', '🌍 Отборочные ЧЕ-2028',
+        '🌍 Лига Наций УЕФА', '🌍 Кубок Америки', '🌍 Кубок Африки',
+        // Национальные кубки
+        '🏆 Кубок Англии', '🏆 Кубок Испании', '🏆 Кубок Германии', '🏆 Кубок Италии',
+        // Америка
+        '🇺🇸 MLS', '🇲🇽 Лига MX', '🇧🇷 Бразилия', '🇦🇷 Аргентина', '🇨🇱 Чили', '🇨🇴 Колумбия',
+        // Азия
+        '🇯🇵 J1 Лига', '🇨🇳 Китай', '🇦🇺 A-Лига',
+        // Другие
+        '🇵🇾 Парагвай', '🇺🇾 Уругвай', '🇪🇨 Эквадор', '🇵🇪 Перу', '🇻🇪 Венесуэла',
+        '🇿🇦 ЮАР', '🇪🇬 Египет', '🇲🇦 Марокко', '🇳🇬 Нигерия',
+        '🇸🇦 Саудовская Аравия', '🇦🇪 ОАЭ', '🇶🇦 Катар', '🇰🇷 Южная Корея'
+    ];
+
+    // ---- КОНФИГУРАЦИЯ ----
+    const CACHE_CONFIG = {
+        H2H_TTL: 7 * 24 * 60 * 60 * 1000,
+        LEAGUES_TTL: 24 * 60 * 60 * 1000,
+        PREDICTIONS_TTL: 2 * 60 * 60 * 1000,
+        WEATHER_TTL: 2 * 60 * 60 * 1000,
+        API_TTL: 24 * 60 * 60 * 1000,
+        UPDATE_INTERVAL: 30 * 60 * 1000
+    };
+
+    const CURRENT_SEASON = 2026;
+    const PROXY_BASE = 'https://oz-proxy-clean.onrender.com/api/';
+
+    // ---- БАЗОВЫЕ УТИЛИТЫ ----
+    function $(id) { return document.getElementById(id); }
+    function safeNum(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+    function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+    function showToast(msg, type = 'info') {
+        const old = document.querySelector('.toast');
+        if (old) old.remove();
+        const t = document.createElement('div');
+        t.className = 'toast ' + type;
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => { if (t.parentNode) t.remove(); }, 3500);
+    }
+
+    function sanitizeHTML(str) {
+        if (!str) return '—';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function getDataStatus(timestamp, ttl, dataCount = null, minCount = 3) {
+        if (!timestamp) return { text: '⏳ Данных нет', color: 'var(--text-secondary)' };
+        const age = Date.now() - timestamp;
+        const isFresh = age < ttl / 2;
+        const isCached = age < ttl;
+        let statusText = isFresh ? '✅ Данные свежие' : (isCached ? '📦 Из кэша' : '⚠️ Данные устарели');
+        let color = isFresh ? 'var(--success)' : (isCached ? 'var(--warning)' : 'var(--danger)');
+        if (dataCount !== null && dataCount < minCount) {
+            statusText += ' · Мало данных (' + dataCount + ')';
+            color = 'var(--warning)';
+        }
+        return { text: statusText, color: color };
+    }
+
+    function debounce(fn, delayMs = 300) {
+        let timer;
+        return function(...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), delayMs);
+        };
+    }
+
+    function randomBetween(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function formatDate(date) {
+        return new Date(date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function formatTime(date) {
+        return new Date(date).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function getFlag(country) {
+        const flags = {
+            'Россия': '🇷🇺', 'Англия': '🏴', 'Испания': '🇪🇸', 'Германия': '🇩🇪',
+            'Италия': '🇮🇹', 'Франция': '🇫🇷', 'Нидерланды': '🇳🇱', 'Португалия': '🇵🇹',
+            'Бельгия': '🇧🇪', 'Турция': '🇹🇷', 'Украина': '🇺🇦', 'Греция': '🇬🇷',
+            'Швейцария': '🇨🇭', 'Австрия': '🇦🇹', 'Чехия': '🇨🇿', 'Польша': '🇵🇱',
+            'Дания': '🇩🇰', 'Норвегия': '🇳🇴', 'Швеция': '🇸🇪', 'Финляндия': '🇫🇮',
+            'Хорватия': '🇭🇷', 'Сербия': '🇷🇸', 'Словакия': '🇸🇰', 'Словения': '🇸🇮',
+            'Болгария': '🇧🇬', 'Румыния': '🇷🇴', 'Венгрия': '🇭🇺', 'Израиль': '🇮🇱',
+            'Шотландия': '🏴', 'Ирландия': '🇮🇪', 'Уэльс': '🏴', 'США': '🇺🇸',
+            'Мексика': '🇲🇽', 'Бразилия': '🇧🇷', 'Аргентина': '🇦🇷', 'Чили': '🇨🇱',
+            'Колумбия': '🇨🇴', 'Япония': '🇯🇵', 'Китай': '🇨🇳', 'Австралия': '🇦🇺',
+            'Парагвай': '🇵🇾', 'Уругвай': '🇺🇾', 'Эквадор': '🇪🇨', 'Перу': '🇵🇪',
+            'Венесуэла': '🇻🇪', 'ЮАР': '🇿🇦', 'Египет': '🇪🇬', 'Марокко': '🇲🇦',
+            'Нигерия': '🇳🇬', 'Саудовская Аравия': '🇸🇦', 'ОАЭ': '🇦🇪', 'Катар': '🇶🇦',
+            'Южная Корея': '🇰🇷', 'Европа': '🌍', 'Мир': '🌍'
+        };
+        return flags[country] || '🌍';
+    }
+
+    // ---- СОСТОЯНИЕ ----
+    let state = {
+        bets: JSON.parse(localStorage.getItem('quantum_bets') || '[]'),
+        currentLeague: localStorage.getItem('quantum_league') || '39',
+        currentMode: 'total',
+        h2hData: null,
+        h2hTimestamp: null,
+        isLoading: false,
+        liveTimer: null,
+        currentOdds: null,
+        apiKey: localStorage.getItem('quantum_api_key') || '',
+        currentTab: 'analysis',
+        teamStats: {},
+        liveMatches: [],
+        trends: {},
+        injuries: {},
+        xgData: {},
+        isCalculating: false,
+        weatherData: null,
+        weatherTimestamp: null,
+        headerWeather: null,
+        headerWeatherTimestamp: null,
+        currentLeagueData: null,
+        assistantHistory: JSON.parse(localStorage.getItem('quantum_assistant') || '[]'),
+        chartRange: '30d',
+        valueBets: JSON.parse(localStorage.getItem('quantum_value_bets') || '[]'),
+        shapData: null,
+        livePredictions: {},
+        ultimateModel: null,
+        modelAccuracy: 0,
+        modelFeatures: 32,
+        predictions: [],
+        timeFilter: '6h',
+        totalFilter: 'all',
+        leagueFilter: 'all',
+        confidenceFilter: 0,
+        typeFilter: 'all',
+        liveOddsFilter: false,
+        lastUpdate: null,
+        updateTimer: null,
+        notifiedMatches: new Set(),
+        turboAnalysisResults: {},
+        isTurboRunning: false,
+        balanceChart: null
+    };
+
+    let LEAGUES = JSON.parse(localStorage.getItem('quantum_leagues') || '{}');
+    let ALL_LEAGUES_LOADED = false;
+    let globalChartInstance = null;
+
+    // ================================================================
+    // ===== ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ ФИЛЬТРА ЛИГ =====
+    // ================================================================
+
+    function updateLeagueFilter() {
+        console.log('🔄 Обновление фильтра лиг (все ' + ALL_LEAGUES.length + ')...');
+        const select = document.getElementById('filterLeague');
+        if (!select) {
+            console.error('❌ Селект filterLeague не найден!');
+            return;
+        }
+
+        const currentValue = select.value;
+        select.innerHTML = '<option value="all">🌍 Все лиги (' + ALL_LEAGUES.length + ')</option>';
+
+        ALL_LEAGUES.forEach(league => {
+            const option = document.createElement('option');
+            option.value = league;
+            option.textContent = league;
+            select.appendChild(option);
+        });
+
+        if (currentValue && ALL_LEAGUES.includes(currentValue)) {
+            select.value = currentValue;
+            state.leagueFilter = currentValue;
+        } else {
+            select.value = 'all';
+            state.leagueFilter = 'all';
+        }
+
+        console.log('✅ Фильтр обновлен: ' + ALL_LEAGUES.length + ' лиг');
+        return ALL_LEAGUES;
+    }
+
+    // ================================================================
+    // ===== ГЕНЕРАЦИЯ ТЕСТОВЫХ ПРОГНОЗОВ =====
+    // ================================================================
+
+    function generateTestPredictions() {
+        console.log('📊 Генерация тестовых прогнозов...');
+        const now = new Date();
+        const matches = [];
+        let id = 1;
+
+        // Карта команд для популярных лиг
+        const teamMap = {
+            '🇷🇺 РПЛ': ['Спартак', 'Зенит', 'ЦСКА', 'Динамо', 'Локомотив', 'Краснодар'],
+            '🇷🇺 Первая лига': ['Торпедо', 'Балтика', 'Химки', 'Алания'],
+            '🇷🇺 Вторая лига': ['Родина', 'Велес', 'Спартак-2', 'Зенит-2'],
+            '🏴 АПЛ': ['Ливерпуль', 'Ман Сити', 'Челси', 'Арсенал', 'Тоттенхэм', 'Ньюкасл'],
+            '🏴 Чемпионшип': ['Лестер', 'Лидс', 'Саутгемптон', 'Вест Бром'],
+            '🏴 Лига 1': ['Портсмут', 'Дерби', 'Болтон', 'Чарльтон'],
+            '🇪🇸 Ла Лига': ['Реал Мадрид', 'Барселона', 'Атлетико', 'Севилья', 'Реал Сосьедад'],
+            '🇪🇸 Сегунда': ['Леганес', 'Эйбар', 'Спортинг Хихон', 'Овьедо'],
+            '🇩🇪 Бундеслига': ['Бавария', 'Боруссия', 'Лейпциг', 'Байер', 'Фрайбург'],
+            '🇩🇪 Бундеслига 2': ['Гамбург', 'Шальке', 'Нюрнберг', 'Ганновер'],
+            '🇩🇪 Бундеслига 3': ['Динамо Дрезден', 'Мюнхен 1860', 'Саарбрюккен'],
+            '🇮🇹 Серия А': ['Милан', 'Интер', 'Ювентус', 'Наполи', 'Рома', 'Лацио'],
+            '🇮🇹 Серия В': ['Парма', 'Сампдория', 'Бари', 'Палермо'],
+            '🇮🇹 Серия С': ['Виченца', 'Падова', 'Римини', 'Луккезе'],
+            '🇫🇷 Лига 1': ['ПСЖ', 'Марсель', 'Лион', 'Монако', 'Лилль', 'Ренн'],
+            '🇫🇷 Лига 2': ['Бордо', 'Сент-Этьен', 'Аяччо', 'По'],
+            '🇳🇱 Эредивизи': ['Аякс', 'Фейеноорд', 'ПСВ', 'АЗ Алкмаар', 'Твенте'],
+            '🇳🇱 Эрсте Дивизи': ['Гронинген', 'Камбюр', 'Ден Босх', 'Фолендам'],
+            '🇵🇹 Примейра': ['Бенфика', 'Порту', 'Спортинг', 'Брага', 'Витория'],
+            '🇵🇹 Сегунда': ['Пасуш Феррейра', 'Авеш', 'Академика', 'Лейшойнш'],
+            '🇧🇪 Про-лига': ['Андерлехт', 'Брюгге', 'Гент', 'Стандард', 'Генк'],
+            '🇧🇪 Челленджер-лига': ['Беверен', 'Локерен', 'Кортрейк', 'Моленбек'],
+            '🇹🇷 Суперлига': ['Галатасарай', 'Фенербахче', 'Бешикташ', 'Трабзонспор'],
+            '🇹🇷 Первая лига': ['Гёзтепе', 'Анкарагюджю', 'Бодрум', 'Коджаэлиспор'],
+            '🇺🇦 УПЛ': ['Шахтер', 'Динамо К', 'Днепр-1', 'Заря', 'Ворскла'],
+            '🇺🇦 Первая лига': ['Металлист', 'Карпаты', 'Буковина', 'Нива'],
+            '🇬🇷 Суперлига': ['Олимпиакос', 'ПАОК', 'АЕК', 'Панатинаикос'],
+            '🇬🇷 Суперлига 2': ['Ионикос', 'Хания', 'Каламата', 'Ксанти'],
+            '🇨🇭 Суперлига': ['Янг Бойз', 'Базель', 'Цюрих', 'Серветт'],
+            '🇨🇭 Челлендж-лига': ['Тун', 'Лозанна', 'Виль', 'Беллинцона'],
+            '🇦🇹 Бундеслига': ['Зальцбург', 'Штурм', 'Рапид', 'Аустрия Вена'],
+            '🇦🇹 Вторая лига': ['ЛАСК', 'ГАК', 'Лиферинг', 'Амштеттен'],
+            '🇨🇿 Первая лига': ['Спарта', 'Славия', 'Виктория', 'Сигма'],
+            '🇨🇿 Вторая лига': ['Градец-Кралове', 'Динамо ЧБ', 'Зброёвка', 'Тршинец'],
+            '🇵🇱 Экстракласа': ['Легия', 'Познань', 'Ракув', 'Пяст'],
+            '🇵🇱 Первая лига': ['Арка', 'Висла', 'Заглембе', 'Сталь'],
+            '🇩🇰 Суперлига': ['Копенгаген', 'Брондбю', 'Мидтьюлланн', 'АГФ'],
+            '🇩🇰 Первая лига': ['Эсбьерг', 'Вайле', 'Фредерисия', 'ХБ Кёге'],
+            '🇳🇴 Элитсериен': ['Русенборг', 'Мольде', 'Будё-Глимт', 'Волеренга'],
+            '🇳🇴 Первая лига': ['Бранн', 'Старт', 'Кристиансунн', 'Ранхейм'],
+            '🇸🇪 Аллсвенскан': ['Мальмё', 'Гётеборг', 'АИК', 'Юргорден'],
+            '🇸🇪 Суперэттан': ['Хельсингборг', 'Эребру', 'Треллеборг', 'Йёнчёпинг'],
+            '🇫🇮 Вейккауслига': ['ХИК', 'КуПС', 'Ильвес', 'СЯК'],
+            '🇭🇷 ХНЛ': ['Динамо З', 'Хайдук', 'Осиек', 'Риека'],
+            '🇷🇸 Суперлига': ['Црвена Звезда', 'Партизан', 'ТСЦ', 'Войводина'],
+            '🇸🇰 Суперлига': ['Слован', 'Спартак Трнава', 'Дунайска', 'Михаловце'],
+            '🇸🇮 Первая лига': ['Олимпия', 'Марибор', 'Мура', 'Домжале'],
+            '🇧🇬 Первая лига': ['Лудогорец', 'ЦСКА София', 'Левски', 'Славия'],
+            '🇷🇴 Лига 1': ['Стяуа', 'ЧФР Клуж', 'Университатя', 'Сепси'],
+            '🇭🇺 НБ I': ['Ференцварош', 'МОЛ Види', 'Пушкаш', 'Дебрецен'],
+            '🇮🇱 Лига ХаАль': ['Маккаби Т-А', 'Хапоэль Б-Ш', 'Бейтар', 'Маккаби Х'],
+            '🏴 Шотландский Премьершип': ['Селтик', 'Рейнджерс', 'Абердин', 'Хартс'],
+            '🇮🇪 Ирландская Премьер-лига': ['Шемрок', 'Сент-Патрикс', 'Дандолк', 'Богемианс'],
+            '🏴 Уэльская Премьер-лига': ['Нью-Сейнтс', 'Коннахс-Ки', 'Бала', 'Ньютаун'],
+            '🏆 Лига Чемпионов': ['Реал М', 'Ливерпуль', 'Бавария', 'ПСЖ', 'Ман Сити'],
+            '🏆 Лига Европы': ['Рома', 'Вильярреал', 'Аякс', 'Марсель'],
+            '🏆 Лига Конференций': ['Вест Хэм', 'Астон Вилла', 'Фиорентина', 'Кёльн'],
+            '🌍 Матчи сборных': ['Испания', 'Франция', 'Англия', 'Бразилия'],
+            '🌍 Отборочные ЧМ-2026': ['Аргентина', 'Уругвай', 'Чили', 'Эквадор'],
+            '🌍 Отборочные ЧЕ-2028': ['Германия', 'Италия', 'Португалия', 'Бельгия'],
+            '🌍 Лига Наций УЕФА': ['Хорватия', 'Дания', 'Нидерланды', 'Польша'],
+            '🌍 Кубок Америки': ['Бразилия', 'Аргентина', 'Уругвай', 'Колумбия'],
+            '🌍 Кубок Африки': ['Сенегал', 'Марокко', 'Нигерия', 'Египет'],
+            '🏆 Кубок Англии': ['Ливерпуль', 'Ман Сити', 'Челси', 'Арсенал'],
+            '🏆 Кубок Испании': ['Реал', 'Барса', 'Атлетико', 'Севилья'],
+            '🏆 Кубок Германии': ['Бавария', 'Боруссия', 'Лейпциг', 'Байер'],
+            '🏆 Кубок Италии': ['Милан', 'Интер', 'Ювентус', 'Наполи'],
+            '🇺🇸 MLS': ['ЛА Гэлакси', 'Интер Майами', 'Нью-Йорк', 'Лос-Анджелес'],
+            '🇲🇽 Лига MX': ['Америка', 'Гвадалахара', 'Монтеррей', 'УАНЛ'],
+            '🇧🇷 Бразилия': ['Фламенго', 'Палмейрас', 'Коринтианс', 'Сантос'],
+            '🇦🇷 Аргентина': ['Бока Хуниорс', 'Ривер Плейт', 'Индепендьенте', 'Расинг'],
+            '🇨🇱 Чили': ['Коло-Коло', 'Универсидад', 'Католика', 'Аудакс'],
+            '🇨🇴 Колумбия': ['Атлетико Н', 'Мильонариос', 'Кали', 'Индепендьенте М'],
+            '🇯🇵 J1 Лига': ['Кавасаки', 'Урава', 'Иокогама', 'Гамба Осака'],
+            '🇨🇳 Китай': ['Шанхай', 'Гуанчжоу', 'Бэйцзин', 'Шаньдун'],
+            '🇦🇺 A-Лига': ['Сидней', 'Мельбурн', 'Веллингтон', 'Аделаида'],
+            '🇵🇾 Парагвай': ['Олимпия', 'Либертад', 'Серро Портеньо', 'Гуарани'],
+            '🇺🇾 Уругвай': ['Насьональ', 'Пеньяроль', 'Ливерпуль', 'Данубио'],
+            '🇪🇨 Эквадор': ['Эмелек', 'Барселона', 'Индепендьенте', 'Дельфин'],
+            '🇵🇪 Перу': ['Лимуньо', 'Университарио', 'Альянса', 'Спортинг'],
+            '🇻🇪 Венесуэла': ['Каракас', 'Депортиво Тачира', 'Монагас', 'Самора'],
+            '🇿🇦 ЮАР': ['Маммелоди', 'Орландо', 'Кайзер Чифс', 'Суперспорт'],
+            '🇪🇬 Египет': ['Аль-Ахли', 'Замалек', 'Пирамидс', 'Смуха'],
+            '🇲🇦 Марокко': ['Раджа', 'Видад', 'ФАР', 'Беркан'],
+            '🇳🇬 Нигерия': ['Эньимба', 'Кано', 'Рейнджерс', 'Варри'],
+            '🇸🇦 Саудовская Аравия': ['Аль-Хиляль', 'Аль-Наср', 'Аль-Иттихад', 'Аль-Ахли'],
+            '🇦🇪 ОАЭ': ['Аль-Аин', 'Аль-Васл', 'Шабаб', 'Аль-Вахда'],
+            '🇶🇦 Катар': ['Аль-Садд', 'Аль-Духаиль', 'Аль-Райян', 'Аль-Гарафа'],
+            '🇰🇷 Южная Корея': ['Ульсан', 'Чонбук', 'Пхохан', 'Сувон']
+        };
+
+        const defaultTeams = ['Команда А', 'Команда Б', 'Команда В', 'Команда Г', 'Команда Д'];
+        const predictions = ['ОЗ - ДА', 'Тотал > 2.5', 'Фора +1.5', 'ОЗ - НЕТ', 'Тотал < 2.5', 'Тотал > 3.5'];
+
+        ALL_LEAGUES.forEach((league, index) => {
+            const teams = teamMap[league] || defaultTeams.map(t => t + '_' + index);
+            const numMatches = Math.min(teams.length - 1, 4);
+
+            for (let i = 0; i < numMatches; i++) {
+                for (let j = i + 1; j < Math.min(i + 2, teams.length); j++) {
+                    const home = teams[i];
+                    const away = teams[j];
+                    const confidence = randomBetween(55, 92);
+                    const pred = predictions[randomBetween(0, predictions.length - 1)];
+                    const isLive = Math.random() > 0.8;
+                    const isFinished = Math.random() > 0.92;
+
+                    let status = 'upcoming';
+                    let homeScore = null;
+                    let awayScore = null;
+
+                    if (isFinished) {
+                        status = 'finished';
+                        homeScore = randomBetween(0, 4);
+                        awayScore = randomBetween(0, 4);
+                    } else if (isLive) {
+                        status = 'live';
+                        homeScore = randomBetween(0, 3);
+                        awayScore = randomBetween(0, 3);
+                    }
+
+                    // Добавляем смещение времени для разных матчей
+                    const timeOffset = (id * 2) + randomBetween(0, 6);
+
+                    matches.push({
+                        id: id++,
+                        home: home,
+                        away: away,
+                        league: league,
+                        country: league.split(' ')[1] || 'Мир',
+                        startTime: new Date(now.getTime() + timeOffset * 60 * 60 * 1000),
+                        homeScore: homeScore,
+                        awayScore: awayScore,
+                        status: status,
+                        prediction: pred,
+                        confidence: confidence,
+                        odds: 1.70 + Math.random() * 0.6,
+                        total: Math.random() > 0.5 ? 2.5 : (Math.random() > 0.5 ? 3.5 : 1.5),
+                        oz: Math.random() > 0.5,
+                        isLive: isLive || status === 'live',
+                        isFinished: status === 'finished',
+                        actualOutcome: isFinished ? (Math.random() > 0.5 ? 'win' : 'loss') : undefined
+                    });
+                }
+            }
+        });
+
+        console.log('✅ Сгенерировано ' + matches.length + ' прогнозов для ' + ALL_LEAGUES.length + ' лиг');
+        return matches;
+    }
