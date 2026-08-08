@@ -6218,8 +6218,10 @@ const TOP_LEAGUES = [
     window.addEventListener('resize', () => {
         if (state.currentTab === 'stats') renderChartCanvas();
     });
-</script>
+ // ============================================================
 // ===== ФОРСИРОВАННОЕ ОБНОВЛЕНИЕ ФИЛЬТРА ЛИГ =====
+// ============================================================
+
 function forceUpdateLeagues() {
     console.log('🔧 Принудительное обновление лиг...');
     
@@ -6238,12 +6240,20 @@ function forceUpdateLeagues() {
             .filter((v, i, a) => a.indexOf(v) === i); // Уникальные
     }
     
-    // Если лиг нет - добавляем стандартные
+    // Если лиг нет - добавляем ВСЕ стандартные (23 штуки!)
     if (leagues.length === 0) {
-        leagues = ['РПЛ', 'АПЛ', 'Ла Лига', 'Бундеслига', 'Серия А', 'Лига 1', 'Лига Чемпионов'];
+        leagues = [
+            '🇷🇺 РПЛ', '🏴 АПЛ', '🇪🇸 Ла Лига', '🇩🇪 Бундеслига',
+            '🇮🇹 Серия А', '🇫🇷 Лига 1', '🇳🇱 Эредивизи', '🇵🇹 Примейра',
+            '🇧🇪 Про-лига', '🇹🇷 Суперлига', '🇺🇦 УПЛ', '🏴 Чемпионшип',
+            '🇨🇭 Суперлига', '🇦🇹 Бундеслига', '🇬🇷 Суперлига', '🇨🇿 Первая лига',
+            '🇵🇱 Экстракласа', '🇩🇰 Суперлига', '🇳🇴 Элитсериен', '🇸🇪 Аллсвенскан',
+            '🏆 Лига Чемпионов', '🏆 Лига Европы', '🏆 Лига Конференций',
+            '🌎 MLS', '🇧🇷 Бразилия', '🇦🇷 Аргентина', '🇯🇵 J1 Лига'
+        ];
     }
     
-    console.log(`📊 Найдено лиг: ${leagues.length}`, leagues);
+    console.log(`📊 Найдено лиг: ${leagues.length}`);
     
     // Очищаем и заполняем заново
     select.innerHTML = '<option value="all">🌍 Все лиги</option>';
@@ -6255,9 +6265,12 @@ function forceUpdateLeagues() {
         select.appendChild(option);
     });
     
-    // Применяем фильтр
+    // Восстанавливаем выбранное значение
     if (state.leagueFilter && leagues.includes(state.leagueFilter)) {
         select.value = state.leagueFilter;
+    } else {
+        select.value = 'all';
+        state.leagueFilter = 'all';
     }
     
     // Принудительно применяем фильтры
@@ -6266,7 +6279,10 @@ function forceUpdateLeagues() {
     console.log('✅ Фильтр лиг обновлен!');
 }
 
+// ============================================================
 // ===== ПЕРЕХВАТЫВАЕМ ОБНОВЛЕНИЕ ПРОГНОЗОВ =====
+// ============================================================
+
 const originalRefresh = refreshPredictions;
 refreshPredictions = function() {
     console.log('🔄 Обновление прогнозов...');
@@ -6297,105 +6313,195 @@ refreshPredictions = function() {
         console.error('❌ Ошибка:', error);
         if (icon) icon.textContent = '🔄';
         if (btn) btn.disabled = false;
-        showToast('⚠️ Ошибка обновления', 'error');
+        showToast('⚠️ Ошибка обновления, использую тестовые данные', 'error');
         
-        // Даже при ошибке добавляем стандартные лиги
+        // Даже при ошибке добавляем лиги
         forceUpdateLeagues();
     });
 };
 
-// ===== ПЕРЕХВАТЫВАЕМ ИНИЦИАЛИЗАЦИЮ =====
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Запуск Квантум v5.3...');
-    
-    // ... остальной код инициализации ...
-    
-    // После загрузки прогнозов - форсируем лиги
-    setTimeout(() => {
-        console.log('⏳ Проверка лиг через 1 секунду...');
-        forceUpdateLeagues();
-    }, 1000);
-    
-    // И еще раз через 3 секунды (на всякий случай)
-    setTimeout(() => {
-        console.log('🔄 Повторная проверка лиг...');
-        forceUpdateLeagues();
-    }, 3000);
-});
+// ============================================================
+// ===== ПЕРЕХВАТЫВАЕМ APPLY FILTERS =====
+// ============================================================
 
-// ===== КНОПКА "ПОКАЗАТЬ ВСЕ ЛИГИ" =====
-// Добавляем кнопку в интерфейс (прямо в HTML)
-document.addEventListener('DOMContentLoaded', function() {
-    const filterBar = document.querySelector('.predictions-filter-bar');
-    if (filterBar) {
-        const btn = document.createElement('button');
-        btn.textContent = '🔄 Показать все лиги';
-        btn.style.cssText = 'padding:4px 12px;border-radius:12px;border:1px solid #f7931a;background:transparent;color:#f7931a;font-size:10px;cursor:pointer;';
-        btn.onclick = function() {
-            forceUpdateLeagues();
-            showToast('✅ Лиги обновлены!', 'success');
-        };
-        filterBar.appendChild(btn);
-    }
-});
-
-// ===== ТЕСТОВЫЕ ДАННЫЕ С ЛИГАМИ =====
-// Переопределяем fallback матчи с разными лигами
-const originalFallback = getFallbackMatches;
-getFallbackMatches = function() {
-    const now = new Date();
-    return [
-        {
-            id: 1, home: 'Спартак', away: 'Зенит', 
-            league: '🇷🇺 РПЛ', country: 'Россия',
-            startTime: new Date(now.getTime() + 2 * 60 * 60 * 1000),
-            homeScore: null, awayScore: null, status: 'upcoming',
-            prediction: 'ОЗ - ДА', confidence: 78, odds: 1.95, 
-            total: 2.5, oz: true, isLive: false
-        },
-        {
-            id: 2, home: 'ЦСКА', away: 'Динамо', 
-            league: '🇷🇺 РПЛ', country: 'Россия',
-            startTime: new Date(now.getTime() + 4 * 60 * 60 * 1000),
-            homeScore: null, awayScore: null, status: 'upcoming',
-            prediction: 'Тотал > 2.5', confidence: 72, odds: 1.80,
-            total: 2.5, oz: true, isLive: false
-        },
-        {
-            id: 3, home: 'Реал Мадрид', away: 'Барселона',
-            league: '🇪🇸 Ла Лига', country: 'Испания',
-            startTime: new Date(now.getTime() + 6 * 60 * 60 * 1000),
-            homeScore: null, awayScore: null, status: 'upcoming',
-            prediction: 'ОЗ - ДА', confidence: 85, odds: 1.75,
-            total: 2.5, oz: true, isLive: false
-        },
-        {
-            id: 4, home: 'Ливерпуль', away: 'Ман Сити',
-            league: '🏴 АПЛ', country: 'Англия',
-            startTime: new Date(now.getTime() + 8 * 60 * 60 * 1000),
-            homeScore: null, awayScore: null, status: 'upcoming',
-            prediction: 'Тотал > 2.5', confidence: 82, odds: 1.85,
-            total: 2.5, oz: true, isLive: false
-        },
-        {
-            id: 5, home: 'Бавария', away: 'Боруссия',
-            league: '🇩🇪 Бундеслига', country: 'Германия',
-            startTime: new Date(now.getTime() + 10 * 60 * 60 * 1000),
-            homeScore: null, awayScore: null, status: 'upcoming',
-            prediction: 'ОЗ - ДА', confidence: 80, odds: 1.90,
-            total: 2.5, oz: true, isLive: false
-        },
-        {
-            id: 6, home: 'Милан', away: 'Интер',
-            league: '🇮🇹 Серия А', country: 'Италия',
-            startTime: new Date(now.getTime() + 12 * 60 * 60 * 1000),
-            homeScore: null, awayScore: null, status: 'upcoming',
-            prediction: 'ОЗ - ДА', confidence: 75, odds: 1.95,
-            total: 2.5, oz: true, isLive: false
-        }
-    ];
+const originalApplyFilters = applyFilters;
+applyFilters = function() {
+    console.log('🔍 Применение фильтров...');
+    
+    const totalFilter = document.getElementById('filterTotal')?.value || 'all';
+    const leagueFilter = document.getElementById('filterLeague')?.value || 'all';
+    const confidenceFilter = parseInt(document.getElementById('filterConfidence')?.value) || 0;
+    const typeFilter = document.getElementById('filterType')?.value || 'all';
+    const liveOddsFilter = document.getElementById('filterLiveOdds')?.checked || false;
+    
+    state.totalFilter = totalFilter;
+    state.leagueFilter = leagueFilter;
+    state.confidenceFilter = confidenceFilter;
+    state.typeFilter = typeFilter;
+    state.liveOddsFilter = liveOddsFilter;
+    
+    console.log(`📊 Фильтры: лига=${leagueFilter}, тотал=${totalFilter}, уверенность=${confidenceFilter}%`);
+    
+    renderPredictions();
+    checkNotifications();
 };
 
-console.log('✅ Патч применен! Нажми "Показать все лиги" в фильтрах.');
+// ============================================================
+// ===== РАСШИРЕННЫЕ ТЕСТОВЫЕ ДАННЫЕ С ВСЕМИ ЛИГАМИ =====
+// ============================================================
+
+const originalGetFallback = getFallbackMatches;
+getFallbackMatches = function() {
+    console.log('📋 Генерация тестовых данных с 27 лигами...');
+    const now = new Date();
+    
+    const allLeagues = [
+        { league: '🇷🇺 РПЛ', country: 'Россия' },
+        { league: '🏴 АПЛ', country: 'Англия' },
+        { league: '🇪🇸 Ла Лига', country: 'Испания' },
+        { league: '🇩🇪 Бундеслига', country: 'Германия' },
+        { league: '🇮🇹 Серия А', country: 'Италия' },
+        { league: '🇫🇷 Лига 1', country: 'Франция' },
+        { league: '🇳🇱 Эредивизи', country: 'Нидерланды' },
+        { league: '🇵🇹 Примейра', country: 'Португалия' },
+        { league: '🇧🇪 Про-лига', country: 'Бельгия' },
+        { league: '🇹🇷 Суперлига', country: 'Турция' },
+        { league: '🇺🇦 УПЛ', country: 'Украина' },
+        { league: '🏴 Чемпионшип', country: 'Англия' },
+        { league: '🇨🇭 Суперлига', country: 'Швейцария' },
+        { league: '🇦🇹 Бундеслига', country: 'Австрия' },
+        { league: '🇬🇷 Суперлига', country: 'Греция' },
+        { league: '🇨🇿 Первая лига', country: 'Чехия' },
+        { league: '🇵🇱 Экстракласа', country: 'Польша' },
+        { league: '🇩🇰 Суперлига', country: 'Дания' },
+        { league: '🇳🇴 Элитсериен', country: 'Норвегия' },
+        { league: '🇸🇪 Аллсвенскан', country: 'Швеция' },
+        { league: '🏆 Лига Чемпионов', country: 'Европа' },
+        { league: '🏆 Лига Европы', country: 'Европа' },
+        { league: '🏆 Лига Конференций', country: 'Европа' },
+        { league: '🌎 MLS', country: 'США' },
+        { league: '🇧🇷 Бразилия', country: 'Бразилия' },
+        { league: '🇦🇷 Аргентина', country: 'Аргентина' },
+        { league: '🇯🇵 J1 Лига', country: 'Япония' }
+    ];
+    
+    const teams = [
+        ['Спартак', 'Зенит'],
+        ['Реал', 'Барса'],
+        ['Бавария', 'Боруссия'],
+        ['Милан', 'Интер'],
+        ['ПСЖ', 'Марсель'],
+        ['Аякс', 'Фейеноорд'],
+        ['Бенфика', 'Порту'],
+        ['Андерлехт', 'Брюгге'],
+        ['Галатасарай', 'Фенербахче'],
+        ['Динамо К', 'Шахтер'],
+        ['Ливерпуль', 'Ман Сити'],
+        ['Челси', 'Арсенал'],
+        ['Базель', 'Янг Бойз'],
+        ['Зальцбург', 'Рапид'],
+        ['Олимпиакос', 'ПАОК'],
+        ['Спарта', 'Славия'],
+        ['Легия', 'Лех'],
+        ['Копенгаген', 'Брондбю'],
+        ['Русенборг', 'Мольде'],
+        ['Мальмё', 'Гётеборг'],
+        ['Реал М', 'Ливерпуль'],
+        ['Милан', 'ПСЖ'],
+        ['Аякс', 'Бенфика'],
+        ['ЛА Гэлакси', 'Интер Майами'],
+        ['Фламенго', 'Палмейрас'],
+        ['Бока Хуниорс', 'Ривер Плейт'],
+        ['Кавасаки', 'Урава']
+    ];
+    
+    return allLeagues.map((item, index) => {
+        const teamPair = teams[index % teams.length];
+        const isLive = Math.random() > 0.7;
+        const status = isLive ? 'live' : 'upcoming';
+        const confidence = 65 + Math.floor(Math.random() * 30);
+        
+        return {
+            id: index + 1000,
+            home: teamPair[0],
+            away: teamPair[1],
+            league: item.league,
+            country: item.country,
+            startTime: new Date(now.getTime() + (index + 1) * 2 * 60 * 60 * 1000),
+            homeScore: isLive ? Math.floor(Math.random() * 3) : null,
+            awayScore: isLive ? Math.floor(Math.random() * 3) : null,
+            status: status,
+            prediction: index % 3 === 0 ? 'ОЗ - ДА' : (index % 3 === 1 ? 'Тотал > 2.5' : 'Фора +1.5'),
+            confidence: confidence,
+            odds: 1.80 + Math.random() * 0.4,
+            total: 2.5,
+            oz: index % 2 === 0,
+            isLive: isLive,
+            actualOutcome: status === 'finished' ? (Math.random() > 0.5 ? 'win' : 'loss') : undefined
+        };
+    });
+};
+
+// ============================================================
+// ===== КНОПКА "ПОКАЗАТЬ ВСЕ ЛИГИ" =====
+// ============================================================
+
+function addLeagueRefreshButton() {
+    const filterBar = document.querySelector('.predictions-filter-bar');
+    if (!filterBar) {
+        console.log('⏳ Ждем появления фильтров...');
+        setTimeout(addLeagueRefreshButton, 500);
+        return;
+    }
+    
+    // Проверяем, есть ли уже кнопка
+    if (document.getElementById('forceLeagueBtn')) return;
+    
+    const btn = document.createElement('button');
+    btn.id = 'forceLeagueBtn';
+    btn.textContent = '🔄 Показать лиги';
+    btn.style.cssText = 'padding:4px 12px;border-radius:12px;border:1px solid #f7931a;background:transparent;color:#f7931a;font-size:10px;cursor:pointer;';
+    btn.onclick = function() {
+        forceUpdateLeagues();
+        showToast('✅ Лиги обновлены!', 'success');
+    };
+    filterBar.appendChild(btn);
+    console.log('✅ Кнопка "Показать лиги" добавлена!');
+}
+
+// ============================================================
+// ===== ПЕРЕХВАТЫВАЕМ ИНИЦИАЛИЗАЦИЮ =====
+// ============================================================
+
+const originalInit = document.addEventListener;
+document.addEventListener = function(event, callback) {
+    if (event === 'DOMContentLoaded') {
+        // Оборачиваем оригинальный callback
+        const wrappedCallback = async function(e) {
+            await callback(e);
+            
+            console.log('🚀 Дополнительная инициализация...');
+            
+            // Форсируем лиги через 1 секунду
+            setTimeout(() => {
+                forceUpdateLeagues();
+                addLeagueRefreshButton();
+            }, 1000);
+            
+            // И еще раз через 3 секунды
+            setTimeout(() => {
+                forceUpdateLeagues();
+            }, 3000);
+        };
+        originalInit.call(document, event, wrappedCallback);
+    } else {
+        originalInit.call(document, event, callback);
+    }
+};
+
+console.log('✅ Патч для лиг применен!');
+console.log('📊 В тестовом режиме доступно 27 лиг');
+console.log('🔄 Нажми кнопку "Показать лиги" в фильтрах, если они не появились');       
+</script>
 </body>
 </html>
