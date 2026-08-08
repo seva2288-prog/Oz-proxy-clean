@@ -6503,5 +6503,253 @@ console.log('✅ Патч для лиг применен!');
 console.log('📊 В тестовом режиме доступно 27 лиг');
 console.log('🔄 Нажми кнопку "Показать лиги" в фильтрах, если они не появились');       
 </script>
+<script>
+// ============================================================
+// ===== ЭКСТРЕННОЕ ИСПРАВЛЕНИЕ: ПРИНУДИТЕЛЬНАЯ ЗАГРУЗКА =====
+// ============================================================
+
+(function() {
+    console.log('🚀 ЭКСТРЕННЫЙ ПАТЧ v5.3');
+    
+    // 1. ФОРСИРУЕМ ЗАГРУЗКУ ПРОГНОЗОВ СРАЗУ
+    function emergencyLoad() {
+        console.log('📡 Экстренная загрузка прогнозов...');
+        
+        // Берем лиги из localStorage или создаем стандартные
+        let leagues = [
+            '🇷🇺 РПЛ', '🏴 АПЛ', '🇪🇸 Ла Лига', '🇩🇪 Бундеслига',
+            '🇮🇹 Серия А', '🇫🇷 Лига 1', '🏆 Лига Чемпионов', '🌎 MLS'
+        ];
+        
+        // Если есть сохраненные прогнозы - берем оттуда
+        if (state && state.predictions && state.predictions.length > 0) {
+            const leagueNames = state.predictions.map(m => m.league).filter(Boolean);
+            if (leagueNames.length > 0) {
+                leagues = [...new Set(leagueNames)];
+            }
+        }
+        
+        // Обновляем фильтр
+        const select = document.getElementById('filterLeague');
+        if (select) {
+            select.innerHTML = '<option value="all">🌍 Все лиги</option>';
+            leagues.sort().forEach(league => {
+                const option = document.createElement('option');
+                option.value = league;
+                option.textContent = league;
+                select.appendChild(option);
+            });
+            console.log(`✅ Добавлено ${leagues.length} лиг в фильтр`);
+        }
+        
+        // Убираем "Загрузка..."
+        const empty = document.getElementById('predictionsEmpty');
+        if (empty) {
+            empty.textContent = '🔮 Нет матчей. Нажми "Обновить"';
+        }
+    }
+    
+    // 2. ПЕРЕХВАТЫВАЕМ РЕНДЕРИНГ ПРОГНОЗОВ
+    const origRender = window.renderPredictions;
+    if (origRender) {
+        window.renderPredictions = function() {
+            console.log('🔄 Перехвачен рендеринг прогнозов');
+            // Вызываем оригинальную функцию
+            origRender.call(this);
+            // И сразу обновляем лиги
+            setTimeout(emergencyLoad, 100);
+        };
+    }
+    
+    // 3. ПЕРЕХВАТЫВАЕМ REFRESH
+    const origRefresh = window.refreshPredictions;
+    if (origRefresh) {
+        window.refreshPredictions = function() {
+            console.log('🔄 Перехвачен refresh прогнозов');
+            
+            const btn = document.getElementById('refreshPredictionsBtn');
+            const icon = document.getElementById('refreshIcon');
+            if (icon) icon.textContent = '⏳';
+            if (btn) btn.disabled = true;
+            
+            // Генерируем тестовые данные с лигами
+            const matches = generateTestMatchesWithLeagues();
+            state.predictions = matches;
+            state.lastUpdate = new Date();
+            
+            // Обновляем лиги
+            emergencyLoad();
+            
+            // Рендерим
+            if (origRender) {
+                origRender.call(window);
+            }
+            
+            if (icon) icon.textContent = '🔄';
+            if (btn) btn.disabled = false;
+            
+            // Обновляем счетчик
+            const count = document.getElementById('predictionsCount');
+            if (count) count.textContent = `(${matches.length})`;
+            
+            showToast(`✅ Загружено ${matches.length} прогнозов`, 'success');
+        };
+    }
+    
+    // 4. ГЕНЕРАЦИЯ ТЕСТОВЫХ ДАННЫХ С ЛИГАМИ
+    window.generateTestMatchesWithLeagues = function() {
+        console.log('📊 Генерация тестовых матчей с лигами...');
+        const now = new Date();
+        
+        const leagues = [
+            { name: '🇷🇺 РПЛ', country: 'Россия', teams: ['Спартак', 'Зенит', 'ЦСКА', 'Динамо'] },
+            { name: '🏴 АПЛ', country: 'Англия', teams: ['Ливерпуль', 'Ман Сити', 'Челси', 'Арсенал'] },
+            { name: '🇪🇸 Ла Лига', country: 'Испания', teams: ['Реал Мадрид', 'Барселона', 'Атлетико'] },
+            { name: '🇩🇪 Бундеслига', country: 'Германия', teams: ['Бавария', 'Боруссия', 'Лейпциг'] },
+            { name: '🇮🇹 Серия А', country: 'Италия', teams: ['Милан', 'Интер', 'Ювентус'] },
+            { name: '🇫🇷 Лига 1', country: 'Франция', teams: ['ПСЖ', 'Марсель', 'Лион'] },
+            { name: '🏆 Лига Чемпионов', country: 'Европа', teams: ['Реал М', 'Ливерпуль', 'Бавария'] },
+            { name: '🌎 MLS', country: 'США', teams: ['ЛА Гэлакси', 'Интер Майами', 'Нью-Йорк'] }
+        ];
+        
+        const matches = [];
+        let id = 1;
+        
+        leagues.forEach((league, li) => {
+            const teams = league.teams;
+            for (let i = 0; i < teams.length - 1; i++) {
+                for (let j = i + 1; j < teams.length; j++) {
+                    const home = teams[i];
+                    const away = teams[j];
+                    const confidence = 60 + Math.floor(Math.random() * 35);
+                    const predictions = ['ОЗ - ДА', 'Тотал > 2.5', 'Фора +1.5', 'ОЗ - НЕТ'];
+                    const pred = predictions[Math.floor(Math.random() * predictions.length)];
+                    
+                    matches.push({
+                        id: id++,
+                        home: home,
+                        away: away,
+                        league: league.name,
+                        country: league.country,
+                        startTime: new Date(now.getTime() + (id * 2) * 60 * 60 * 1000),
+                        homeScore: null,
+                        awayScore: null,
+                        status: 'upcoming',
+                        prediction: pred,
+                        confidence: confidence,
+                        odds: 1.75 + Math.random() * 0.5,
+                        total: 2.5,
+                        oz: Math.random() > 0.5,
+                        isLive: false
+                    });
+                }
+            }
+        });
+        
+        // Добавляем несколько live матчей
+        matches.forEach((m, i) => {
+            if (i % 5 === 0) {
+                m.status = 'live';
+                m.homeScore = Math.floor(Math.random() * 3);
+                m.awayScore = Math.floor(Math.random() * 3);
+                m.isLive = true;
+            }
+        });
+        
+        console.log(`✅ Сгенерировано ${matches.length} матчей с лигами`);
+        return matches;
+    };
+    
+    // 5. ЗАПУСКАЕМ ВСЕ СРАЗУ
+    setTimeout(function() {
+        console.log('⏳ Запуск через 500ms...');
+        
+        // Если прогнозов нет - создаем
+        if (!state.predictions || state.predictions.length === 0) {
+            state.predictions = window.generateTestMatchesWithLeagues();
+            state.lastUpdate = new Date();
+            
+            // Обновляем фильтр лиг
+            emergencyLoad();
+            
+            // Рендерим
+            if (window.renderPredictions) {
+                window.renderPredictions();
+            }
+            
+            // Обновляем счетчик
+            const count = document.getElementById('predictionsCount');
+            if (count && state.predictions) {
+                count.textContent = `(${state.predictions.length})`;
+            }
+            
+            // Убираем "Загрузка..."
+            const empty = document.getElementById('predictionsEmpty');
+            if (empty) {
+                empty.style.display = 'none';
+            }
+            
+            // Обновляем список
+            const list = document.getElementById('predictionsList');
+            if (list && state.predictions) {
+                const upcoming = state.predictions.filter(m => m.status !== 'finished');
+                if (upcoming.length > 0) {
+                    list.innerHTML = upcoming.map(m => `
+                        <div class="prediction-card" data-match-id="${m.id}">
+                            <div class="match-info">
+                                <div class="teams">${m.home} vs ${m.away}</div>
+                                <div class="status-badge upcoming">🟢 Через ${Math.floor((new Date(m.startTime) - new Date()) / (60*60*1000))}ч</div>
+                            </div>
+                            <div class="prediction-details">
+                                <span class="highlight">🎯 ${m.prediction}</span>
+                                <span class="confidence-high">📊 ${m.confidence}%</span>
+                                <span>🏆 ${m.league}</span>
+                            </div>
+                            <div class="filter-tags">
+                                <span class="${m.total >= 2.5 ? 'over' : 'under'}">📊 Тотал: ${m.total}</span>
+                                <span class="${m.oz ? 'oz-yes' : 'oz-no'}">⚽ ${m.oz ? 'ОЗ: Да' : 'ОЗ: Нет'}</span>
+                            </div>
+                            <div class="progress"><div class="fill" style="width:${m.confidence}%"></div></div>
+                            <button class="btn-turbo" onclick="turboAnalyze(${m.id})">🔥 Турбо-анализ</button>
+                            <div class="turbo-progress-container">
+                                <div class="turbo-progress-bar">
+                                    <div class="fill turbo-progress-fill" style="width:0%"></div>
+                                </div>
+                                <div class="turbo-progress-text">
+                                    <span class="step turbo-step">Шаг 0/8: Ожидание...</span>
+                                    <span class="percent turbo-percent">0%</span>
+                                </div>
+                            </div>
+                            <div class="turbo-result"></div>
+                        </div>
+                    `).join('');
+                }
+            }
+            
+            console.log('✅ Прогнозы принудительно загружены!');
+            showToast('✅ Прогнозы загружены!', 'success');
+        }
+    }, 500);
+    
+    // 6. ДОБАВЛЯЕМ КНОПКУ В ФИЛЬТРЫ
+    setTimeout(function() {
+        const filterBar = document.querySelector('.predictions-filter-bar');
+        if (filterBar) {
+            // Добавляем кнопку "Показать лиги"
+            const btn = document.createElement('button');
+            btn.textContent = '🔄 Показать лиги';
+            btn.style.cssText = 'padding:4px 12px;border-radius:12px;border:1px solid #f7931a;background:#f7931a;color:#000;font-size:10px;cursor:pointer;font-weight:700;';
+            btn.onclick = function() {
+                emergencyLoad();
+                showToast('✅ Лиги обновлены!', 'success');
+            };
+            filterBar.appendChild(btn);
+            console.log('✅ Кнопка "Показать лиги" добавлена!');
+        }
+    }, 1000);
+    
+    console.log('✅ ЭКСТРЕННЫЙ ПАТЧ УСТАНОВЛЕН!');
+})();
+</script>
 </body>
 </html>
